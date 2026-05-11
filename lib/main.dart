@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:cunning_document_scanner/cunning_document_scanner.dart';
+import 'package:google_mlkit_document_scanner/google_mlkit_document_scanner.dart';
 
 void main() {
   runApp(const AccountantApp());
@@ -129,40 +129,41 @@ class _AccountantShellState extends State<AccountantShell> {
       _currentIndex = 2;
     });
 
-    final isMobileCameraFlow = !kIsWeb &&
-        (defaultTargetPlatform == TargetPlatform.android ||
-            defaultTargetPlatform == TargetPlatform.iOS);
+    final isAndroid =
+        !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
 
-    if (!isMobileCameraFlow) {
+    if (!isAndroid) {
       if (!mounted) {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Document scanning is available on Android and iPhone.',
+            'Document scanning is only available on Android.',
           ),
         ),
       );
       return;
     }
 
+    final scanner = DocumentScanner(
+      options: DocumentScannerOptions(
+        documentFormat: DocumentFormat.jpeg,
+        mode: ScannerMode.full,
+        pageLimit: 1,
+        isGalleryImport: false,
+      ),
+    );
+
     try {
-      final scannedPaths = await CunningDocumentScanner.getPictures(
-        noOfPages: 1,
-        isGalleryImportAllowed: false,
-        iosScannerOptions: IosScannerOptions(
-          imageFormat: IosImageFormat.jpg,
-          jpgCompressionQuality: 0.8,
-        ),
-      );
-      if (!mounted || scannedPaths == null || scannedPaths.isEmpty) {
+      final result = await scanner.scanDocument();
+      if (!mounted || result.images.isEmpty) {
         return;
       }
 
       setState(() {
         _captures.addAll(
-          scannedPaths.map(
+          result.images.map(
             (path) => CapturedShot(
               id: '${DateTime.now().microsecondsSinceEpoch}_$path',
               type: selectedType,
@@ -182,6 +183,8 @@ class _AccountantShellState extends State<AccountantShell> {
           ),
         ),
       );
+    } finally {
+      scanner.close();
     }
   }
 
