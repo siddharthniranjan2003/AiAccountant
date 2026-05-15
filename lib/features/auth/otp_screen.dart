@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../core/palette.dart';
+import '../../core/palette.dart';
 import 'success_screen.dart';
 
 class OtpScreen extends StatefulWidget {
@@ -39,10 +39,7 @@ class _OtpScreenState extends State<OtpScreen> {
     _resendTimer?.cancel();
     setState(() => _resendSeconds = 30);
     _resendTimer = Timer.periodic(const Duration(seconds: 1), (t) {
-      if (!mounted) {
-        t.cancel();
-        return;
-      }
+      if (!mounted) { t.cancel(); return; }
       setState(() {
         if (_resendSeconds > 0) {
           _resendSeconds--;
@@ -141,7 +138,6 @@ class _OtpScreenState extends State<OtpScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const SizedBox(height: 16),
-                    // Back arrow
                     Align(
                       alignment: Alignment.centerLeft,
                       child: GestureDetector(
@@ -151,21 +147,13 @@ class _OtpScreenState extends State<OtpScreen> {
                           height: 38,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: AppPalette.ink,
-                              width: 1.5,
-                            ),
+                            border: Border.all(color: AppPalette.ink, width: 1.5),
                           ),
-                          child: const Icon(
-                            Icons.arrow_back_rounded,
-                            size: 18,
-                            color: AppPalette.ink,
-                          ),
+                          child: const Icon(Icons.arrow_back_rounded, size: 18, color: AppPalette.ink),
                         ),
                       ),
                     ),
                     const SizedBox(height: 20),
-                    // Progress dots
                     Row(
                       children: [
                         _ProgDot(filled: true),
@@ -178,22 +166,14 @@ class _OtpScreenState extends State<OtpScreen> {
                     const SizedBox(height: 28),
                     Text(
                       'enter the code',
-                      style: GoogleFonts.caveat(
-                        fontSize: 34,
-                        fontWeight: FontWeight.w700,
-                        color: AppPalette.ink,
-                      ),
+                      style: GoogleFonts.caveat(fontSize: 34, fontWeight: FontWeight.w700, color: AppPalette.ink),
                     ),
                     const SizedBox(height: 6),
                     Text(
                       'sent to +91 $_maskedPhone',
-                      style: GoogleFonts.kalam(
-                        fontSize: 13,
-                        color: AppPalette.inkSoft,
-                      ),
+                      style: GoogleFonts.kalam(fontSize: 13, color: AppPalette.inkSoft),
                     ),
                     const SizedBox(height: 32),
-                    // OTP boxes
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: List.generate(6, (i) {
@@ -212,10 +192,7 @@ class _OtpScreenState extends State<OtpScreen> {
                       child: _resendSeconds > 0
                           ? Text(
                               'resend in 0:${_resendSeconds.toString().padLeft(2, '0')}',
-                              style: GoogleFonts.kalam(
-                                fontSize: 13,
-                                color: AppPalette.muted,
-                              ),
+                              style: GoogleFonts.kalam(fontSize: 13, color: AppPalette.muted),
                             )
                           : GestureDetector(
                               onTap: _startTimer,
@@ -232,24 +209,13 @@ class _OtpScreenState extends State<OtpScreen> {
                     const SizedBox(height: 28),
                     if (_error != null) ...[
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 8,
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                         decoration: BoxDecoration(
-                          color: AppPalette.accent.withOpacity(0.08),
+                          color: AppPalette.accent.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(7),
-                          border: Border.all(
-                            color: AppPalette.accent.withOpacity(0.3),
-                          ),
+                          border: Border.all(color: AppPalette.accent.withValues(alpha: 0.3)),
                         ),
-                        child: Text(
-                          _error!,
-                          style: GoogleFonts.kalam(
-                            fontSize: 12,
-                            color: AppPalette.accent,
-                          ),
-                        ),
+                        child: Text(_error!, style: GoogleFonts.kalam(fontSize: 12, color: AppPalette.accent)),
                       ),
                       const SizedBox(height: 12),
                     ],
@@ -262,11 +228,7 @@ class _OtpScreenState extends State<OtpScreen> {
                 ),
               ),
             ),
-            _NumKeypad(
-              onDigit: _inputDigit,
-              onBackspace: _backspace,
-              onPaste: _paste,
-            ),
+            _NumKeypad(onDigit: _inputDigit, onBackspace: _backspace, onPaste: _paste),
           ],
         ),
       ),
@@ -274,16 +236,10 @@ class _OtpScreenState extends State<OtpScreen> {
   }
 }
 
-// ─── Shared auth button ────────────────────────────────────────────────────
-
 class _AuthButton extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
-
-  const _AuthButton({
-    required this.label,
-    required this.onTap,
-  });
+  const _AuthButton({required this.label, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -295,28 +251,13 @@ class _AuthButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppPalette.ink,
           borderRadius: BorderRadius.circular(10),
-          boxShadow: const [
-            BoxShadow(
-              color: AppPalette.accent,
-              offset: Offset(3, 3),
-              blurRadius: 0,
-            ),
-          ],
+          boxShadow: const [BoxShadow(color: AppPalette.accent, offset: Offset(3, 3), blurRadius: 0)],
         ),
-        child: Text(
-          label,
-          style: GoogleFonts.kalam(
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-            color: AppPalette.paper,
-          ),
-        ),
+        child: Text(label, style: GoogleFonts.kalam(fontSize: 15, fontWeight: FontWeight.w700, color: AppPalette.paper)),
       ),
     );
   }
 }
-
-// ─── Progress dot ─────────────────────────────────────────────────────────
 
 class _ProgDot extends StatelessWidget {
   final bool filled;
@@ -328,27 +269,18 @@ class _ProgDot extends StatelessWidget {
       width: 22,
       height: 4,
       decoration: BoxDecoration(
-        color: filled
-            ? AppPalette.ink
-            : AppPalette.ink.withOpacity(0.18),
+        color: filled ? AppPalette.ink : AppPalette.ink.withValues(alpha: 0.18),
         borderRadius: BorderRadius.circular(4),
       ),
     );
   }
 }
 
-// ─── OTP box ───────────────────────────────────────────────────────────────
-
 class _OtpBox extends StatelessWidget {
   final String digit;
   final bool isActive;
   final VoidCallback onTap;
-
-  const _OtpBox({
-    required this.digit,
-    required this.isActive,
-    required this.onTap,
-  });
+  const _OtpBox({required this.digit, required this.isActive, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -364,18 +296,11 @@ class _OtpBox extends StatelessWidget {
             color: isActive ? AppPalette.accent : AppPalette.ink,
             width: isActive ? 2.0 : 1.5,
           ),
-          color: Colors.white.withOpacity(0.45),
+          color: Colors.white.withValues(alpha: 0.45),
         ),
         child: digit.isEmpty
             ? (isActive ? const _BlinkingCaret() : const SizedBox.shrink())
-            : Text(
-                digit,
-                style: GoogleFonts.jetBrainsMono(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  color: AppPalette.ink,
-                ),
-              ),
+            : Text(digit, style: GoogleFonts.jetBrainsMono(fontSize: 20, fontWeight: FontWeight.w600, color: AppPalette.ink)),
       ),
     );
   }
@@ -396,7 +321,7 @@ class _BlinkingCaretState extends State<_BlinkingCaret> {
   void initState() {
     super.initState();
     _t = Timer.periodic(const Duration(milliseconds: 500), (_) {
-      if (mounted) { setState(() => _visible = !_visible); }
+      if (mounted) setState(() => _visible = !_visible);
     });
   }
 
@@ -416,27 +341,18 @@ class _BlinkingCaretState extends State<_BlinkingCaret> {
   }
 }
 
-// ─── Numeric keypad ────────────────────────────────────────────────────────
-
 class _NumKeypad extends StatelessWidget {
   final ValueChanged<String> onDigit;
   final VoidCallback onBackspace;
   final VoidCallback onPaste;
-
-  const _NumKeypad({
-    required this.onDigit,
-    required this.onBackspace,
-    required this.onPaste,
-  });
+  const _NumKeypad({required this.onDigit, required this.onBackspace, required this.onPaste});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         color: AppPalette.paper,
-        border: Border(
-          top: BorderSide(color: AppPalette.line, width: 1.2),
-        ),
+        border: Border(top: BorderSide(color: AppPalette.line, width: 1.2)),
       ),
       padding: const EdgeInsets.fromLTRB(18, 10, 18, 18),
       child: Column(
@@ -451,9 +367,7 @@ class _NumKeypad extends StatelessWidget {
             children: [
               Expanded(child: _FnKey(label: 'paste', onTap: onPaste)),
               const SizedBox(width: 6),
-              Expanded(
-                child: _DigitKey(digit: '0', onTap: onDigit),
-              ),
+              Expanded(child: _DigitKey(digit: '0', onTap: onDigit)),
               const SizedBox(width: 6),
               Expanded(child: _FnKey(label: '⌫', onTap: onBackspace)),
             ],
@@ -480,7 +394,6 @@ class _NumKeypad extends StatelessWidget {
 class _DigitKey extends StatelessWidget {
   final String digit;
   final ValueChanged<String> onTap;
-
   const _DigitKey({required this.digit, required this.onTap});
 
   @override
@@ -492,17 +405,10 @@ class _DigitKey extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: AppPalette.ink, width: 1.5),
-          color: Colors.white.withOpacity(0.45),
+          color: Colors.white.withValues(alpha: 0.45),
         ),
         alignment: Alignment.center,
-        child: Text(
-          digit,
-          style: GoogleFonts.jetBrainsMono(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: AppPalette.ink,
-          ),
-        ),
+        child: Text(digit, style: GoogleFonts.jetBrainsMono(fontSize: 20, fontWeight: FontWeight.w600, color: AppPalette.ink)),
       ),
     );
   }
@@ -511,7 +417,6 @@ class _DigitKey extends StatelessWidget {
 class _FnKey extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
-
   const _FnKey({required this.label, required this.onTap});
 
   @override
@@ -525,10 +430,7 @@ class _FnKey extends StatelessWidget {
           child: Center(
             child: Text(
               label,
-              style: GoogleFonts.kalam(
-                fontSize: label == '⌫' ? 18 : 12,
-                color: AppPalette.inkSoft,
-              ),
+              style: GoogleFonts.kalam(fontSize: label == '⌫' ? 18 : 12, color: AppPalette.inkSoft),
             ),
           ),
         ),

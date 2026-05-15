@@ -17,7 +17,7 @@ class AppBottomNav extends StatelessWidget {
     return Container(
       height: kBottomNavHeight,
       decoration: BoxDecoration(
-        color: AppPalette.paper.withOpacity(0.92),
+        color: AppPalette.paper.withValues(alpha: 0.92),
         border: const Border(
           top: BorderSide(color: AppPalette.ink, width: 1.5),
         ),
@@ -49,11 +49,9 @@ class AppBottomNav extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Transform.translate(
-                            offset:
-                                Offset(0, index == 2 ? -18 : 0),
+                            offset: Offset(0, index == 2 ? -18 : 0),
                             child: AnimatedContainer(
-                              duration:
-                                  const Duration(milliseconds: 180),
+                              duration: const Duration(milliseconds: 180),
                               curve: Curves.easeOut,
                               width: index == 2 ? 52 : 40,
                               height: index == 2 ? 52 : 40,
@@ -67,8 +65,7 @@ class AppBottomNav extends StatelessWidget {
                                         ? AppPalette.accent
                                         : AppPalette.sheet
                                     : currentIndex == index
-                                        ? AppPalette.accent2
-                                            .withOpacity(0.45)
+                                        ? AppPalette.accent2.withValues(alpha: 0.45)
                                         : Colors.transparent,
                                 border: Border.all(
                                   color: AppPalette.ink,
@@ -78,8 +75,7 @@ class AppBottomNav extends StatelessWidget {
                               child: Icon(
                                 bottomNavItems[index].icon,
                                 size: index == 2 ? 26 : 20,
-                                color: index == 2 &&
-                                        currentIndex == index
+                                color: index == 2 && currentIndex == index
                                     ? Colors.white
                                     : AppPalette.ink,
                               ),

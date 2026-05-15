@@ -10,12 +10,7 @@ class CameraOverlayBrackets extends StatelessWidget {
         CameraCorner(top: 72, left: 28),
         CameraCorner(top: 72, right: 28, rightSide: true),
         CameraCorner(bottom: 132, left: 28, bottomSide: true),
-        CameraCorner(
-          bottom: 132,
-          right: 28,
-          rightSide: true,
-          bottomSide: true,
-        ),
+        CameraCorner(bottom: 132, right: 28, rightSide: true, bottomSide: true),
       ],
     );
   }
@@ -49,22 +44,14 @@ class CameraCorner extends StatelessWidget {
       child: SizedBox(
         width: 26,
         height: 26,
-        child: CustomPaint(
-          painter: _CornerPainter(
-            rightSide: rightSide,
-            bottomSide: bottomSide,
-          ),
-        ),
+        child: CustomPaint(painter: _CornerPainter(rightSide: rightSide, bottomSide: bottomSide)),
       ),
     );
   }
 }
 
 class _CornerPainter extends CustomPainter {
-  const _CornerPainter({
-    required this.rightSide,
-    required this.bottomSide,
-  });
+  const _CornerPainter({required this.rightSide, required this.bottomSide});
 
   final bool rightSide;
   final bool bottomSide;
@@ -77,22 +64,16 @@ class _CornerPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
-    final horizontalStart =
-        Offset(rightSide ? size.width : 0, bottomSide ? size.height : 0);
-    final horizontalEnd = Offset(
-        rightSide ? size.width - 18 : 18, bottomSide ? size.height : 0);
-    final verticalStart =
-        Offset(rightSide ? size.width : 0, bottomSide ? size.height : 0);
-    final verticalEnd = Offset(
-        rightSide ? size.width : 0, bottomSide ? size.height - 18 : 18);
+    final horizontalStart = Offset(rightSide ? size.width : 0, bottomSide ? size.height : 0);
+    final horizontalEnd = Offset(rightSide ? size.width - 18 : 18, bottomSide ? size.height : 0);
+    final verticalStart = Offset(rightSide ? size.width : 0, bottomSide ? size.height : 0);
+    final verticalEnd = Offset(rightSide ? size.width : 0, bottomSide ? size.height - 18 : 18);
 
     canvas.drawLine(horizontalStart, horizontalEnd, paint);
     canvas.drawLine(verticalStart, verticalEnd, paint);
   }
 
   @override
-  bool shouldRepaint(covariant _CornerPainter oldDelegate) {
-    return oldDelegate.rightSide != rightSide ||
-        oldDelegate.bottomSide != bottomSide;
-  }
+  bool shouldRepaint(covariant _CornerPainter oldDelegate) =>
+      oldDelegate.rightSide != rightSide || oldDelegate.bottomSide != bottomSide;
 }

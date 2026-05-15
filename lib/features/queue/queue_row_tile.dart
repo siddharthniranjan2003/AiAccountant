@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../core/palette.dart';
-import '../core/models.dart';
-import '../core/utils.dart';
-import 'ink_checkbox.dart';
+import '../../core/palette.dart';
+import '../../core/models.dart';
+import '../../core/utils.dart';
+import '../../shared/ink_checkbox.dart';
 
 class QueueRowTile extends StatelessWidget {
   const QueueRowTile({
@@ -34,10 +34,7 @@ class QueueRowTile extends StatelessWidget {
           border: Border(
             top: isFirst
                 ? BorderSide.none
-                : BorderSide(
-                    color: AppPalette.line.withOpacity(0.8),
-                    width: 1,
-                  ),
+                : BorderSide(color: AppPalette.line.withValues(alpha: 0.8), width: 1),
           ),
         ),
         child: Padding(
@@ -48,9 +45,7 @@ class QueueRowTile extends StatelessWidget {
                 width: 22,
                 child: Text(
                   '$serialNumber',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppPalette.muted,
-                      ),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppPalette.muted),
                 ),
               ),
               const SizedBox(width: 8),
@@ -61,16 +56,13 @@ class QueueRowTile extends StatelessWidget {
                     entry.party,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style:
-                        Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: isDone
-                                  ? AppPalette.muted
-                                  : AppPalette.pen,
-                              fontWeight: FontWeight.w800,
-                              decoration: isDone
-                                  ? TextDecoration.lineThrough
-                                  : TextDecoration.underline,
-                            ),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: isDone ? AppPalette.muted : AppPalette.pen,
+                          fontWeight: FontWeight.w800,
+                          decoration: isDone
+                              ? TextDecoration.lineThrough
+                              : TextDecoration.underline,
+                        ),
                   ),
                 ),
               ),
@@ -79,10 +71,7 @@ class QueueRowTile extends StatelessWidget {
                 child: Text(
                   formatCurrency(entry.amount),
                   textAlign: TextAlign.right,
-                  style:
-                      Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
                 ),
               ),
               const SizedBox(width: 8),
@@ -91,11 +80,10 @@ class QueueRowTile extends StatelessWidget {
                 child: Text(
                   entry.timeLabel,
                   textAlign: TextAlign.right,
-                  style:
-                      Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppPalette.inkSoft,
-                            fontWeight: FontWeight.w700,
-                          ),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppPalette.inkSoft,
+                        fontWeight: FontWeight.w700,
+                      ),
                 ),
               ),
               const SizedBox(width: 8),

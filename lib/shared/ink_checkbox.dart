@@ -26,9 +26,9 @@ class InkCheckbox extends StatelessWidget {
         height: 18,
         decoration: BoxDecoration(
           color: success
-              ? AppPalette.success.withOpacity(0.16)
+              ? AppPalette.success.withValues(alpha: 0.16)
               : value
-                  ? AppPalette.accent2.withOpacity(0.26)
+                  ? AppPalette.accent2.withValues(alpha: 0.26)
                   : Colors.transparent,
           borderRadius: BorderRadius.circular(5),
           border: Border.all(

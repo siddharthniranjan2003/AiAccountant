@@ -3,12 +3,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../core/models.dart';
-import '../core/seed_data.dart';
-import '../widgets/screen_frame.dart';
-import '../widgets/app_top_tabs.dart';
-import '../widgets/history_card.dart';
-import '../widgets/voucher_detail_sheet.dart';
+import '../../core/models.dart';
+import '../../data/seed_data.dart';
+import '../../shared/screen_frame.dart';
+import '../../shared/app_top_tabs.dart';
+import '../queue/voucher_detail_sheet.dart';
+import 'history_card.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({
@@ -27,7 +27,6 @@ class HistoryScreen extends StatefulWidget {
 class _HistoryScreenState extends State<HistoryScreen> {
   int _filterIndex = 0;
 
-  // Raw pushed rows from Supabase — keyed by row id for easy update/remove
   final Map<String, Map<String, dynamic>> _pushedRowsById = {};
   RealtimeChannel? _channel;
 
@@ -53,7 +52,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   Future<void> _fetchAndSubscribe() async {
-    // Initial fetch
     try {
       final response = await Supabase.instance.client
           .from('push_queue')
@@ -71,7 +69,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
       });
     } catch (_) {}
 
-    // Realtime
     _channel = Supabase.instance.client
         .channel('history_push_queue')
         .onPostgresChanges(
@@ -119,8 +116,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
         .subscribe();
   }
 
-  // ── Mapping ────────────────────────────────────────────────────────────────
-
   static Map<String, dynamic> _parsePayload(dynamic raw) {
     if (raw is Map<String, dynamic>) return raw;
     if (raw is String) {
@@ -135,8 +130,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final payload = _parsePayload(row['voucher_payload']);
     final partyName = payload['party_name'] as String? ?? 'Unknown';
     final ledgers =
-        (payload['ledger_entries'] as List?)?.cast<Map<String, dynamic>>() ??
-            [];
+        (payload['ledger_entries'] as List?)?.cast<Map<String, dynamic>>() ?? [];
     final amount = ledgers.isNotEmpty
         ? ((ledgers.first['amount'] as num?)?.toDouble() ?? 0.0).abs()
         : 0.0;
@@ -147,14 +141,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ?.toLocal() ??
         DateTime.now();
 
-    const months = [
-      '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-    ];
-    const fullMonths = [
-      '', 'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December',
-    ];
+    const months = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const fullMonths = ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
     return HistoryEntry(
       party: partyName,
@@ -184,8 +172,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-  // ── Build ──────────────────────────────────────────────────────────────────
-
   @override
   Widget build(BuildContext context) {
     final visibleItems = switch (_filterIndex) {
@@ -212,10 +198,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           Expanded(
             child: visibleItems.isEmpty
                 ? const Center(
-                    child: Text(
-                      'No records',
-                      style: TextStyle(color: Color(0xFF8A8576)),
-                    ),
+                    child: Text('No records', style: TextStyle(color: Color(0xFF8A8576))),
                   )
                 : ListView(
                     padding: const EdgeInsets.fromLTRB(12, 12, 12, 16),
@@ -225,10 +208,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           padding: const EdgeInsets.fromLTRB(2, 6, 2, 8),
                           child: Text(
                             group.key,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge
-                                ?.copyWith(
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                   fontStyle: FontStyle.italic,
                                   fontWeight: FontWeight.w800,
                                 ),
@@ -237,9 +217,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         for (final entry in group.value) ...[
                           HistoryCard(
                             entry: entry,
-                            onTap: entry.rowId.isNotEmpty
-                                ? () => _openSheet(entry)
-                                : null,
+                            onTap: entry.rowId.isNotEmpty ? () => _openSheet(entry) : null,
                           ),
                           const SizedBox(height: 8),
                         ],

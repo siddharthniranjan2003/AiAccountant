@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../core/palette.dart';
+import '../../core/palette.dart';
 import 'login_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -63,7 +63,7 @@ class _SplashScreenState extends State<SplashScreen>
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: AppPalette.accent.withOpacity(0.55),
+                        color: AppPalette.accent.withValues(alpha: 0.55),
                         offset: const Offset(5, 5),
                         blurRadius: 0,
                       ),
@@ -141,7 +141,7 @@ class _Dot extends StatelessWidget {
       decoration: BoxDecoration(
         color: active
             ? AppPalette.ink
-            : AppPalette.ink.withOpacity(0.18),
+            : AppPalette.ink.withValues(alpha: 0.18),
         borderRadius: BorderRadius.circular(4),
       ),
     );

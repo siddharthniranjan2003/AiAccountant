@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../core/palette.dart';
-import '../app_shell.dart';
+import '../../core/palette.dart';
+import '../shell/app_shell.dart';
 
 class SuccessScreen extends StatefulWidget {
   const SuccessScreen({super.key});
@@ -59,7 +59,7 @@ class _SuccessScreenState extends State<SuccessScreen>
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(color: AppPalette.success, width: 3),
-                    color: AppPalette.success.withOpacity(0.07),
+                    color: AppPalette.success.withValues(alpha: 0.07),
                   ),
                   alignment: Alignment.center,
                   child: const Icon(
@@ -96,7 +96,7 @@ class _SuccessScreenState extends State<SuccessScreen>
                   animation: _progress,
                   builder: (_, _) => LinearProgressIndicator(
                     value: _progress.value,
-                    backgroundColor: AppPalette.ink.withOpacity(0.12),
+                    backgroundColor: AppPalette.ink.withValues(alpha: 0.12),
                     valueColor:
                         const AlwaysStoppedAnimation(AppPalette.ink),
                     borderRadius: BorderRadius.circular(4),

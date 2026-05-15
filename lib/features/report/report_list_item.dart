@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../core/palette.dart';
-import '../core/models.dart';
+import '../../core/palette.dart';
+import '../../core/models.dart';
 
 class ReportListItem extends StatelessWidget {
   const ReportListItem({
@@ -22,12 +22,7 @@ class ReportListItem extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
         decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(
-              color: AppPalette.line.withOpacity(0.9),
-              width: 1,
-            ),
-          ),
+          border: Border(bottom: BorderSide(color: AppPalette.line.withValues(alpha: 0.9), width: 1)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -48,10 +43,7 @@ class ReportListItem extends StatelessWidget {
                   const SizedBox(
                     width: 14,
                     height: 14,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 1.7,
-                      color: AppPalette.accent,
-                    ),
+                    child: CircularProgressIndicator(strokeWidth: 1.7, color: AppPalette.accent),
                   ),
               ],
             ),
@@ -59,17 +51,12 @@ class ReportListItem extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  category.emoji,
-                  style: const TextStyle(fontSize: 18),
-                ),
+                Text(category.emoji, style: const TextStyle(fontSize: 18)),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     category.description,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppPalette.inkSoft,
-                        ),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppPalette.inkSoft),
                   ),
                 ),
               ],

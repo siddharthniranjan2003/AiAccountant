@@ -43,8 +43,7 @@ class ScreenFrame extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: AppPalette.sheet,
                     borderRadius: BorderRadius.circular(32),
-                    border:
-                        Border.all(color: AppPalette.ink, width: 1.8),
+                    border: Border.all(color: AppPalette.ink, width: 1.8),
                     boxShadow: const [
                       BoxShadow(
                         color: Color(0x1A141E3C),
@@ -94,7 +93,7 @@ class _PaperPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final linePaint = Paint()
-      ..color = AppPalette.line.withOpacity(0.12)
+      ..color = AppPalette.line.withValues(alpha: 0.12)
       ..strokeWidth = 1;
 
     for (double y = 24; y < size.height; y += 30) {

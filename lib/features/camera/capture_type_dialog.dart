@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../core/palette.dart';
-import '../core/models.dart';
+import '../../core/palette.dart';
+import '../../core/models.dart';
 
 class CaptureTypeDialog extends StatelessWidget {
   const CaptureTypeDialog({super.key});
@@ -33,16 +33,14 @@ class CaptureTypeDialog extends StatelessWidget {
                 Expanded(
                   child: CaptureTypeOption(
                     label: 'Sale',
-                    onTap: () =>
-                        Navigator.of(context).pop(TransactionType.sale),
+                    onTap: () => Navigator.of(context).pop(TransactionType.sale),
                   ),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
                   child: CaptureTypeOption(
                     label: 'Purchase',
-                    onTap: () =>
-                        Navigator.of(context).pop(TransactionType.purchase),
+                    onTap: () => Navigator.of(context).pop(TransactionType.purchase),
                   ),
                 ),
               ],
@@ -51,17 +49,9 @@ class CaptureTypeDialog extends StatelessWidget {
             RichText(
               textAlign: TextAlign.center,
               text: TextSpan(
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppPalette.inkSoft,
-                    ),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppPalette.inkSoft),
                 children: const [
-                  TextSpan(
-                    text: 'Then ',
-                    style: TextStyle(
-                      color: AppPalette.accent,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
+                  TextSpan(text: 'Then ', style: TextStyle(color: AppPalette.accent, fontWeight: FontWeight.w800)),
                   TextSpan(text: 'camera opens, already tagged'),
                 ],
               ),
@@ -74,11 +64,7 @@ class CaptureTypeDialog extends StatelessWidget {
 }
 
 class CaptureTypeOption extends StatelessWidget {
-  const CaptureTypeOption({
-    super.key,
-    required this.label,
-    required this.onTap,
-  });
+  const CaptureTypeOption({super.key, required this.label, required this.onTap});
 
   final String label;
   final VoidCallback onTap;
@@ -91,7 +77,7 @@ class CaptureTypeOption extends StatelessWidget {
       child: Container(
         height: 122,
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.7),
+          color: Colors.white.withValues(alpha: 0.7),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(color: AppPalette.ink, width: 1.5),
         ),
@@ -104,22 +90,13 @@ class CaptureTypeOption extends StatelessWidget {
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10),
-                color: AppPalette.accent2.withOpacity(0.35),
+                color: AppPalette.accent2.withValues(alpha: 0.35),
                 border: Border.all(color: AppPalette.ink, width: 1.2),
               ),
-              child: const Icon(
-                Icons.inventory_2_rounded,
-                color: AppPalette.accent,
-                size: 18,
-              ),
+              child: const Icon(Icons.inventory_2_rounded, color: AppPalette.accent, size: 18),
             ),
             const SizedBox(height: 12),
-            Text(
-              label,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-            ),
+            Text(label, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
           ],
         ),
       ),

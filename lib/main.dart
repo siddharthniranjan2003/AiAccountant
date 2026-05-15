@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'app_shell.dart';
+import 'features/shell/app_shell.dart';
+import 'features/auth/splash_screen.dart';
 import 'core/theme.dart';
 import 'firebase_options.dart';
-import 'screens/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

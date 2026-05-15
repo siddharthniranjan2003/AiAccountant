@@ -126,7 +126,6 @@ class _AppSpreadsheetSheetState extends State<AppSpreadsheetSheet> {
                           ),
                   ),
                   const SizedBox(width: 4),
-                  // Search toggle
                   IconButton(
                     onPressed: _toggleSearch,
                     icon: Icon(
@@ -134,14 +133,15 @@ class _AppSpreadsheetSheetState extends State<AppSpreadsheetSheet> {
                           ? Icons.search_off_rounded
                           : Icons.search_rounded,
                       size: 20,
-                      color: _showSearch ? AppPalette.accent : AppPalette.inkSoft,
+                      color: _showSearch
+                          ? AppPalette.accent
+                          : AppPalette.inkSoft,
                     ),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                     visualDensity: VisualDensity.compact,
                   ),
                   const SizedBox(width: 8),
-                  // Share
                   if (widget.onShare != null)
                     IconButton(
                       onPressed: widget.onShare,
@@ -168,8 +168,7 @@ class _AppSpreadsheetSheetState extends State<AppSpreadsheetSheet> {
             ),
             Container(
               width: double.infinity,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
               decoration: const BoxDecoration(
                 border: Border(
                   top: BorderSide(color: AppPalette.ink, width: 1.2),
@@ -199,7 +198,6 @@ class _AppSpreadsheetSheetState extends State<AppSpreadsheetSheet> {
   }
 }
 
-// Horizontally scrollable grid with lazy vertical rendering for large datasets.
 class _LazySpreadsheet extends StatefulWidget {
   const _LazySpreadsheet({
     required this.columnLabels,
@@ -217,10 +215,8 @@ class _LazySpreadsheet extends StatefulWidget {
 
 class _LazySpreadsheetState extends State<_LazySpreadsheet> {
   final _hScroll = ScrollController();
-
   static const double _borderWidth = 1.3;
 
-  // +2*border so the border doesn't eat into cell widths
   double get _totalWidth =>
       widget.columnWidths.fold(0.0, (sum, w) => sum + w) + _borderWidth * 2;
 
@@ -247,27 +243,24 @@ class _LazySpreadsheetState extends State<_LazySpreadsheet> {
         child: Container(
           width: _totalWidth,
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.74),
+            color: Colors.white.withValues(alpha: 0.74),
             borderRadius: BorderRadius.circular(18),
             border: Border.all(color: AppPalette.ink, width: _borderWidth),
           ),
           child: Column(
             children: [
-              // Letter header (A, B, C…)
               SpreadsheetGridRow(
                 cells: ['', ...letters],
                 widths: widget.columnWidths,
                 isHeader: true,
                 backgroundColor: AppPalette.gridHeader,
               ),
-              // Column-label header
               SpreadsheetGridRow(
                 cells: ['', ...widget.columnLabels],
                 widths: widget.columnWidths,
                 isHeader: true,
-                backgroundColor: AppPalette.gridHeader.withOpacity(0.58),
+                backgroundColor: AppPalette.gridHeader.withValues(alpha: 0.58),
               ),
-              // Data rows — lazy
               Expanded(
                 child: ListView.builder(
                   padding: EdgeInsets.zero,
@@ -279,7 +272,7 @@ class _LazySpreadsheetState extends State<_LazySpreadsheet> {
                       isHeader: false,
                       backgroundColor: i.isEven
                           ? Colors.white
-                          : AppPalette.paper.withOpacity(0.5),
+                          : AppPalette.paper.withValues(alpha: 0.5),
                     );
                   },
                 ),
@@ -313,7 +306,7 @@ class SpreadsheetGrid extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.74),
+        color: Colors.white.withValues(alpha: 0.74),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: AppPalette.ink, width: 1.3),
       ),
@@ -330,7 +323,7 @@ class SpreadsheetGrid extends StatelessWidget {
             cells: [''] + columnLabels,
             widths: columnWidths,
             isHeader: true,
-            backgroundColor: AppPalette.gridHeader.withOpacity(0.58),
+            backgroundColor: AppPalette.gridHeader.withValues(alpha: 0.58),
           ),
           for (int rowIndex = 0; rowIndex < rows.length; rowIndex++)
             SpreadsheetGridRow(
@@ -339,7 +332,7 @@ class SpreadsheetGrid extends StatelessWidget {
               isHeader: false,
               backgroundColor: rowIndex.isEven
                   ? Colors.white
-                  : AppPalette.paper.withOpacity(0.5),
+                  : AppPalette.paper.withValues(alpha: 0.5),
             ),
         ],
       ),
@@ -368,7 +361,7 @@ class SpreadsheetGridRow extends StatelessWidget {
         color: backgroundColor,
         border: Border(
           bottom: BorderSide(
-            color: AppPalette.ink.withOpacity(0.18),
+            color: AppPalette.ink.withValues(alpha: 0.18),
             width: 1,
           ),
         ),
@@ -378,14 +371,13 @@ class SpreadsheetGridRow extends StatelessWidget {
           for (int index = 0; index < cells.length; index++)
             Container(
               width: widths[index],
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 10, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
               decoration: BoxDecoration(
                 border: Border(
                   right: index == cells.length - 1
                       ? BorderSide.none
                       : BorderSide(
-                          color: AppPalette.ink.withOpacity(0.14),
+                          color: AppPalette.ink.withValues(alpha: 0.14),
                         ),
                 ),
               ),
@@ -393,15 +385,13 @@ class SpreadsheetGridRow extends StatelessWidget {
                 cells[index],
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                textAlign:
-                    index == 0 ? TextAlign.center : TextAlign.left,
+                textAlign: index == 0 ? TextAlign.center : TextAlign.left,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: cells[index].isEmpty
                           ? AppPalette.muted
                           : AppPalette.ink,
-                      fontWeight: isHeader
-                          ? FontWeight.w800
-                          : FontWeight.w600,
+                      fontWeight:
+                          isHeader ? FontWeight.w800 : FontWeight.w600,
                     ),
               ),
             ),

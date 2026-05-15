@@ -1,8 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../widgets/screen_frame.dart';
-import '../widgets/profile_header_card.dart';
-import 'splash_screen.dart';
+import '../../shared/screen_frame.dart';
+import '../auth/splash_screen.dart';
+import 'profile_header_card.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({
@@ -45,11 +45,7 @@ class ProfileScreen extends StatelessWidget {
           const SizedBox(height: 6),
           const SettingRow(label: 'Help & support'),
           const SizedBox(height: 6),
-          SettingRow(
-            label: 'Sign out',
-            destructive: true,
-            onTap: () => _signOut(context),
-          ),
+          SettingRow(label: 'Sign out', destructive: true, onTap: () => _signOut(context)),
         ],
       ),
     );

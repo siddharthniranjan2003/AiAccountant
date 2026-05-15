@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../core/palette.dart';
+import '../../core/palette.dart';
 
 class QueueTableHeader extends StatelessWidget {
   const QueueTableHeader({super.key});
@@ -9,41 +9,20 @@ class QueueTableHeader extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: BoxDecoration(
-        color: AppPalette.gridHeader.withOpacity(0.65),
+        color: AppPalette.gridHeader.withValues(alpha: 0.65),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppPalette.ink, width: 1.3),
       ),
       child: Row(
         children: [
-          SizedBox(
-            width: 22,
-            child: _TextCell(
-                text: '#', align: TextAlign.left, isHeader: true),
-          ),
+          SizedBox(width: 22, child: _TextCell(text: '#', align: TextAlign.left, isHeader: true)),
           const SizedBox(width: 8),
-          const Expanded(
-            child: _TextCell(
-                text: 'Party', align: TextAlign.left, isHeader: true),
-          ),
-          SizedBox(
-            width: 76,
-            child: _TextCell(
-                text: 'Amount',
-                align: TextAlign.right,
-                isHeader: true),
-          ),
+          const Expanded(child: _TextCell(text: 'Party', align: TextAlign.left, isHeader: true)),
+          SizedBox(width: 76, child: _TextCell(text: 'Amount', align: TextAlign.right, isHeader: true)),
           const SizedBox(width: 8),
-          SizedBox(
-            width: 52,
-            child: _TextCell(
-                text: 'Time', align: TextAlign.right, isHeader: true),
-          ),
+          SizedBox(width: 52, child: _TextCell(text: 'Time', align: TextAlign.right, isHeader: true)),
           const SizedBox(width: 8),
-          SizedBox(
-            width: 22,
-            child: _TextCell(
-                text: '', align: TextAlign.center, isHeader: true),
-          ),
+          SizedBox(width: 22, child: _TextCell(text: '', align: TextAlign.center, isHeader: true)),
         ],
       ),
     );
@@ -51,11 +30,7 @@ class QueueTableHeader extends StatelessWidget {
 }
 
 class _TextCell extends StatelessWidget {
-  const _TextCell({
-    required this.text,
-    this.align = TextAlign.left,
-    this.isHeader = false,
-  });
+  const _TextCell({required this.text, this.align = TextAlign.left, this.isHeader = false});
 
   final String text;
   final TextAlign align;

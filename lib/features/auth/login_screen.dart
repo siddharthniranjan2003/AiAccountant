@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../core/palette.dart';
+import '../../core/palette.dart';
 import 'otp_screen.dart';
 import 'success_screen.dart';
 
@@ -13,7 +13,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  int _mode = 0; // 0 = email, 1 = phone
+  int _mode = 0;
 
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
@@ -47,10 +47,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
     setState(() { _loading = true; _error = null; });
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: email,
-        password: pass,
-      );
+      await FirebaseAuth.instance.signInWithEmailAndPassword(email: email, password: pass);
       if (mounted) _goToSuccess();
     } on FirebaseAuthException catch (e) {
       if (mounted) setState(() { _loading = false; _error = _friendlyError(e.code); });
@@ -87,15 +84,10 @@ class _LoginScreenState extends State<LoginScreen> {
         setState(() => _loading = false);
         Navigator.of(context).push(
           PageRouteBuilder(
-            pageBuilder: (_, _, _) => OtpScreen(
-              phone: phone,
-              verificationId: verificationId,
-            ),
+            pageBuilder: (_, _, _) => OtpScreen(phone: phone, verificationId: verificationId),
             transitionsBuilder: (_, anim, _, child) => SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(1, 0),
-                end: Offset.zero,
-              ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOut)),
+              position: Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero)
+                  .animate(CurvedAnimation(parent: anim, curve: Curves.easeOut)),
               child: child,
             ),
             transitionDuration: const Duration(milliseconds: 300),
@@ -157,19 +149,16 @@ class _LoginScreenState extends State<LoginScreen> {
                         emailCtrl: _emailCtrl,
                         passCtrl: _passCtrl,
                         passVisible: _passVisible,
-                        onPassToggle: () =>
-                            setState(() => _passVisible = !_passVisible),
+                        onPassToggle: () => setState(() => _passVisible = !_passVisible),
                         rememberMe: _rememberMe,
-                        onRememberMe: (v) =>
-                            setState(() => _rememberMe = v ?? true),
+                        onRememberMe: (v) => setState(() => _rememberMe = v ?? true),
                         onSignIn: _signInWithEmail,
                       )
                     : _PhonePane(
                         key: const ValueKey('phone'),
                         phoneCtrl: _phoneCtrl,
                         whatsappOk: _whatsappOk,
-                        onWhatsapp: (v) =>
-                            setState(() => _whatsappOk = v ?? true),
+                        onWhatsapp: (v) => setState(() => _whatsappOk = v ?? true),
                         onSendOtp: _sendOtp,
                       ),
               ),
@@ -178,14 +167,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   decoration: BoxDecoration(
-                    color: AppPalette.accent.withOpacity(0.08),
+                    color: AppPalette.accent.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(7),
-                    border: Border.all(color: AppPalette.accent.withOpacity(0.3)),
+                    border: Border.all(color: AppPalette.accent.withValues(alpha: 0.3)),
                   ),
-                  child: Text(
-                    _error!,
-                    style: GoogleFonts.kalam(fontSize: 12, color: AppPalette.accent),
-                  ),
+                  child: Text(_error!, style: GoogleFonts.kalam(fontSize: 12, color: AppPalette.accent)),
                 ),
               ],
               if (_loading) ...[
@@ -195,22 +181,15 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 28),
               Row(
                 children: [
-                  const Expanded(
-                    child: Divider(color: AppPalette.ink, thickness: 1),
-                  ),
+                  const Expanded(child: Divider(color: AppPalette.ink, thickness: 1)),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     child: Text(
                       'or continue with',
-                      style: GoogleFonts.architectsDaughter(
-                        fontSize: 12,
-                        color: AppPalette.muted,
-                      ),
+                      style: GoogleFonts.architectsDaughter(fontSize: 12, color: AppPalette.muted),
                     ),
                   ),
-                  const Expanded(
-                    child: Divider(color: AppPalette.ink, thickness: 1),
-                  ),
+                  const Expanded(child: Divider(color: AppPalette.ink, thickness: 1)),
                 ],
               ),
               const SizedBox(height: 14),
@@ -245,8 +224,6 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 }
 
-// ─── Brand block ───────────────────────────────────────────────────────────
-
 class _BrandBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -260,49 +237,23 @@ class _BrandBlock extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppPalette.ink,
               borderRadius: BorderRadius.circular(10),
-              boxShadow: [
-                BoxShadow(
-                  color: AppPalette.accent.withOpacity(0.45),
-                  offset: const Offset(3, 3),
-                  blurRadius: 0,
-                ),
-              ],
+              boxShadow: [BoxShadow(color: AppPalette.accent.withValues(alpha: 0.45), offset: const Offset(3, 3), blurRadius: 0)],
             ),
             alignment: Alignment.center,
-            child: Text(
-              'A',
-              style: GoogleFonts.caveat(
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-                color: AppPalette.paper,
-              ),
-            ),
+            child: Text('A', style: GoogleFonts.caveat(fontSize: 22, fontWeight: FontWeight.w700, color: AppPalette.paper)),
           ),
         ),
         const SizedBox(width: 12),
-        Text(
-          'Welcome back',
-          style: GoogleFonts.caveat(
-            fontSize: 24,
-            fontWeight: FontWeight.w700,
-            color: AppPalette.ink,
-          ),
-        ),
+        Text('Welcome back', style: GoogleFonts.caveat(fontSize: 24, fontWeight: FontWeight.w700, color: AppPalette.ink)),
       ],
     );
   }
 }
 
-// ─── Segmented slider ──────────────────────────────────────────────────────
-
 class _SegmentedSlider extends StatelessWidget {
   final int selected;
   final ValueChanged<int> onChanged;
-
-  const _SegmentedSlider({
-    required this.selected,
-    required this.onChanged,
-  });
+  const _SegmentedSlider({required this.selected, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -315,59 +266,29 @@ class _SegmentedSlider extends StatelessWidget {
       padding: const EdgeInsets.all(3),
       child: Stack(
         children: [
-          // Sliding pill
           AnimatedAlign(
             duration: const Duration(milliseconds: 280),
             curve: const Cubic(0.2, 0.8, 0.2, 1),
-            alignment:
-                selected == 0 ? Alignment.centerLeft : Alignment.centerRight,
+            alignment: selected == 0 ? Alignment.centerLeft : Alignment.centerRight,
             child: FractionallySizedBox(
               widthFactor: 0.5,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: AppPalette.ink,
-                  borderRadius: BorderRadius.circular(18),
-                ),
-              ),
+              child: Container(decoration: BoxDecoration(color: AppPalette.ink, borderRadius: BorderRadius.circular(18))),
             ),
           ),
-          // Labels
           Row(
             children: [
               Expanded(
                 child: GestureDetector(
                   onTap: () => onChanged(0),
                   behavior: HitTestBehavior.opaque,
-                  child: Center(
-                    child: Text(
-                      'Email',
-                      style: GoogleFonts.kalam(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: selected == 0
-                            ? AppPalette.paper
-                            : AppPalette.ink,
-                      ),
-                    ),
-                  ),
+                  child: Center(child: Text('Email', style: GoogleFonts.kalam(fontSize: 14, fontWeight: FontWeight.w700, color: selected == 0 ? AppPalette.paper : AppPalette.ink))),
                 ),
               ),
               Expanded(
                 child: GestureDetector(
                   onTap: () => onChanged(1),
                   behavior: HitTestBehavior.opaque,
-                  child: Center(
-                    child: Text(
-                      'Phone',
-                      style: GoogleFonts.kalam(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: selected == 1
-                            ? AppPalette.paper
-                            : AppPalette.ink,
-                      ),
-                    ),
-                  ),
+                  child: Center(child: Text('Phone', style: GoogleFonts.kalam(fontSize: 14, fontWeight: FontWeight.w700, color: selected == 1 ? AppPalette.paper : AppPalette.ink))),
                 ),
               ),
             ],
@@ -377,8 +298,6 @@ class _SegmentedSlider extends StatelessWidget {
     );
   }
 }
-
-// ─── Auth field ────────────────────────────────────────────────────────────
 
 class _AuthField extends StatelessWidget {
   final String label;
@@ -406,20 +325,13 @@ class _AuthField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: GoogleFonts.architectsDaughter(
-            fontSize: 11,
-            fontStyle: FontStyle.italic,
-            color: AppPalette.inkSoft,
-          ),
-        ),
+        Text(label, style: GoogleFonts.architectsDaughter(fontSize: 11, fontStyle: FontStyle.italic, color: AppPalette.inkSoft)),
         const SizedBox(height: 4),
         Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(7),
             border: Border.all(color: AppPalette.ink, width: 1.5),
-            color: Colors.white.withOpacity(0.45),
+            color: Colors.white.withValues(alpha: 0.45),
           ),
           child: Row(
             children: [
@@ -429,21 +341,12 @@ class _AuthField extends StatelessWidget {
                   controller: controller,
                   obscureText: obscure,
                   keyboardType: keyboardType,
-                  style: GoogleFonts.jetBrainsMono(
-                    fontSize: 13,
-                    color: AppPalette.ink,
-                  ),
+                  style: GoogleFonts.jetBrainsMono(fontSize: 13, color: AppPalette.ink),
                   decoration: InputDecoration(
                     hintText: placeholder,
-                    hintStyle: GoogleFonts.jetBrainsMono(
-                      fontSize: 13,
-                      color: AppPalette.muted,
-                    ),
+                    hintStyle: GoogleFonts.jetBrainsMono(fontSize: 13, color: AppPalette.muted),
                     border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 11,
-                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 11),
                     isDense: true,
                   ),
                 ),
@@ -454,31 +357,18 @@ class _AuthField extends StatelessWidget {
         ),
         if (hint != null) ...[
           const SizedBox(height: 4),
-          Text(
-            hint!,
-            style: GoogleFonts.architectsDaughter(
-              fontSize: 11,
-              color: AppPalette.muted,
-            ),
-          ),
+          Text(hint!, style: GoogleFonts.architectsDaughter(fontSize: 11, color: AppPalette.muted)),
         ],
       ],
     );
   }
 }
 
-// ─── Auth button ───────────────────────────────────────────────────────────
-
 class _AuthButton extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
   final bool alt;
-
-  const _AuthButton({
-    required this.label,
-    required this.onTap,
-    this.alt = false,
-  });
+  const _AuthButton({required this.label, required this.onTap, this.alt = false});
 
   @override
   Widget build(BuildContext context) {
@@ -490,39 +380,19 @@ class _AuthButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: alt ? AppPalette.accent : AppPalette.ink,
           borderRadius: BorderRadius.circular(10),
-          boxShadow: [
-            BoxShadow(
-              color: alt ? AppPalette.ink : AppPalette.accent,
-              offset: const Offset(3, 3),
-              blurRadius: 0,
-            ),
-          ],
+          boxShadow: [BoxShadow(color: alt ? AppPalette.ink : AppPalette.accent, offset: const Offset(3, 3), blurRadius: 0)],
         ),
-        child: Text(
-          label,
-          style: GoogleFonts.kalam(
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-            color: AppPalette.paper,
-          ),
-        ),
+        child: Text(label, style: GoogleFonts.kalam(fontSize: 15, fontWeight: FontWeight.w700, color: AppPalette.paper)),
       ),
     );
   }
 }
 
-// ─── Inline checkbox ──────────────────────────────────────────────────────
-
 class _Checkbox extends StatelessWidget {
   final bool value;
   final String label;
   final ValueChanged<bool?> onChanged;
-
-  const _Checkbox({
-    required this.value,
-    required this.label,
-    required this.onChanged,
-  });
+  const _Checkbox({required this.value, required this.label, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -539,29 +409,15 @@ class _Checkbox extends StatelessWidget {
               border: Border.all(color: AppPalette.ink, width: 1.5),
               color: value ? AppPalette.ink : Colors.transparent,
             ),
-            child: value
-                ? const Icon(
-                    Icons.check,
-                    size: 11,
-                    color: AppPalette.paper,
-                  )
-                : null,
+            child: value ? const Icon(Icons.check, size: 11, color: AppPalette.paper) : null,
           ),
           const SizedBox(width: 6),
-          Text(
-            label,
-            style: GoogleFonts.kalam(
-              fontSize: 12,
-              color: AppPalette.inkSoft,
-            ),
-          ),
+          Text(label, style: GoogleFonts.kalam(fontSize: 12, color: AppPalette.inkSoft)),
         ],
       ),
     );
   }
 }
-
-// ─── Email pane ────────────────────────────────────────────────────────────
 
 class _EmailPane extends StatelessWidget {
   final TextEditingController emailCtrl;
@@ -588,12 +444,7 @@ class _EmailPane extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _AuthField(
-          label: 'email',
-          placeholder: 'you@store.in',
-          controller: emailCtrl,
-          keyboardType: TextInputType.emailAddress,
-        ),
+        _AuthField(label: 'email', placeholder: 'you@store.in', controller: emailCtrl, keyboardType: TextInputType.emailAddress),
         const SizedBox(height: 10),
         _AuthField(
           label: 'password',
@@ -604,36 +455,18 @@ class _EmailPane extends StatelessWidget {
             onTap: onPassToggle,
             child: Padding(
               padding: const EdgeInsets.only(right: 10),
-              child: Icon(
-                passVisible
-                    ? Icons.visibility_off_rounded
-                    : Icons.visibility_rounded,
-                size: 18,
-                color: AppPalette.muted,
-              ),
+              child: Icon(passVisible ? Icons.visibility_off_rounded : Icons.visibility_rounded, size: 18, color: AppPalette.muted),
             ),
           ),
         ),
         const SizedBox(height: 12),
         Row(
           children: [
-            _Checkbox(
-              value: rememberMe,
-              label: 'remember me',
-              onChanged: onRememberMe,
-            ),
+            _Checkbox(value: rememberMe, label: 'remember me', onChanged: onRememberMe),
             const Spacer(),
             GestureDetector(
               onTap: () {},
-              child: Text(
-                'forgot?',
-                style: GoogleFonts.kalam(
-                  fontSize: 12,
-                  color: AppPalette.pen,
-                  decoration: TextDecoration.underline,
-                  decorationColor: AppPalette.pen,
-                ),
-              ),
+              child: Text('forgot?', style: GoogleFonts.kalam(fontSize: 12, color: AppPalette.pen, decoration: TextDecoration.underline, decorationColor: AppPalette.pen)),
             ),
           ],
         ),
@@ -643,8 +476,6 @@ class _EmailPane extends StatelessWidget {
     );
   }
 }
-
-// ─── Phone pane ────────────────────────────────────────────────────────────
 
 class _PhonePane extends StatelessWidget {
   final TextEditingController phoneCtrl;
@@ -673,34 +504,18 @@ class _PhonePane extends StatelessWidget {
           hint: "we'll text a 6-digit code",
           prefix: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 11),
-            decoration: const BoxDecoration(
-              border: Border(
-                right: BorderSide(color: AppPalette.ink, width: 1.5),
-              ),
-            ),
-            child: Text(
-              '+91',
-              style: GoogleFonts.jetBrainsMono(
-                fontSize: 13,
-                color: AppPalette.inkSoft,
-              ),
-            ),
+            decoration: const BoxDecoration(border: Border(right: BorderSide(color: AppPalette.ink, width: 1.5))),
+            child: Text('+91', style: GoogleFonts.jetBrainsMono(fontSize: 13, color: AppPalette.inkSoft)),
           ),
         ),
         const SizedBox(height: 14),
-        _Checkbox(
-          value: whatsappOk,
-          label: 'WhatsApp OK for OTP',
-          onChanged: onWhatsapp,
-        ),
+        _Checkbox(value: whatsappOk, label: 'WhatsApp OK for OTP', onChanged: onWhatsapp),
         const SizedBox(height: 18),
         _AuthButton(label: 'Send OTP →', onTap: onSendOtp, alt: true),
       ],
     );
   }
 }
-
-// ─── Social button ─────────────────────────────────────────────────────────
 
 class _SocialButton extends StatelessWidget {
   final String label;
@@ -713,17 +528,10 @@ class _SocialButton extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: AppPalette.ink, width: 1.5),
-        color: Colors.white.withOpacity(0.35),
+        color: Colors.white.withValues(alpha: 0.35),
       ),
       alignment: Alignment.center,
-      child: Text(
-        label,
-        style: GoogleFonts.kalam(
-          fontSize: 13,
-          fontWeight: FontWeight.w700,
-          color: AppPalette.ink,
-        ),
-      ),
+      child: Text(label, style: GoogleFonts.kalam(fontSize: 13, fontWeight: FontWeight.w700, color: AppPalette.ink)),
     );
   }
 }

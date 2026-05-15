@@ -1,4 +1,4 @@
-import 'models.dart';
+import '../core/models.dart';
 
 const List<QueueEntry> seedQueueEntries = [
   QueueEntry(

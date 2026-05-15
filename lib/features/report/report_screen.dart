@@ -3,14 +3,14 @@ import 'package:csv/csv.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
-import '../core/models.dart';
-import '../core/seed_data.dart';
-import '../core/palette.dart';
-import '../services/api_client.dart';
-import '../widgets/screen_frame.dart';
-import '../widgets/app_top_tabs.dart';
-import '../widgets/report_list_item.dart';
-import '../widgets/spreadsheet_sheet.dart';
+import '../../core/models.dart';
+import '../../data/seed_data.dart';
+import '../../core/palette.dart';
+import '../../services/api_client.dart';
+import '../../shared/screen_frame.dart';
+import '../../shared/app_top_tabs.dart';
+import '../../shared/spreadsheet_sheet.dart';
+import 'report_list_item.dart';
 
 class ReportScreen extends StatefulWidget {
   const ReportScreen({
@@ -55,10 +55,7 @@ class _ReportScreenState extends State<ReportScreen> {
         } else {
           csvText = await ApiClient.getRaw(
             '/api/sync/reorder-levels/${category.reportId}',
-            query: {
-              'company_name': 'K V ENTERPRISES',
-              'format': 'csv',
-            },
+            query: {'company_name': 'K V ENTERPRISES', 'format': 'csv'},
           );
           await file.writeAsString(csvText);
         }
@@ -78,7 +75,7 @@ class _ReportScreenState extends State<ReportScreen> {
               .toList();
           columnWidths = [
             42.0,
-            240.0, // stock_item_name — widest column
+            240.0,
             ...List.filled(columnLabels.length - 1, 96.0),
           ];
           footerTrailing = '${rows.length} rows';
@@ -92,9 +89,7 @@ class _ReportScreenState extends State<ReportScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _loadingCategoryKey = null);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load report: $e')),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to load report: $e')));
       }
       return;
     }
@@ -120,10 +115,7 @@ class _ReportScreenState extends State<ReportScreen> {
               : () async {
                   final file = await _cacheFile(category.reportId!);
                   if (await file.exists()) {
-                    await Share.shareXFiles(
-                      [XFile(file.path)],
-                      subject: '${category.key}.csv',
-                    );
+                    await Share.shareXFiles([XFile(file.path)], subject: '${category.key}.csv');
                   }
                 },
           trailingAction: OutlinedButton(
@@ -131,9 +123,7 @@ class _ReportScreenState extends State<ReportScreen> {
             style: OutlinedButton.styleFrom(
               foregroundColor: AppPalette.ink,
               side: const BorderSide(color: AppPalette.ink, width: 1.3),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             ),
             child: const Text('Close'),
           ),
@@ -152,11 +142,7 @@ class _ReportScreenState extends State<ReportScreen> {
           AppTopTabs(
             labels: const ['Insights', 'Chat'],
             selectedIndex: _tabIndex,
-            onSelected: (index) {
-              setState(() {
-                _tabIndex = index;
-              });
-            },
+            onSelected: (index) => setState(() => _tabIndex = index),
           ),
           Expanded(
             child: AnimatedSwitcher(
@@ -164,31 +150,21 @@ class _ReportScreenState extends State<ReportScreen> {
               child: _tabIndex == 0
                   ? ListView.separated(
                       key: const ValueKey('insights'),
-                      padding:
-                          const EdgeInsets.fromLTRB(12, 10, 12, 16),
+                      padding: const EdgeInsets.fromLTRB(12, 10, 12, 16),
                       itemCount: seedReportCategories.length,
-                      separatorBuilder: (_, _) =>
-                          const SizedBox(height: 2),
+                      separatorBuilder: (_, _) => const SizedBox(height: 2),
                       itemBuilder: (context, index) {
                         final category = seedReportCategories[index];
                         return ReportListItem(
                           category: category,
-                          isLoading:
-                              _loadingCategoryKey == category.key,
+                          isLoading: _loadingCategoryKey == category.key,
                           onTap: () => _openReport(category),
                         );
                       },
                     )
                   : const Center(
                       key: ValueKey('chat'),
-                      child: Text(
-                        'Coming Soon',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: AppPalette.muted,
-                        ),
-                      ),
+                      child: Text('Coming Soon', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppPalette.muted)),
                     ),
             ),
           ),
