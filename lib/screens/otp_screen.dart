@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,7 +8,8 @@ import 'success_screen.dart';
 
 class OtpScreen extends StatefulWidget {
   final String phone;
-  const OtpScreen({super.key, required this.phone});
+  final String verificationId;
+  const OtpScreen({super.key, required this.phone, required this.verificationId});
 
   @override
   State<OtpScreen> createState() => _OtpScreenState();
@@ -18,6 +20,8 @@ class _OtpScreenState extends State<OtpScreen> {
   int _focusIndex = 0;
   int _resendSeconds = 30;
   Timer? _resendTimer;
+  bool _loading = false;
+  String? _error;
 
   @override
   void initState() {
@@ -81,14 +85,40 @@ class _OtpScreenState extends State<OtpScreen> {
   }
 
   void _verify() {
-    Navigator.of(context).pushReplacement(
-      PageRouteBuilder(
-        pageBuilder: (_, _, _) => const SuccessScreen(),
-        transitionsBuilder: (_, anim, _, child) =>
-            FadeTransition(opacity: anim, child: child),
-        transitionDuration: const Duration(milliseconds: 350),
-      ),
-    );
+    if (_loading) return;
+    _doVerify();
+  }
+
+  Future<void> _doVerify() async {
+    final otp = _digits.join();
+    if (otp.length < 6) return;
+    setState(() { _loading = true; _error = null; });
+    try {
+      final credential = PhoneAuthProvider.credential(
+        verificationId: widget.verificationId,
+        smsCode: otp,
+      );
+      await FirebaseAuth.instance.signInWithCredential(credential);
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          PageRouteBuilder(
+            pageBuilder: (_, _, _) => const SuccessScreen(),
+            transitionsBuilder: (_, anim, _, child) =>
+                FadeTransition(opacity: anim, child: child),
+            transitionDuration: const Duration(milliseconds: 350),
+          ),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      if (mounted) {
+        setState(() {
+          _loading = false;
+          _error = e.code == 'invalid-verification-code'
+              ? 'Wrong code. Check and try again'
+              : 'Verification failed. Try again';
+        });
+      }
+    }
   }
 
   String get _maskedPhone {
@@ -200,7 +230,33 @@ class _OtpScreenState extends State<OtpScreen> {
                             ),
                     ),
                     const SizedBox(height: 28),
-                    _AuthButton(label: 'Verify →', onTap: _verify),
+                    if (_error != null) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppPalette.accent.withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(7),
+                          border: Border.all(
+                            color: AppPalette.accent.withOpacity(0.3),
+                          ),
+                        ),
+                        child: Text(
+                          _error!,
+                          style: GoogleFonts.kalam(
+                            fontSize: 12,
+                            color: AppPalette.accent,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                    if (_loading)
+                      const LinearProgressIndicator()
+                    else
+                      _AuthButton(label: 'Verify →', onTap: _verify),
                     const SizedBox(height: 24),
                   ],
                 ),

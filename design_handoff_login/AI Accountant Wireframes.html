@@ -1,0 +1,2130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>AI Accountant — Wireframes</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Kalam:wght@400;700&family=Architects+Daughter&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --paper: #f6f1e6;
+    --paper-2: #efe8d7;
+    --line: #b9c8df;
+    --ink: #16181d;
+    --ink-soft: #3a3f49;
+    --pen: #1f3a8a;       /* blue ballpoint */
+    --pen-soft: #2c4fb8;
+    --accent: #d94f3a;    /* red marker */
+    --accent-2: #f2c94c;  /* yellow highlighter */
+    --muted: #8a8576;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "Kalam", "Caveat", system-ui, sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(1200px 600px at 10% -10%, #fff8e8 0%, transparent 60%),
+      radial-gradient(1000px 700px at 110% 20%, #f0e6cf 0%, transparent 55%),
+      var(--paper);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+  /* paper grain */
+  body::before {
+    content: "";
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(140,160,200,.18) 0 1px, transparent 1px 28px),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.1  0 0 0 0 0.1  0 0 0 0 0.1  0 0 0 0.06 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    background-size: auto, 220px 220px;
+    mix-blend-mode: multiply;
+    opacity: .55;
+  }
+  body > * { position: relative; z-index: 1; }
+
+  header.page {
+    padding: 56px 56px 12px;
+    display: flex; align-items: flex-end; justify-content: space-between; gap: 32px;
+    flex-wrap: wrap;
+  }
+  h1 {
+    font-family: "Caveat", cursive;
+    font-weight: 700;
+    font-size: 64px;
+    margin: 0 0 4px;
+    letter-spacing: .5px;
+    color: var(--ink);
+  }
+  h1 .accent {
+    color: var(--accent);
+    text-decoration: underline wavy var(--accent-2);
+    text-underline-offset: 6px;
+  }
+  .sub {
+    font-family: "Architects Daughter", cursive;
+    font-size: 18px; color: var(--ink-soft);
+    max-width: 640px; line-height: 1.5;
+  }
+  .meta {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--muted);
+    border: 1.5px solid var(--ink); border-radius: 4px;
+    padding: 6px 10px;
+    background: rgba(255,255,255,.4);
+    transform: rotate(-1deg);
+  }
+
+  /* tab bar */
+  .tabs {
+    display: flex; gap: 8px; padding: 14px 56px 0; flex-wrap: wrap;
+  }
+  .tab {
+    font-family: "Kalam", cursive; font-weight: 700; font-size: 18px;
+    padding: 8px 18px;
+    border: 2px solid var(--ink);
+    border-radius: 22px 18px 24px 16px;
+    background: transparent; color: var(--ink);
+    cursor: pointer;
+    transform: rotate(-.5deg);
+    transition: background .15s;
+  }
+  .tab:nth-child(2n) { transform: rotate(.6deg); border-radius: 16px 22px 18px 24px; }
+  .tab.is-active {
+    background: var(--ink); color: var(--paper);
+  }
+  .tab:hover { background: rgba(0,0,0,.06); }
+  .tab.is-active:hover { background: var(--ink); }
+
+  /* canvas */
+  .canvas {
+    padding: 24px 32px 80px;
+  }
+  .stage {
+    display: none;
+  }
+  .stage.is-active { display: block; }
+
+  /* section row */
+  .row-title {
+    font-family: "Caveat", cursive;
+    font-size: 36px; font-weight: 700;
+    margin: 28px 24px 4px;
+    display: flex; align-items: baseline; gap: 14px;
+  }
+  .row-title .num {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 13px; letter-spacing: .2em;
+    background: var(--ink); color: var(--paper);
+    padding: 4px 8px; border-radius: 3px;
+    transform: translateY(-4px) rotate(-2deg);
+  }
+  .row-title .note {
+    font-family: "Architects Daughter", cursive;
+    font-size: 16px; color: var(--ink-soft); font-weight: 400;
+  }
+  .row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 28px 36px;
+    padding: 12px 24px 36px;
+    align-items: start;
+  }
+  .row.three { grid-template-columns: repeat(3, minmax(280px, 340px)); }
+  .row.four { grid-template-columns: repeat(auto-fit, minmax(260px, 320px)); }
+
+  /* phone wireframe */
+  .phone-wrap {
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
+    transform: rotate(var(--tilt, 0deg));
+  }
+  .phone-wrap:nth-child(2) { --tilt: -.6deg; }
+  .phone-wrap:nth-child(3) { --tilt: .8deg; }
+  .phone-wrap:nth-child(4) { --tilt: -.4deg; }
+  .phone {
+    width: 300px; height: 600px;
+    border: 2.5px solid var(--ink);
+    border-radius: 36px;
+    background: rgba(255,255,255,.55);
+    position: relative;
+    box-shadow:
+      4px 6px 0 rgba(20,30,60,.08),
+      0 0 0 6px rgba(0,0,0,0) inset;
+    overflow: hidden;
+    font-family: "Kalam", sans-serif;
+  }
+  .phone::before {
+    /* notch */
+    content: "";
+    position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
+    width: 90px; height: 18px;
+    border: 2px solid var(--ink); border-radius: 12px;
+    background: var(--ink);
+  }
+  .phone::after {
+    /* home indicator */
+    content: "";
+    position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%);
+    width: 80px; height: 4px; background: var(--ink); border-radius: 4px;
+    opacity: .7;
+  }
+  .screen {
+    position: absolute;
+    top: 36px; left: 12px; right: 12px; bottom: 14px;
+    border: 1.5px solid var(--ink);
+    border-radius: 22px;
+    overflow: hidden;
+    background:
+      repeating-linear-gradient(0deg, rgba(160,180,210,.12) 0 1px, transparent 1px 22px),
+      #fdfaf1;
+    display: flex; flex-direction: column;
+  }
+  .caption {
+    font-family: "Architects Daughter", cursive;
+    font-size: 14px; color: var(--ink-soft);
+    text-align: center;
+    max-width: 280px; line-height: 1.35;
+  }
+  .caption strong { color: var(--accent); font-weight: 700; }
+
+  /* phone parts */
+  .top-bar {
+    border-bottom: 1.5px dashed var(--ink);
+    display: grid; grid-template-columns: 1fr 1fr;
+  }
+  .top-bar .ttab {
+    text-align: center;
+    padding: 10px 0;
+    font-family: "Kalam", cursive; font-weight: 700;
+    font-size: 14px;
+    color: var(--ink-soft);
+    position: relative;
+  }
+  .top-bar .ttab.on { color: var(--ink); }
+  .top-bar .ttab.on::after {
+    content: ""; position: absolute; left: 18%; right: 18%; bottom: -2px; height: 3px;
+    background: var(--ink); border-radius: 3px;
+  }
+  .top-bar .ttab + .ttab { border-left: 1.5px solid var(--ink); }
+
+  .content {
+    flex: 1;
+    padding: 10px 12px;
+    overflow: hidden;
+    font-size: 13px;
+  }
+  .table {
+    border: 1.5px solid var(--ink);
+    border-radius: 6px;
+    overflow: hidden;
+    background: rgba(255,255,255,.6);
+    font-size: 12px;
+  }
+  .thead, .trow {
+    display: grid;
+    grid-template-columns: 24px 1fr 60px 60px 24px;
+    align-items: center;
+    gap: 4px; padding: 6px 8px;
+  }
+  .thead {
+    background: rgba(20,30,60,.05);
+    font-family: "Kalam", cursive; font-weight: 700;
+    font-size: 11px; color: var(--ink);
+    border-bottom: 1.5px solid var(--ink);
+  }
+  .trow + .trow { border-top: 1px dashed rgba(20,30,60,.3); }
+  .trow .chk {
+    width: 14px; height: 14px;
+    border: 1.5px solid var(--ink);
+    border-radius: 3px;
+    display: inline-block;
+    justify-self: end;
+  }
+  .trow .chk.on::before {
+    content: "✓"; font-size: 12px; line-height: 12px; color: var(--accent);
+    display: block; transform: translate(1px, -1px);
+  }
+  .trow .sno { color: var(--muted); }
+  .trow .amt { font-family: "JetBrains Mono", monospace; font-size: 11px; }
+
+  /* bottom nav */
+  .botnav {
+    border-top: 1.5px solid var(--ink);
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    background: rgba(255,255,255,.7);
+  }
+  .botnav .nav {
+    text-align: center;
+    padding: 8px 0 10px;
+    font-family: "Kalam", cursive; font-size: 11px;
+    color: var(--ink-soft);
+    position: relative;
+    border-left: 1px dashed rgba(20,30,60,.25);
+  }
+  .botnav .nav:first-child { border-left: none; }
+  .botnav .nav.on { color: var(--ink); font-weight: 700; }
+  .botnav .nav.on::before {
+    content: ""; position: absolute; top: 0; left: 30%; right: 30%; height: 2.5px; background: var(--ink);
+  }
+  .nav .ic {
+    width: 20px; height: 20px; margin: 0 auto 2px;
+    border: 1.5px solid var(--ink); border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px;
+  }
+  .nav.cam .ic {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--ink); color: var(--paper);
+    border: 2px solid var(--ink);
+    margin-top: -14px;
+    box-shadow: 0 0 0 4px var(--paper);
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .nav.cam.alt .ic {
+    background: var(--accent); border-color: var(--accent);
+    box-shadow: 0 0 0 4px var(--paper);
+  }
+
+  /* camera screen */
+  .cam-screen {
+    flex: 1; position: relative;
+    background:
+      repeating-linear-gradient(45deg, rgba(20,30,60,.08) 0 6px, transparent 6px 12px),
+      #2a2f3a;
+    color: #f1ead7;
+    display: flex; flex-direction: column;
+    padding: 10px;
+  }
+  .cam-screen .corner { position: absolute; width: 22px; height: 22px; border: 2.5px solid #f1ead7; }
+  .cam-screen .corner.tl { top: 24px; left: 24px; border-right: none; border-bottom: none; }
+  .cam-screen .corner.tr { top: 24px; right: 24px; border-left: none; border-bottom: none; }
+  .cam-screen .corner.bl { bottom: 90px; left: 24px; border-right: none; border-top: none; }
+  .cam-screen .corner.br { bottom: 90px; right: 24px; border-left: none; border-top: none; }
+  .cam-hint {
+    position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%);
+    text-align: center; font-family: "Architects Daughter", cursive;
+    font-size: 13px; color: rgba(255,255,255,.7);
+  }
+  .cam-strip {
+    margin-top: auto; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 6px 6px;
+  }
+  .thumb {
+    width: 38px; height: 38px;
+    border: 2px solid #f1ead7; border-radius: 6px;
+    background:
+      linear-gradient(135deg, rgba(255,255,255,.25) 0 35%, rgba(0,0,0,.2) 35% 100%);
+    position: relative;
+  }
+  .thumb .badge {
+    position: absolute; top: -6px; right: -8px;
+    min-width: 18px; height: 18px; padding: 0 5px;
+    border-radius: 10px;
+    background: var(--accent); color: #fff;
+    font-family: "JetBrains Mono", monospace; font-size: 10px;
+    display: flex; align-items: center; justify-content: center;
+    border: 1.5px solid #f1ead7;
+  }
+  .shutter {
+    width: 56px; height: 56px; border-radius: 50%;
+    border: 3px solid #f1ead7;
+    background: rgba(255,255,255,.95);
+    position: relative;
+  }
+  .shutter::after {
+    content: ""; position: absolute; inset: 6px; border-radius: 50%;
+    border: 2px solid #2a2f3a;
+  }
+  .plus {
+    width: 38px; height: 38px;
+    border: 2px dashed #f1ead7; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; line-height: 1; color: #f1ead7; font-weight: 700;
+  }
+  .cam-context {
+    position: absolute; left: 0; right: 0;
+    bottom: 78px;
+    display: flex; gap: 10px; justify-content: center;
+  }
+  .cam-context .pill {
+    padding: 6px 14px; border-radius: 16px;
+    border: 2px solid #f1ead7; color: #f1ead7;
+    font-family: "Kalam", cursive; font-weight: 700; font-size: 12px;
+    background: rgba(0,0,0,.25);
+  }
+  .cam-context .pill.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  /* charts (report) */
+  .stat-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;
+  }
+  .stat {
+    border: 1.5px solid var(--ink);
+    border-radius: 6px; padding: 8px;
+    background: rgba(255,255,255,.5);
+  }
+  .stat .lbl {
+    font-family: "Architects Daughter", cursive; font-size: 11px; color: var(--ink-soft);
+  }
+  .stat .val {
+    font-family: "Caveat", cursive; font-size: 22px; font-weight: 700; line-height: 1;
+  }
+  .stat .val.up { color: #1d7a3a; }
+  .stat .val.dn { color: var(--accent); }
+  .bars {
+    border: 1.5px solid var(--ink); border-radius: 6px; padding: 10px 8px;
+    background: rgba(255,255,255,.5);
+  }
+  .bars .bar-row { display: flex; align-items: center; gap: 6px; margin: 4px 0; }
+  .bars .bar-row .lbl {
+    width: 28px; font-family: "JetBrains Mono", monospace; font-size: 10px; color: var(--ink-soft);
+  }
+  .bars .bar {
+    height: 10px; background: var(--ink); border-radius: 2px;
+  }
+  .bars .bar.alt { background: var(--accent); }
+
+  /* history list */
+  .hlist { display: flex; flex-direction: column; gap: 6px; }
+  .hcard {
+    border: 1.5px solid var(--ink); border-radius: 8px;
+    background: rgba(255,255,255,.5);
+    padding: 8px 10px;
+    display: grid; grid-template-columns: 28px 1fr auto; gap: 8px;
+    align-items: center;
+    font-size: 12px;
+  }
+  .hcard .ico {
+    width: 26px; height: 26px; border-radius: 6px; border: 1.5px solid var(--ink);
+    display: flex; align-items: center; justify-content: center; font-size: 11px;
+    background: rgba(255,255,255,.6);
+  }
+  .hcard .name { font-weight: 700; }
+  .hcard .meta { font-family: "Architects Daughter", cursive; font-size: 11px; color: var(--ink-soft); }
+  .hcard .amt { font-family: "JetBrains Mono", monospace; font-size: 12px; }
+  .hcard .amt.s { color: #1d7a3a; }
+  .hcard .amt.p { color: var(--accent); }
+
+  /* profile */
+  .profile-hd {
+    display: flex; gap: 10px; align-items: center;
+    border: 1.5px solid var(--ink); border-radius: 8px;
+    padding: 10px; background: rgba(255,255,255,.5);
+    margin-bottom: 8px;
+  }
+  .avatar {
+    width: 44px; height: 44px; border-radius: 50%;
+    border: 1.5px solid var(--ink);
+    display: flex; align-items: center; justify-content: center;
+    font-family: "Caveat", cursive; font-size: 22px; font-weight: 700;
+    background: var(--paper-2);
+  }
+  .pinfo { line-height: 1.2; }
+  .pinfo .nm { font-weight: 700; font-size: 14px; }
+  .pinfo .em { font-family: "Architects Daughter", cursive; font-size: 11px; color: var(--ink-soft); }
+  .plist { display: flex; flex-direction: column; gap: 4px; }
+  .prow {
+    border: 1.5px dashed var(--ink); border-radius: 6px;
+    padding: 8px 10px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 12px;
+    background: rgba(255,255,255,.4);
+  }
+  .prow .arr { color: var(--ink-soft); }
+
+  /* annotation arrows + labels */
+  .anno {
+    position: relative;
+    margin: 6px 0;
+    font-family: "Architects Daughter", cursive;
+    font-size: 13px; color: var(--ink-soft);
+    text-align: center; max-width: 270px; line-height: 1.3;
+  }
+  .anno em {
+    color: var(--accent); font-style: normal; font-weight: 700;
+  }
+
+  /* tweak panel */
+  .tweaks {
+    position: fixed; right: 18px; top: 18px; z-index: 9;
+    background: rgba(255,253,245,.95);
+    border: 2px solid var(--ink);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-family: "Architects Daughter", cursive;
+    font-size: 12px;
+    box-shadow: 4px 5px 0 rgba(20,30,60,.12);
+    transform: rotate(-1deg);
+  }
+  .tweaks h4 {
+    margin: 0 0 8px; font-family: "Caveat", cursive; font-size: 22px; font-weight: 700;
+    letter-spacing: .5px;
+  }
+  .tweaks label {
+    display: flex; align-items: center; gap: 6px; padding: 3px 0;
+    cursor: pointer; user-select: none;
+  }
+  .tweaks input[type="checkbox"] { accent-color: var(--accent); }
+  .tweaks .group { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--ink); }
+  .tweaks .swatch { display: inline-flex; gap: 4px; }
+  .tweaks .sw {
+    width: 18px; height: 18px; border: 1.5px solid var(--ink); border-radius: 3px; cursor: pointer;
+  }
+  .tweaks .sw.is-active { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+  /* mods */
+  body.mod-mono {
+    --accent: #2a2f3a;
+    --accent-2: #b9c8df;
+  }
+  body.mod-blue { --accent: #1f3a8a; --accent-2: #cfe0ff; }
+  body.mod-green { --accent: #1d7a3a; --accent-2: #cdebd4; }
+
+  body.mod-clean::before { opacity: .15; }
+  body.mod-clean .phone { box-shadow: 0 4px 14px rgba(20,30,60,.08); }
+
+  /* footer scribbles */
+  .legend {
+    margin: 30px 56px 60px;
+    border-top: 1.5px dashed var(--ink);
+    padding-top: 18px;
+    display: flex; gap: 28px; flex-wrap: wrap;
+    font-family: "Architects Daughter", cursive;
+    font-size: 13px; color: var(--ink-soft);
+  }
+  .legend b { color: var(--ink); }
+
+  /* sub-row label */
+  .variant-tag {
+    font-family: "Caveat", cursive;
+    font-weight: 700; font-size: 22px;
+    padding: 2px 10px;
+    background: var(--accent-2);
+    color: var(--ink);
+    transform: rotate(-1.5deg);
+    border-radius: 4px;
+    display: inline-block;
+  }
+
+  /* arrow doodle */
+  .arrow-svg {
+    display: block; margin: 4px auto -2px;
+    color: var(--accent);
+  }
+
+  /* Number popup variations */
+  .badge.alt-corner { top: -8px; right: 30px; }
+  .badge.alt-pill { border-radius: 4px; }
+
+  /* ====== LOGIN FLOW ====== */
+  .login-screen {
+    flex: 1;
+    padding: 18px 18px 14px;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .brand {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    margin: 12px 0 18px;
+  }
+  .brand-mark {
+    width: 56px; height: 56px;
+    border: 2px solid var(--ink);
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: "Caveat", cursive; font-weight: 700; font-size: 32px;
+    background: var(--paper-2);
+    transform: rotate(-3deg);
+    box-shadow: 3px 3px 0 var(--accent);
+  }
+  .brand-name {
+    font-family: "Caveat", cursive; font-weight: 700; font-size: 26px;
+    margin-top: 8px; line-height: 1;
+  }
+  .brand-tag {
+    font-family: "Architects Daughter", cursive; font-size: 11px; color: var(--ink-soft);
+  }
+
+  /* segmented slider */
+  .seg {
+    position: relative;
+    display: grid; grid-template-columns: 1fr 1fr;
+    border: 1.5px solid var(--ink); border-radius: 22px;
+    background: rgba(255,255,255,.5);
+    padding: 3px;
+    margin-bottom: 16px;
+    font-family: "Kalam", cursive; font-weight: 700; font-size: 12px;
+    user-select: none;
+  }
+  .seg::before {
+    content: "";
+    position: absolute; top: 3px; bottom: 3px;
+    left: 3px; width: calc(50% - 3px);
+    background: var(--ink);
+    border-radius: 18px;
+    transition: transform .3s cubic-bezier(.2,.8,.2,1);
+    z-index: 0;
+  }
+  .seg.is-phone::before { transform: translateX(100%); }
+  .seg .opt {
+    position: relative; z-index: 1;
+    padding: 7px 0; text-align: center;
+    cursor: pointer; color: var(--ink); transition: color .2s;
+  }
+  .seg .opt.is-on { color: var(--paper); }
+
+  .field {
+    margin-bottom: 10px;
+  }
+  .field .lbl {
+    font-family: "Architects Daughter", cursive; font-size: 11px;
+    color: var(--ink-soft); margin-bottom: 3px;
+  }
+  .field .input {
+    width: 100%;
+    border: 1.5px solid var(--ink); border-radius: 7px;
+    background: rgba(255,255,255,.7);
+    padding: 8px 10px;
+    font-family: "JetBrains Mono", monospace; font-size: 12px;
+    color: var(--ink);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .field .input .ph {
+    color: var(--muted);
+  }
+  .field .input .cc {
+    border-right: 1px solid var(--ink-soft);
+    padding-right: 6px; margin-right: 2px;
+    font-weight: 600;
+  }
+  .field .input .eye {
+    margin-left: auto; font-size: 14px; color: var(--ink-soft);
+  }
+  .field .hint {
+    font-family: "Architects Daughter", cursive; font-size: 10px;
+    color: var(--muted); margin-top: 3px;
+  }
+  .field-row {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 12px;
+  }
+  .field-row .chk-lbl {
+    font-family: "Kalam", cursive; font-size: 11px; color: var(--ink-soft);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .field-row .chk-lbl .chk {
+    width: 14px; height: 14px;
+    border: 1.5px solid var(--ink); border-radius: 3px;
+    display: inline-block;
+  }
+  .field-row .chk-lbl .chk.on { background: var(--ink); position: relative; }
+  .field-row .chk-lbl .chk.on::after {
+    content: "✓"; color: #fff; font-size: 10px; line-height: 10px;
+    position: absolute; top: 1px; left: 2px;
+  }
+  .field-row .forgot {
+    font-family: "Kalam", cursive; font-size: 11px; color: var(--pen);
+    text-decoration: underline dotted; cursor: pointer;
+  }
+
+  .pri-btn {
+    width: 100%;
+    background: var(--ink); color: var(--paper);
+    border: none; border-radius: 10px;
+    padding: 11px;
+    font-family: "Kalam", cursive; font-weight: 700; font-size: 14px;
+    cursor: pointer;
+    box-shadow: 3px 3px 0 var(--accent);
+    transition: transform .1s;
+  }
+  .pri-btn:active { transform: translate(1px,1px); box-shadow: 2px 2px 0 var(--accent); }
+  .pri-btn.alt {
+    background: var(--accent); box-shadow: 3px 3px 0 var(--ink);
+  }
+
+  .divider {
+    display: flex; align-items: center; gap: 8px;
+    margin: 14px 0 10px;
+    font-family: "Architects Daughter", cursive; font-size: 10px; color: var(--muted);
+  }
+  .divider::before, .divider::after {
+    content: ""; flex: 1; height: 1px;
+    background: repeating-linear-gradient(90deg, var(--ink-soft) 0 3px, transparent 3px 6px);
+  }
+
+  .social-row { display: flex; gap: 8px; }
+  .social-btn {
+    flex: 1;
+    border: 1.5px solid var(--ink); border-radius: 8px;
+    background: rgba(255,255,255,.6);
+    padding: 8px;
+    text-align: center;
+    font-family: "Kalam", cursive; font-weight: 700; font-size: 11px;
+    cursor: pointer;
+  }
+  .footer-line {
+    margin-top: auto;
+    text-align: center;
+    font-family: "Architects Daughter", cursive; font-size: 11px; color: var(--ink-soft);
+    padding-top: 10px;
+  }
+  .footer-line .ln { color: var(--pen); text-decoration: underline dotted; cursor: pointer; }
+
+  /* OTP boxes */
+  .otp-row {
+    display: flex; gap: 6px; justify-content: center;
+    margin: 12px 0 6px;
+  }
+  .otp-row .otp {
+    width: 36px; height: 44px;
+    border: 1.5px solid var(--ink); border-radius: 7px;
+    background: rgba(255,255,255,.7);
+    display: flex; align-items: center; justify-content: center;
+    font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 18px;
+  }
+  .otp-row .otp.cursor {
+    border-color: var(--accent);
+    background: #fff;
+    position: relative;
+  }
+  .otp-row .otp.cursor::after {
+    content: ""; position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+    width: 14px; height: 2px; background: var(--accent);
+    animation: blink 1s steps(2) infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+  .resend {
+    text-align: center;
+    font-family: "Architects Daughter", cursive; font-size: 11px; color: var(--ink-soft);
+    margin: 4px 0 10px;
+  }
+  .resend b { color: var(--ink); font-family: "JetBrains Mono", monospace; font-weight: 600; }
+
+  /* numeric keypad */
+  .keypad {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 4px; margin-top: auto;
+    padding-top: 6px;
+    border-top: 1.5px dashed var(--ink);
+  }
+  .keypad .k {
+    border: 1.5px solid var(--ink); border-radius: 8px;
+    padding: 8px 0; text-align: center;
+    font-family: "JetBrains Mono", monospace; font-weight: 600; font-size: 14px;
+    background: rgba(255,255,255,.65);
+  }
+  .keypad .k.fn { background: transparent; border-style: dashed; font-size: 11px; font-family: "Kalam", cursive; }
+
+  /* back nav */
+  .back-nav {
+    padding: 12px 14px 0;
+    display: flex; align-items: center; gap: 6px;
+    font-family: "Kalam", cursive; font-weight: 700; font-size: 13px;
+    color: var(--ink-soft); cursor: pointer;
+  }
+  .back-nav .arr { font-size: 16px; line-height: 1; }
+
+  /* progress dots */
+  .pdots {
+    display: flex; gap: 6px; justify-content: center;
+    margin: 6px 0 10px;
+  }
+  .pdots .d {
+    width: 22px; height: 4px; border-radius: 2px;
+    background: rgba(20,30,60,.18);
+  }
+  .pdots .d.on { background: var(--ink); }
+
+  /* business setup chips */
+  .chip-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+    margin-bottom: 10px;
+  }
+  .chip {
+    border: 1.5px solid var(--ink); border-radius: 10px;
+    padding: 8px; text-align: center;
+    font-family: "Kalam", cursive; font-weight: 700; font-size: 11px;
+    background: rgba(255,255,255,.55);
+    cursor: pointer;
+  }
+  .chip.on { background: var(--ink); color: var(--paper); }
+  .chip .ic { font-size: 18px; display: block; margin-bottom: 3px; }
+
+  /* success screen */
+  .check-big {
+    width: 80px; height: 80px; border-radius: 50%;
+    border: 3px solid #1d7a3a;
+    display: flex; align-items: center; justify-content: center;
+    margin: 30px auto 14px;
+    font-size: 42px; color: #1d7a3a; font-weight: 900;
+    background: rgba(40,140,70,.08);
+    transform: rotate(-4deg);
+  }
+  .success-head {
+    text-align: center; font-family: "Caveat", cursive; font-size: 30px; font-weight: 700;
+  }
+  .success-sub {
+    text-align: center; font-family: "Architects Daughter", cursive;
+    font-size: 12px; color: var(--ink-soft); margin: 4px 14px 16px;
+    line-height: 1.4;
+  }
+
+  /* Preferred ribbon on a variant */
+  .variant-tag.preferred {
+    background: var(--ink); color: var(--paper);
+    box-shadow: 3px 3px 0 var(--accent-2);
+  }
+  .variant-tag.preferred::before {
+    content: "★ "; color: var(--accent-2);
+  }
+
+  /* clickable party name in queue */
+  .trow .party {
+    text-decoration: underline dotted var(--ink-soft);
+    text-underline-offset: 3px;
+    cursor: pointer;
+    color: var(--pen);
+    font-weight: 700;
+  }
+  .trow.processing { opacity: .55; }
+  .trow.processing .party { color: var(--ink-soft); cursor: default; text-decoration: none; }
+  .trow.done {
+    background: rgba(40,140,70,.08);
+    opacity: .55;
+  }
+  .trow.done .party { color: var(--ink-soft); cursor: default; text-decoration: line-through; }
+  .trow.done .chk { background: #1d7a3a; border-color: #1d7a3a; }
+  .trow.done .chk::before {
+    content: "✓"; color: #fff; font-size: 11px; line-height: 11px;
+    display: block; transform: translate(1px,-1px);
+  }
+
+  /* in-phone overlay (excel sheet & report bottom-sheet) */
+  .phone-overlay {
+    position: absolute; inset: 0;
+    background: rgba(20,30,60,.35);
+    display: flex; align-items: flex-end; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity .25s;
+    z-index: 5;
+    border-radius: 22px;
+    overflow: hidden;
+  }
+  .phone-overlay.open { opacity: 1; pointer-events: auto; }
+  .sheet {
+    width: 100%; height: 100%;
+    background: #fdfaf1;
+    border-top: 2px solid var(--ink);
+    border-radius: 12px 12px 0 0;
+    display: flex; flex-direction: column;
+    transform: translateY(100%);
+    transition: transform .35s cubic-bezier(.2,.8,.2,1);
+  }
+  .phone-overlay.open .sheet { transform: translateY(0); }
+  .sheet-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 10px;
+    border-bottom: 1.5px solid var(--ink);
+    background: #f1ead7;
+  }
+  .sheet-title {
+    font-family: "Kalam", cursive; font-weight: 700; font-size: 13px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .sheet-title .green-dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: #1d7a3a; display: inline-block;
+  }
+  .sheet-close, .sheet-done {
+    border: 1.5px solid var(--ink);
+    background: #fff;
+    font-family: "Kalam", cursive; font-weight: 700; font-size: 11px;
+    padding: 3px 8px; border-radius: 4px;
+    cursor: pointer;
+  }
+  .sheet-done { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .sheet-close { width: 22px; height: 22px; padding: 0; border-radius: 4px; line-height: 1; }
+  .sheet-toolbar {
+    display: flex; gap: 4px; padding: 4px 8px;
+    background: #fff; border-bottom: 1px solid var(--line);
+    font-family: "JetBrains Mono", monospace; font-size: 9px; color: var(--ink-soft);
+  }
+  .sheet-toolbar span {
+    padding: 2px 5px; border: 1px solid var(--line); border-radius: 3px;
+  }
+  .sheet-grid {
+    flex: 1; overflow: auto;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+  }
+  .sheet-grid table {
+    border-collapse: collapse; width: max-content; min-width: 100%;
+  }
+  .sheet-grid th, .sheet-grid td {
+    border: 1px solid #c9d2dd;
+    padding: 3px 6px; min-width: 56px; height: 18px;
+    text-align: left; vertical-align: middle;
+    background: #fff;
+    white-space: nowrap;
+  }
+  .sheet-grid th {
+    background: #e9eef5; color: var(--ink-soft);
+    font-weight: 600; font-size: 9px;
+    position: sticky; top: 0; z-index: 1;
+  }
+  .sheet-grid td.idx {
+    background: #e9eef5; color: var(--ink-soft);
+    font-weight: 600; min-width: 22px; text-align: center;
+    position: sticky; left: 0;
+  }
+  .sheet-grid td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .sheet-grid td.editable { background: #fffce8; }
+  .sheet-foot {
+    border-top: 1.5px solid var(--ink);
+    padding: 6px 10px;
+    display: flex; justify-content: space-between; align-items: center;
+    background: #f1ead7;
+    font-family: "Architects Daughter", cursive; font-size: 11px; color: var(--ink-soft);
+  }
+
+  /* Toast (in-phone) */
+  .toast-stack {
+    position: absolute; left: 8px; right: 8px; bottom: 64px;
+    display: flex; flex-direction: column; gap: 6px;
+    pointer-events: none; z-index: 4;
+  }
+  .toast {
+    background: var(--ink); color: var(--paper);
+    border-radius: 8px; padding: 7px 10px;
+    font-family: "Kalam", cursive; font-size: 11px; line-height: 1.3;
+    box-shadow: 2px 3px 0 rgba(0,0,0,.15);
+    display: flex; align-items: center; gap: 6px;
+    transform: translateY(8px); opacity: 0;
+    transition: opacity .25s, transform .25s;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { background: #1d7a3a; }
+  .toast .spinner {
+    width: 12px; height: 12px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,.35);
+    border-top-color: #fff;
+    animation: spin .8s linear infinite;
+    flex: 0 0 12px;
+  }
+  .toast.success .spinner {
+    border: none; background: #fff;
+    color: #1d7a3a; font-weight: 900; font-size: 9px;
+    display: flex; align-items: center; justify-content: center;
+    animation: none;
+  }
+  .toast.success .spinner::before { content: "✓"; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Report list (slash headings) */
+  .rep-list {
+    display: flex; flex-direction: column; gap: 2px;
+    padding: 4px 0 0;
+  }
+  .rep-item {
+    border-bottom: 1px dashed rgba(20,30,60,.18);
+    padding: 9px 4px;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .rep-item:hover { background: rgba(20,30,60,.04); }
+  .rep-item:last-child { border-bottom: none; }
+  .rep-item .h {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px; color: var(--ink); font-weight: 700;
+    margin-bottom: 2px;
+  }
+  .rep-item .d {
+    font-family: "Architects Daughter", cursive;
+    font-size: 11px; color: var(--ink-soft); line-height: 1.35;
+    display: flex; gap: 5px; align-items: flex-start;
+  }
+  .rep-item .d .em { flex: 0 0 auto; }
+  .rep-item.loading {
+    pointer-events: none;
+    background: rgba(20,30,60,.04);
+  }
+  .rep-item.loading .h::after {
+    content: ""; display: inline-block;
+    width: 10px; height: 10px; margin-left: 8px; vertical-align: -1px;
+    border: 2px solid rgba(20,30,60,.25);
+    border-top-color: var(--ink);
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+  }
+</style>
+</head>
+<body class="mod-clean">
+
+  <header class="page">
+    <div>
+      <h1>AI Accountant <span class="accent">wireframes</span></h1>
+      <div class="sub">Quick low-fi exploration based on the three notebook sketches: a Queue / Sale / Purchase home, a Camera capture flow with image counter, and a 5-tab bottom nav. Showing a few directions side-by-side — pick what feels right.</div>
+    </div>
+    <div class="meta">v0.1 · pencils · 5 screens · 3 variants</div>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button class="tab is-active" data-stage="overview">Overview</button>
+    <button class="tab" data-stage="login">Login flow</button>
+    <button class="tab" data-stage="queue">Queue / Home</button>
+    <button class="tab" data-stage="camera">Camera flow</button>
+    <button class="tab" data-stage="other">History · Report · Profile</button>
+  </nav>
+
+  <!-- Tweaks panel -->
+  <aside class="tweaks" id="tweaks">
+    <h4>Tweaks</h4>
+    <label><input type="checkbox" id="t-paper" checked /> Paper texture</label>
+    <label><input type="checkbox" id="t-tilt" checked /> Slight tilt</label>
+    <label><input type="checkbox" id="t-anno" checked /> Show annotations</label>
+    <div class="group">
+      <div style="margin-bottom:4px;">Accent ink</div>
+      <div class="swatch" id="swatches">
+        <div class="sw is-active" data-mod="" style="background:#d94f3a"></div>
+        <div class="sw" data-mod="mod-blue" style="background:#1f3a8a"></div>
+        <div class="sw" data-mod="mod-green" style="background:#1d7a3a"></div>
+        <div class="sw" data-mod="mod-mono" style="background:#2a2f3a"></div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="canvas">
+
+    <!-- ========== OVERVIEW: side-by-side hero of all 3 sketch screens ========== -->
+    <section class="stage is-active" id="stage-overview">
+
+      <div class="row-title">
+        <span class="num">01</span> The flow at a glance
+        <span class="note">Queue is the default landing → tap camera → choose Sale / Purchase → capture → confirm in queue</span>
+      </div>
+
+      <div class="row three">
+        <!-- Queue -->
+        <div class="phone-wrap">
+          <div class="phone">
+            <div class="screen">
+              <div class="top-bar">
+                <div class="ttab on">Sale</div>
+                <div class="ttab">Purchase</div>
+              </div>
+              <div class="content">
+                <div class="table">
+                  <div class="thead">
+                    <div>#</div><div>Party</div><div>Amt</div><div>Date</div><div></div>
+                  </div>
+                  <div class="trow"><div class="sno">1</div><div>abc</div><div class="amt">₹100</div><div class="amt">05/08</div><div class="chk on"></div></div>
+                  <div class="trow"><div class="sno">2</div><div>def</div><div class="amt">₹200</div><div class="amt">05/08</div><div class="chk"></div></div>
+                  <div class="trow"><div class="sno">3</div><div>xyz</div><div class="amt">₹300</div><div class="amt">05/07</div><div class="chk on"></div></div>
+                  <div class="trow"><div class="sno">4</div><div>mno</div><div class="amt">₹450</div><div class="amt">05/07</div><div class="chk"></div></div>
+                  <div class="trow"><div class="sno">5</div><div>pqr</div><div class="amt">₹120</div><div class="amt">05/06</div><div class="chk"></div></div>
+                </div>
+                <div class="anno annotation"><em>Tick</em> rows the AI parsed correctly → push to ledger</div>
+              </div>
+              <div class="botnav">
+                <div class="nav on"><div class="ic">≡</div>Queue</div>
+                <div class="nav"><div class="ic">⟲</div>History</div>
+                <div class="nav cam"><div class="ic">◉</div></div>
+                <div class="nav"><div class="ic">▤</div>Report</div>
+                <div class="nav"><div class="ic">☺</div>Profile</div>
+              </div>
+            </div>
+          </div>
+          <div class="caption"><strong>Queue</strong> — default screen. Items captured by camera land here for review.</div>
+        </div>
+
+        <!-- Camera -->
+        <div class="phone-wrap">
+          <div class="phone">
+            <div class="screen">
+              <div class="cam-screen">
+                <div class="corner tl"></div><div class="corner tr"></div>
+                <div class="corner bl"></div><div class="corner br"></div>
+                <div class="cam-hint">align invoice within frame</div>
+                <div class="cam-context">
+                  <div class="pill on">Sale</div>
+                  <div class="pill">Purchase</div>
+                </div>
+                <div class="cam-strip">
+                  <div class="thumb"><div class="badge">3</div></div>
+                  <div class="shutter"></div>
+                  <div class="plus">+</div>
+                </div>
+              </div>
+              <div class="botnav">
+                <div class="nav"><div class="ic">≡</div>Queue</div>
+                <div class="nav"><div class="ic">⟲</div>History</div>
+                <div class="nav cam alt"><div class="ic">◉</div></div>
+                <div class="nav"><div class="ic">▤</div>Report</div>
+                <div class="nav"><div class="ic">☺</div>Profile</div>
+              </div>
+            </div>
+          </div>
+          <div class="caption"><strong>Camera</strong> — Sale/Purchase context appears above nav. Thumbnail badge = images shot so far.</div>
+        </div>
+
+        <!-- History -->
+        <div class="phone-wrap">
+          <div class="phone">
+            <div class="screen">
+              <div class="top-bar">
+                <div class="ttab on">All</div>
+                <div class="ttab">Sale</div>
+              </div>
+              <div class="content">
+                <div class="hlist">
+                  <div class="hcard"><div class="ico">S</div><div><div class="name">abc traders</div><div class="meta">Sale · 05 May</div></div><div class="amt s">+₹100</div></div>
+                  <div class="hcard"><div class="ico">P</div><div><div class="name">def co.</div><div class="meta">Purchase · 04 May</div></div><div class="amt p">−₹200</div></div>
+                  <div class="hcard"><div class="ico">S</div><div><div class="name">xyz mart</div><div class="meta">Sale · 04 May</div></div><div class="amt s">+₹300</div></div>
+                  <div class="hcard"><div class="ico">P</div><div><div class="name">mno supply</div><div class="meta">Purchase · 02 May</div></div><div class="amt p">−₹450</div></div>
+                  <div class="hcard"><div class="ico">S</div><div><div class="name">pqr & sons</div><div class="meta">Sale · 01 May</div></div><div class="amt s">+₹120</div></div>
+                  <div class="hcard"><div class="ico">P</div><div><div class="name">jkl ltd</div><div class="meta">Purchase · 30 Apr</div></div><div class="amt p">−₹780</div></div>
+                </div>
+              </div>
+              <div class="botnav">
+                <div class="nav"><div class="ic">≡</div>Queue</div>
+                <div class="nav on"><div class="ic">⟲</div>History</div>
+                <div class="nav cam"><div class="ic">◉</div></div>
+                <div class="nav"><div class="ic">▤</div>Report</div>
+                <div class="nav"><div class="ic">☺</div>Profile</div>
+              </div>
+            </div>
+          </div>
+          <div class="caption"><strong>History</strong> — confirmed transactions. Same top-tab pattern (Sale / Purchase).</div>
+        </div>
+      </div>
+
+      <div class="legend">
+        <div><b>Queue</b> = items to confirm</div>
+        <div><b>Camera</b> = always one tap from anywhere</div>
+        <div><b>Top tabs</b> = Sale / Purchase context</div>
+        <div><b>Bottom nav</b> = Queue · History · Camera · Report · Profile</div>
+      </div>
+    </section>
+
+    <!-- ========== LOGIN FLOW ========== -->
+    <section class="stage" id="stage-login">
+      <div class="row-title">
+        <span class="num">L1</span> Login &amp; onboarding
+        <span class="note">Single segmented slider switches between Email/Password and Phone — each path has its own follow-ups.</span>
+      </div>
+
+      <!-- Interactive demo -->
+      <div class="row three">
+        <div class="phone-wrap">
+          <div class="variant-tag preferred">Interactive · try the slider</div>
+          <div class="phone" data-login-demo>
+            <div class="screen">
+              <div class="back-nav" data-back style="visibility:hidden;"><span class="arr">‹</span><span>back</span></div>
+              <div class="login-screen" data-step="entry">
+                <div class="brand">
+                  <div class="brand-mark">A</div>
+                  <div class="brand-name">Accountant<span style="color:var(--accent);">·</span>AI</div>
+                  <div class="brand-tag">welcome back</div>
+                </div>
+
+                <div class="seg" data-seg>
+                  <div class="opt is-on" data-mode="email">Email</div>
+                  <div class="opt" data-mode="phone">Phone</div>
+                </div>
+
+                <!-- EMAIL pane -->
+                <div data-pane="email">
+                  <div class="field">
+                    <div class="lbl">email</div>
+                    <div class="input"><span class="ph">you@store.in</span></div>
+                  </div>
+                  <div class="field">
+                    <div class="lbl">password</div>
+                    <div class="input"><span class="ph">••••••••</span><span class="eye">👁</span></div>
+                  </div>
+                  <div class="field-row">
+                    <div class="chk-lbl"><span class="chk on"></span> remember me</div>
+                    <span class="forgot">forgot?</span>
+                  </div>
+                  <button class="pri-btn" data-action="email-login">Sign in →</button>
+                </div>
+
+                <!-- PHONE pane -->
+                <div data-pane="phone" style="display:none;">
+                  <div class="field">
+                    <div class="lbl">phone number</div>
+                    <div class="input"><span class="cc">+91</span><span class="ph">98xxx xxxxx</span></div>
+                    <div class="hint">we'll text a 6-digit code</div>
+                  </div>
+                  <div class="field-row" style="margin-top:8px;">
+                    <div class="chk-lbl"><span class="chk on"></span> WhatsApp OK for OTP</div>
+                  </div>
+                  <button class="pri-btn alt" data-action="send-otp">Send OTP →</button>
+                </div>
+
+                <div class="divider">or continue with</div>
+                <div class="social-row">
+                  <div class="social-btn">G · Google</div>
+                  <div class="social-btn">⌘ · Apple</div>
+                </div>
+
+                <div class="footer-line">new here? <span class="ln">create account</span></div>
+              </div>
+
+              <!-- OTP step -->
+              <div class="login-screen" data-step="otp" style="display:none;">
+                <div class="pdots"><div class="d on"></div><div class="d on"></div><div class="d"></div></div>
+                <div style="font-family:'Caveat',cursive; font-size:28px; font-weight:700; text-align:center; line-height:1.1;">enter the code</div>
+                <div style="text-align:center; font-family:'Architects Daughter',cursive; font-size:11px; color:var(--ink-soft); margin:4px 0 10px;">sent to <b style="font-family:'JetBrains Mono',monospace;">+91 98xxx xxxxx</b></div>
+
+                <div class="otp-row">
+                  <div class="otp">4</div>
+                  <div class="otp">8</div>
+                  <div class="otp">2</div>
+                  <div class="otp cursor"></div>
+                  <div class="otp"></div>
+                  <div class="otp"></div>
+                </div>
+                <div class="resend">resend in <b>00:24</b></div>
+
+                <button class="pri-btn" data-action="verify-otp">Verify →</button>
+
+                <div class="keypad">
+                  <div class="k">1</div><div class="k">2</div><div class="k">3</div>
+                  <div class="k">4</div><div class="k">5</div><div class="k">6</div>
+                  <div class="k">7</div><div class="k">8</div><div class="k">9</div>
+                  <div class="k fn">paste</div><div class="k">0</div><div class="k fn">⌫</div>
+                </div>
+              </div>
+
+              <!-- Business setup (first-time phone path) -->
+              <div class="login-screen" data-step="setup" style="display:none;">
+                <div class="pdots"><div class="d on"></div><div class="d on"></div><div class="d on"></div></div>
+                <div style="font-family:'Caveat',cursive; font-size:26px; font-weight:700; text-align:center; line-height:1.1;">quick setup</div>
+                <div style="text-align:center; font-family:'Architects Daughter',cursive; font-size:11px; color:var(--ink-soft); margin:4px 0 12px;">takes 30 seconds</div>
+
+                <div class="field">
+                  <div class="lbl">business name</div>
+                  <div class="input"><span class="ph">e.g. Sharma Hardware</span></div>
+                </div>
+                <div class="field">
+                  <div class="lbl">GSTIN (optional)</div>
+                  <div class="input"><span class="ph">27ABCDE1234F1Z5</span></div>
+                </div>
+                <div class="lbl" style="font-family:'Architects Daughter',cursive; font-size:11px; color:var(--ink-soft); margin: 2px 0 4px;">what do you sell?</div>
+                <div class="chip-grid">
+                  <div class="chip on"><span class="ic">🔩</span>hardware</div>
+                  <div class="chip"><span class="ic">🧵</span>textiles</div>
+                  <div class="chip"><span class="ic">🥫</span>grocery</div>
+                  <div class="chip"><span class="ic">⋯</span>other</div>
+                </div>
+                <button class="pri-btn" data-action="finish-setup" style="margin-top:6px;">Finish →</button>
+              </div>
+
+              <!-- Success -->
+              <div class="login-screen" data-step="done" style="display:none;">
+                <div class="check-big">✓</div>
+                <div class="success-head">you're in!</div>
+                <div class="success-sub">opening your queue · your AI accountant is ready to go.</div>
+                <div style="text-align:center; font-family:'Architects Daughter',cursive; font-size:11px; color:var(--muted);">redirecting…</div>
+                <div style="margin: 14px auto 0; width: 80%; height: 4px; border-radius: 4px; background: rgba(20,30,60,.12); overflow: hidden;">
+                  <div data-progress style="width:0; height:100%; background:var(--ink); transition: width 1.4s linear;"></div>
+                </div>
+                <button class="pri-btn alt" data-action="reset-demo" style="margin-top:auto;">↺ Reset demo</button>
+              </div>
+            </div>
+          </div>
+          <div class="caption">Toggle the segmented slider, fill the form, ride the flow all the way to the queue.</div>
+        </div>
+
+        <!-- Static state · email path -->
+        <div class="phone-wrap">
+          <div class="variant-tag">Email path · returning user</div>
+          <div class="phone">
+            <div class="screen">
+              <div class="login-screen">
+                <div class="brand">
+                  <div class="brand-mark">A</div>
+                  <div class="brand-name">Accountant<span style="color:var(--accent);">·</span>AI</div>
+                  <div class="brand-tag">welcome back, ravi</div>
+                </div>
+                <div class="seg">
+                  <div class="opt is-on">Email</div>
+                  <div class="opt">Phone</div>
+                </div>
+                <div class="field">
+                  <div class="lbl">email</div>
+                  <div class="input">ravi@sharmahw.in<span class="eye">✓</span></div>
+                </div>
+                <div class="field">
+                  <div class="lbl">password</div>
+                  <div class="input">••••••••<span class="eye">👁</span></div>
+                </div>
+                <div class="field-row">
+                  <div class="chk-lbl"><span class="chk on"></span> remember me</div>
+                  <span class="forgot">forgot?</span>
+                </div>
+                <button class="pri-btn">Sign in →</button>
+                <div class="divider">or</div>
+                <div class="social-row">
+                  <div class="social-btn">G · Google</div>
+                  <div class="social-btn">⌘ · Apple</div>
+                </div>
+                <div class="footer-line">new here? <span class="ln">create account</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="caption">Email + password → goes <strong>straight to Queue</strong>. Returning users see their last email pre-filled.</div>
+        </div>
+
+        <!-- Static state · phone OTP -->
+        <div class="phone-wrap">
+          <div class="variant-tag">Phone path · OTP entry</div>
+          <div class="phone">
+            <div class="screen">
+              <div class="back-nav"><span class="arr">‹</span><span>back</span></div>
+              <div class="login-screen">
+                <div class="pdots"><div class="d on"></div><div class="d on"></div><div class="d"></div></div>
+                <div style="font-family:'Caveat',cursive; font-size:28px; font-weight:700; text-align:center; line-height:1.1;">enter the code</div>
+                <div style="text-align:center; font-family:'Architects Daughter',cursive; font-size:11px; color:var(--ink-soft); margin:4px 0 10px;">sent to <b style="font-family:'JetBrains Mono',monospace;">+91 98xxx xxxxx</b></div>
+                <div class="otp-row">
+                  <div class="otp">4</div>
+                  <div class="otp">8</div>
+                  <div class="otp">2</div>
+                  <div class="otp cursor"></div>
+                  <div class="otp"></div>
+                  <div class="otp"></div>
+                </div>
+                <div class="resend">resend in <b>00:24</b></div>
+                <button class="pri-btn">Verify →</button>
+                <div class="keypad">
+                  <div class="k">1</div><div class="k">2</div><div class="k">3</div>
+                  <div class="k">4</div><div class="k">5</div><div class="k">6</div>
+                  <div class="k">7</div><div class="k">8</div><div class="k">9</div>
+                  <div class="k fn">paste</div><div class="k">0</div><div class="k fn">⌫</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="caption">SMS auto-read fills boxes left → right; manual keypad is a fallback. <strong>Resend</strong> unlocks after 30s.</div>
+        </div>
+      </div>
+
+      <!-- Flow diagram in words + more screens -->
+      <div class="row-title">
+        <span class="num">L2</span> The whole journey
+        <span class="note">Where each path lands. Phone users get one extra step (business setup) on first run only.</span>
+      </div>
+
+      <div class="row four">
+        <!-- 1. Splash / launch -->
+        <div class="phone-wrap">
+          <div class="variant-tag">Splash</div>
+          <div class="phone">
+            <div class="screen">
+              <div class="login-screen" style="justify-content:center; align-items:center;">
+                <div style="flex:1;"></div>
+                <div class="brand-mark" style="width:80px; height:80px; font-size:46px; box-shadow: 4px 4px 0 var(--accent), -2px -2px 0 var(--accent-2);">A</div>
+                <div class="brand-name" style="font-size:34px; margin-top:14px;">Accountant<span style="color:var(--accent);">·</span>AI</div>
+                <div class="brand-tag" style="font-size:13px;">your books, on autopilot</div>
+                <div style="flex:1;"></div>
+                <div style="display:flex; justify-content:center; gap:5px;">
+                  <span style="width:6px;height:6px;border-radius:50%;background:var(--ink);"></span>
+                  <span style="width:6px;height:6px;border-radius:50%;background:var(--ink-soft); opacity:.5;"></span>
+                  <span style="width:6px;height:6px;border-radius:50%;background:var(--ink-soft); opacity:.5;"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="caption">Brand splash · 1.2s, then →</div>
+        </div>
+
+        <!-- 2. Login entry (compact) -->
+        <div class="phone-wrap">
+          <div class="variant-tag">Login entry</div>
+          <div class="phone">
+            <div class="screen">
+              <div class="login-screen">
+                <div class="brand">
+                  <div class="brand-mark">A</div>
+                  <div class="brand-name">Sign in</div>
+                </div>
+                <div class="seg is-phone">
+                  <div class="opt">Email</div>
+                  <div class="opt is-on">Phone</div>
+                </div>
+                <div class="field">
+                  <div class="lbl">phone number</div>
+                  <div class="input"><span class="cc">+91</span><span style="color:var(--ink);">98765 43210</span></div>
+                  <div class="hint">we'll text a 6-digit code</div>
+                </div>
+                <div class="field-row">
+                  <div class="chk-lbl"><span class="chk on"></span> WhatsApp OK for OTP</div>
+                </div>
+                <button class="pri-btn alt">Send OTP →</button>
+                <div class="divider">or</div>
+                <div class="social-row">
+                  <div class="social-btn">G · Google</div>
+                  <div class="social-btn">⌘ · Apple</div>
+                </div>
+                <div class="footer-line">new here? <span class="ln">create account</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="caption">Same screen, slider thrown to Phone.</div>
+        </div>
+
+        <!-- 4. Success → Queue -->
+        <div class="phone-wrap">
+          <div class="variant-tag">You're in</div>
+          <div class="phone">
+            <div class="screen">
+              <div class="login-screen">
+                <div class="check-big">✓</div>
+                <div class="success-head">you're in!</div>
+                <div class="success-sub">opening your queue · your AI accountant is ready to go.</div>
+                <div style="margin: 4px auto 0; width: 80%; height: 4px; border-radius: 4px; background: rgba(20,30,60,.12); overflow: hidden;">
+                  <div style="width:65%; height:100%; background:var(--ink);"></div>
+                </div>
+                <div style="text-align:center; font-family:'Architects Daughter',cursive; font-size:11px; color:var(--muted); margin-top:8px;">redirecting…</div>
+                <div style="flex:1;"></div>
+                <div style="text-align:center; font-family:'Architects Daughter',cursive; font-size:11px; color:var(--ink-soft);">
+                  next stop · <b style="color:var(--ink); font-family:'Kalam',cursive;">Queue</b>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="caption">Brief celebration · ~1.5s · auto-routes to Queue.</div>
+        </div>
+      </div>
+
+      <!-- Flow legend -->
+      <div class="legend" style="margin:20px 24px 40px;">
+        <div><b>Email</b> path → Splash → Login → <em>Queue</em></div>
+        <div><b>Phone</b> path → Splash → Login → OTP → <em>Queue</em></div>
+      </div>
+    </section>
+
+    <!-- ========== QUEUE VARIANTS ========== -->
+    <section class="stage" id="stage-queue">
+      <div class="row-title"><span class="num">02</span> Queue / Home — three takes <span class="note">Same data, different layouts. A: matches the sketch. B: card list. C: split actions.</span></div>
+      <div class="row three">
+
+        <!-- A: matches sketch table -->
+        <div class="phone-wrap">
+          <div class="variant-tag">A · table (clickable party → challan sheet)</div>
+          <div class="phone" data-queue="A">
+            <div class="screen">
+              <div class="top-bar">
+                <div class="ttab on" data-tab="Sale">Sale</div>
+                <div class="ttab" data-tab="Purchase">Purchase</div>
+              </div>
+              <div class="content">
+                <div class="table" data-rows>
+                  <div class="thead"><div>#</div><div>Party</div><div>Amt</div><div>Date</div><div></div></div>
+                  <div class="trow" data-party="abc"><div class="sno">1</div><div class="party">abc</div><div class="amt">₹100</div><div class="amt">05/08</div><div class="chk"></div></div>
+                  <div class="trow" data-party="def"><div class="sno">2</div><div class="party">def</div><div class="amt">₹200</div><div class="amt">05/08</div><div class="chk"></div></div>
+                  <div class="trow" data-party="xyz"><div class="sno">3</div><div class="party">xyz</div><div class="amt">₹300</div><div class="amt">05/07</div><div class="chk"></div></div>
+                  <div class="trow" data-party="mno"><div class="sno">4</div><div class="party">mno</div><div class="amt">₹450</div><div class="amt">05/07</div><div class="chk"></div></div>
+                  <div class="trow" data-party="pqr"><div class="sno">5</div><div class="party">pqr</div><div class="amt">₹120</div><div class="amt">05/06</div><div class="chk"></div></div>
+                </div>
+                <div class="anno"><em>Tap a party</em> → opens the challan sheet</div>
+              </div>
+              <div class="botnav">
+                <div class="nav on"><div class="ic">≡</div>Queue</div>
+                <div class="nav"><div class="ic">⟲</div>History</div>
+                <div class="nav cam"><div class="ic">◉</div></div>
+                <div class="nav"><div class="ic">▤</div>Report</div>
+                <div class="nav"><div class="ic">☺</div>Profile</div>
+              </div>
+              <div class="toast-stack" data-toasts></div>
+              <div class="phone-overlay" data-overlay>
+                <div class="sheet">
+                  <div class="sheet-head">
+                    <div class="sheet-title"><span class="green-dot"></span>challan_<span data-party-name>abc</span>.xlsx</div>
+                    <button class="sheet-done" data-done>Done</button>
+                  </div>
+                  <div class="sheet-toolbar"><span>File</span><span>Edit</span><span>View</span><span>Σ</span><span>%</span></div>
+                  <div class="sheet-grid">
+                    <table>
+                      <thead>
+                        <tr><th></th><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th></tr>
+                        <tr><th></th><th>Item</th><th>HSN</th><th>Qty</th><th>Rate</th><th>GST%</th><th>Amount</th></tr>
+                      </thead>
+                      <tbody>
+                        <tr><td class="idx">1</td><td>ALLEN BOLT 10×100</td><td>7318</td><td class="num editable">12</td><td class="num">8.50</td><td class="num">18</td><td class="num">120.36</td></tr>
+                        <tr><td class="idx">2</td><td>AG-4 6mm BEAR</td><td>6804</td><td class="num editable">25</td><td class="num">14.20</td><td class="num">18</td><td class="num">418.90</td></tr>
+                        <tr><td class="idx">3</td><td>ADJ WRENCH 12"</td><td>8204</td><td class="num editable">3</td><td class="num">340.00</td><td class="num">18</td><td class="num">1,203.60</td></tr>
+                        <tr><td class="idx">4</td><td>ALKON DISC 5" G80</td><td>6804</td><td class="num editable">10</td><td class="num">22.00</td><td class="num">18</td><td class="num">259.60</td></tr>
+                        <tr><td class="idx">5</td><td>AEROSOL-OS</td><td>3808</td><td class="num editable">6</td><td class="num">85.00</td><td class="num">18</td><td class="num">601.80</td></tr>
+                        <tr><td class="idx">6</td><td></td><td></td><td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td></tr>
+                        <tr><td class="idx">7</td><td></td><td></td><td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td></tr>
+                        <tr><td class="idx">8</td><td></td><td></td><td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="sheet-foot">
+                    <span>Sheet1 · 5 line items</span>
+                    <span>Σ ₹2,604.26</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="caption">Tap a party name → challan opens like a sheet. <strong>Done</strong> closes it; row shows "processing" toast, then "done" + green check.</div>
+        </div>
+
+        <!-- B: card list -->
+        <div class="phone-wrap">
+          <div class="variant-tag">B · card list</div>
+          <div class="phone">
+            <div class="screen">
+              <div class="top-bar">
+                <div class="ttab on">Sale</div>
+                <div class="ttab">Purchase</div>
+              </div>
+              <div class="content">
+                <div class="hlist">
+                  <div class="hcard"><div class="ico">📷</div><div><div class="name">abc</div><div class="meta">today · ₹100</div></div><div class="chk on" style="width:18px;height:18px"></div></div>
+                  <div class="hcard"><div class="ico">📷</div><div><div class="name">def</div><div class="meta">today · ₹200</div></div><div class="chk" style="width:18px;height:18px"></div></div>
+                  <div class="hcard"><div class="ico">📷</div><div><div class="name">xyz</div><div class="meta">yest · ₹300</div></div><div class="chk on" style="width:18px;height:18px"></div></div>
+                  <div class="hcard"><div class="ico">📷</div><div><div class="name">mno</div><div class="meta">yest · ₹450</div></div><div class="chk" style="width:18px;height:18px"></div></div>
+                </div>
+                <div class="anno"><em>Tap card</em> → preview captured photo + edit fields</div>
+              </div>
+              <div class="botnav">
+                <div class="nav on"><div class="ic">≡</div>Queue</div>
+                <div class="nav"><div class="ic">⟲</div>History</div>
+                <div class="nav cam"><div class="ic">◉</div></div>
+                <div class="nav"><div class="ic">▤</div>Report</div>
+                <div class="nav"><div class="ic">☺</div>Profile</div>
+              </div>
+            </div>
+          </div>
+          <div class="caption">Each pending capture is a card with thumbnail + AI-extracted fields.</div>
+        </div>
+
+        <!-- C: grouped by day with bulk action bar -->
+        <div class="phone-wrap">
+          <div class="variant-tag preferred">C · grouped + bulk bar (preferred)</div>
+          <div class="phone" data-queue="C">
+            <div class="screen">
+              <div class="top-bar">
+                <div class="ttab on" data-tab="Sale">Sale</div>
+                <div class="ttab" data-tab="Purchase">Purchase</div>
+              </div>
+              <div class="content" style="padding-bottom:0;">
+                <div style="font-family:'Caveat',cursive; font-size:18px; margin:2px 2px 4px;">Today</div>
+                <div class="table" style="margin-bottom:6px;">
+                  <div class="trow" data-party="abc"><div class="sno">1</div><div class="party">abc</div><div class="amt">₹100</div><div class="amt">10:14</div><div class="chk on"></div></div>
+                  <div class="trow" data-party="def"><div class="sno">2</div><div class="party">def</div><div class="amt">₹200</div><div class="amt">11:02</div><div class="chk on"></div></div>
+                </div>
+                <div style="font-family:'Caveat',cursive; font-size:18px; margin:2px 2px 4px;">Yesterday</div>
+                <div class="table">
+                  <div class="trow" data-party="xyz"><div class="sno">3</div><div class="party">xyz</div><div class="amt">₹300</div><div class="amt">17:48</div><div class="chk"></div></div>
+                  <div class="trow" data-party="mno"><div class="sno">4</div><div class="party">mno</div><div class="amt">₹450</div><div class="amt">14:21</div><div class="chk"></div></div>
+                </div>
+              </div>
+              <div style="border-top:1.5px dashed var(--ink); padding:6px 10px; display:flex; justify-content:space-between; align-items:center; font-size:12px; background:rgba(255,235,200,.6);">
+                <span style="font-family:'Caveat',cursive; font-size:18px; font-weight:700;">2 selected</span>
+                <span style="border:1.5px solid var(--ink); padding:3px 8px; border-radius:14px; background:var(--accent); color:#fff; font-weight:700;">Confirm</span>
+              </div>
+              <div class="botnav">
+                <div class="nav on"><div class="ic">≡</div>Queue</div>
+                <div class="nav"><div class="ic">⟲</div>History</div>
+                <div class="nav cam"><div class="ic">◉</div></div>
+                <div class="nav"><div class="ic">▤</div>Report</div>
+                <div class="nav"><div class="ic">☺</div>Profile</div>
+              </div>
+              <div class="toast-stack" data-toasts></div>
+              <div class="phone-overlay" data-overlay>
+                <div class="sheet">
+                  <div class="sheet-head">
+                    <div class="sheet-title"><span class="green-dot"></span>challan_<span data-party-name>abc</span>.xlsx</div>
+                    <button class="sheet-done" data-done>Done</button>
+                  </div>
+                  <div class="sheet-toolbar"><span>File</span><span>Edit</span><span>View</span><span>Σ</span><span>%</span></div>
+                  <div class="sheet-grid">
+                    <table>
+                      <thead>
+                        <tr><th></th><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th></tr>
+                        <tr><th></th><th>Item</th><th>HSN</th><th>Qty</th><th>Rate</th><th>GST%</th><th>Amount</th></tr>
+                      </thead>
+                      <tbody>
+                        <tr><td class="idx">1</td><td>ALLEN BOLT 10×100</td><td>7318</td><td class="num editable">12</td><td class="num">8.50</td><td class="num">18</td><td class="num">120.36</td></tr>
+                        <tr><td class="idx">2</td><td>AG-4 6mm BEAR</td><td>6804</td><td class="num editable">25</td><td class="num">14.20</td><td class="num">18</td><td class="num">418.90</td></tr>
+                        <tr><td class="idx">3</td><td>ADJ WRENCH 12"</td><td>8204</td><td class="num editable">3</td><td class="num">340.00</td><td class="num">18</td><td class="num">1,203.60</td></tr>
+                        <tr><td class="idx">4</td><td>ALKON DISC 5" G80</td><td>6804</td><td class="num editable">10</td><td class="num">22.00</td><td class="num">18</td><td class="num">259.60</td></tr>
+                        <tr><td class="idx">5</td><td>AEROSOL-OS</td><td>3808</td><td class="num editable">6</td><td class="num">85.00</td><td class="num">18</td><td class="num">601.80</td></tr>
+                        <tr><td class="idx">6</td><td></td><td></td><td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td></tr>
+                        <tr><td class="idx">7</td><td></td><td></td><td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td></tr>
+                        <tr><td class="idx">8</td><td></td><td></td><td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="sheet-foot">
+                    <span>Sheet1 · 5 line items</span>
+                    <span>Σ ₹2,604.26</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="caption">Date-grouped rows + bulk-confirm bar. <strong>Tap a party</strong> → challan sheet opens; Done → processing/success toast.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== CAMERA VARIANTS ========== -->
+    <section class="stage" id="stage-camera">
+      <div class="row-title"><span class="num">03</span> Camera flow — three takes <span class="note">Where do Sale / Purchase live? When does the user pick?</span></div>
+      <div class="row three">
+
+        <!-- A: pick context BEFORE camera -->
+        <div class="phone-wrap">
+          <div class="variant-tag">A · ask first</div>
+          <div class="phone">
+            <div class="screen">
+              <div class="content" style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px;">
+                <div style="font-family:'Caveat',cursive; font-size:30px; font-weight:700;">What is this?</div>
+                <div style="display:flex; gap:14px;">
+                  <div style="border:2px solid var(--ink); border-radius:14px; padding:18px 22px; text-align:center; min-width:90px; background:rgba(255,255,255,.55);">
+                    <div style="font-size:24px;">📤</div>
+                    <div style="font-family:'Kalam',cursive; font-weight:700; margin-top:6px;">Sale</div>
+                  </div>
+                  <div style="border:2px solid var(--ink); border-radius:14px; padding:18px 22px; text-align:center; min-width:90px; background:rgba(255,255,255,.55);">
+                    <div style="font-size:24px;">📥</div>
+                    <div style="font-family:'Kalam',cursive; font-weight:700; margin-top:6px;">Purchase</div>
+                  </div>
+                </div>
+                <div class="anno"><em>Then</em> camera opens, already tagged.</div>
+              </div>
+              <div class="botnav">
+                <div class="nav"><div class="ic">≡</div>Queue</div>
+                <div class="nav"><div class="ic">⟲</div>History</div>
+                <div class="nav cam alt"><div class="ic">◉</div></div>
+                <div class="nav"><div class="ic">▤</div>Report</div>
+                <div class="nav"><div class="ic">☺</div>Profile</div>
+              </div>
+            </div>
+          </div>
+          <div class="caption">Decide context up front → cleaner camera screen, no toggle while shooting.</div>
+        </div>
+
+        <!-- B: matches sketch — tabs above nav -->
+        <div class="phone-wrap">
+          <div class="variant-tag">B · clean camera (no context pills)</div>
+          <div class="phone">
+            <div class="screen">
+              <div class="cam-screen">
+                <div class="corner tl"></div><div class="corner tr"></div>
+                <div class="corner bl"></div><div class="corner br"></div>
+                <div class="cam-hint">point at receipt</div>
+                <div class="cam-strip">
+                  <div class="thumb"><div class="badge">2</div></div>
+                  <div class="shutter"></div>
+                  <div class="plus">+</div>
+                </div>
+              </div>
+              <div class="botnav">
+                <div class="nav"><div class="ic">≡</div>Queue</div>
+                <div class="nav"><div class="ic">⟲</div>History</div>
+                <div class="nav cam alt"><div class="ic">◉</div></div>
+                <div class="nav"><div class="ic">▤</div>Report</div>
+                <div class="nav"><div class="ic">☺</div>Profile</div>
+              </div>
+            </div>
+          </div>
+          <div class="caption">Camera shows nothing but viewfinder + capture. Sale/Purchase is decided before or in queue.</div>
+        </div>
+
+        <!-- C: confirm after multi-shot -->
+        <div class="phone-wrap">
+          <div class="variant-tag">C · review tray</div>
+          <div class="phone">
+            <div class="screen">
+              <div class="cam-screen" style="padding-bottom:4px;">
+                <div class="corner tl"></div><div class="corner tr"></div>
+                <div class="cam-hint" style="top:32%;">last shot · tap to retake</div>
+                <div style="margin-top:auto; display:flex; gap:6px; padding:6px 4px; overflow-x:auto;">
+                  <div class="thumb" style="flex:0 0 38px;"></div>
+                  <div class="thumb" style="flex:0 0 38px;"></div>
+                  <div class="thumb" style="flex:0 0 38px;"></div>
+                  <div class="thumb" style="flex:0 0 38px; border-style:dashed;"><div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#f1ead7; font-size:18px;">+</div></div>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 4px 0;">
+                  <span style="color:#f1ead7; font-family:'Architects Daughter',cursive; font-size:11px;">3 shots · sale</span>
+                  <span style="background:var(--accent); color:#fff; padding:4px 10px; border-radius:14px; font-family:'Kalam',cursive; font-weight:700; font-size:12px;">Send to AI →</span>
+                </div>
+              </div>
+              <div class="botnav">
+                <div class="nav"><div class="ic">≡</div>Queue</div>
+                <div class="nav"><div class="ic">⟲</div>History</div>
+                <div class="nav cam alt"><div class="ic">◉</div></div>
+                <div class="nav"><div class="ic">▤</div>Report</div>
+                <div class="nav"><div class="ic">☺</div>Profile</div>
+              </div>
+            </div>
+          </div>
+          <div class="caption">Burst-style: shoot many, scrub the strip, then send to AI in one go.</div>
+        </div>
+
+      </div>
+
+      <!-- callouts -->
+      <div class="row-title"><span class="num">03b</span> The badge / counter <span class="note">Three readings of "number denotes clicked images"</span></div>
+      <div class="row four">
+        <div class="phone-wrap" style="--tilt:0deg;">
+          <div class="variant-tag preferred">red dot (preferred)</div>
+          <div style="width:160px; height:200px; border:2px solid var(--ink); border-radius:14px; background:#2a2f3a; position:relative; display:flex; align-items:flex-end; padding:14px;">
+            <div class="thumb"><div class="badge">3</div></div>
+          </div>
+          <div class="caption">Notification-style badge on thumbnail.</div>
+        </div>
+        <div class="phone-wrap" style="--tilt:0deg;">
+          <div class="variant-tag">stack</div>
+          <div style="width:160px; height:200px; border:2px solid var(--ink); border-radius:14px; background:#2a2f3a; position:relative; display:flex; align-items:flex-end; padding:14px;">
+            <div style="position:relative; width:46px; height:46px;">
+              <div class="thumb" style="position:absolute; top:6px; left:6px; opacity:.6;"></div>
+              <div class="thumb" style="position:absolute; top:3px; left:3px; opacity:.8;"></div>
+              <div class="thumb" style="position:absolute; top:0; left:0;"></div>
+              <div style="position:absolute; bottom:-6px; right:-8px; background:#f1ead7; color:#16181d; padding:2px 6px; border-radius:10px; font-family:'JetBrains Mono',monospace; font-size:10px; border:1.5px solid #16181d;">×3</div>
+            </div>
+          </div>
+          <div class="caption">Stacked thumbnails imply count visually.</div>
+        </div>
+        <div class="phone-wrap" style="--tilt:0deg;">
+          <div class="variant-tag">caption</div>
+          <div style="width:160px; height:200px; border:2px solid var(--ink); border-radius:14px; background:#2a2f3a; position:relative; display:flex; align-items:flex-end; padding:14px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <div class="thumb"></div>
+              <div style="color:#f1ead7; font-family:'Caveat',cursive; font-size:22px; font-weight:700; line-height:1;">3 shots</div>
+            </div>
+          </div>
+          <div class="caption">Plain text label — most explicit, takes a hair more space.</div>
+        </div>
+        <div class="phone-wrap" style="--tilt:0deg;">
+          <div class="variant-tag">ring</div>
+          <div style="width:160px; height:200px; border:2px solid var(--ink); border-radius:14px; background:#2a2f3a; position:relative; display:flex; align-items:flex-end; padding:14px;">
+            <div style="position:relative;">
+              <div class="thumb"></div>
+              <svg width="58" height="58" style="position:absolute; top:-10px; left:-10px;" viewBox="0 0 58 58">
+                <circle cx="29" cy="29" r="26" fill="none" stroke="#f1ead7" stroke-width="2" stroke-dasharray="42 200" stroke-linecap="round" transform="rotate(-90 29 29)"/>
+                <text x="29" y="20" text-anchor="middle" fill="#f1ead7" font-family="JetBrains Mono" font-size="9">3/5</text>
+              </svg>
+            </div>
+          </div>
+          <div class="caption">Progress ring — useful if there's a per-batch limit.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== HISTORY / REPORT / PROFILE ========== -->
+    <section class="stage" id="stage-other">
+      <div class="row-title"><span class="num">04</span> The other three nav tabs <span class="note">Sketches don't cover these — first-pass guesses to react to.</span></div>
+      <div class="row three">
+
+        <!-- History -->
+        <div class="phone-wrap">
+          <div class="variant-tag">History</div>
+          <div class="phone">
+            <div class="screen">
+              <div class="top-bar">
+                <div class="ttab on">All</div>
+                <div class="ttab">Sale</div>
+              </div>
+              <div class="content">
+                <div style="font-family:'Caveat',cursive; font-size:18px; margin:2px 2px 6px;">May 2026</div>
+                <div class="hlist">
+                  <div class="hcard"><div class="ico">S</div><div><div class="name">abc traders</div><div class="meta">Sale · 05 May</div></div><div class="amt s">+₹100</div></div>
+                  <div class="hcard"><div class="ico">P</div><div><div class="name">def co.</div><div class="meta">Purchase · 04 May</div></div><div class="amt p">−₹200</div></div>
+                  <div class="hcard"><div class="ico">S</div><div><div class="name">xyz mart</div><div class="meta">Sale · 04 May</div></div><div class="amt s">+₹300</div></div>
+                  <div class="hcard"><div class="ico">P</div><div><div class="name">mno supply</div><div class="meta">Purchase · 02 May</div></div><div class="amt p">−₹450</div></div>
+                </div>
+                <div style="font-family:'Caveat',cursive; font-size:18px; margin:8px 2px 6px;">April 2026</div>
+                <div class="hlist">
+                  <div class="hcard"><div class="ico">S</div><div><div class="name">pqr</div><div class="meta">Sale · 28 Apr</div></div><div class="amt s">+₹520</div></div>
+                </div>
+              </div>
+              <div class="botnav">
+                <div class="nav"><div class="ic">≡</div>Queue</div>
+                <div class="nav on"><div class="ic">⟲</div>History</div>
+                <div class="nav cam"><div class="ic">◉</div></div>
+                <div class="nav"><div class="ic">▤</div>Report</div>
+                <div class="nav"><div class="ic">☺</div>Profile</div>
+              </div>
+            </div>
+          </div>
+          <div class="caption">Confirmed transactions, grouped by month. Same Sale / Purchase tabs for filtering.</div>
+        </div>
+
+        <!-- Report -->
+        <div class="phone-wrap">
+          <div class="variant-tag">Report</div>
+          <div class="phone" data-report>
+            <div class="screen">
+              <div class="top-bar">
+                <div class="ttab on">Insights</div>
+                <div class="ttab">Export</div>
+              </div>
+              <div class="content" style="padding: 8px 10px;">
+                <div class="rep-list">
+                  <div class="rep-item" data-cat="act_now">
+                    <div class="h">/act_now</div>
+                    <div class="d"><span class="em">🚨</span><span>Items at risk of lost sales. Reorder immediately or within days. Highest revenue impact.</span></div>
+                  </div>
+                  <div class="rep-item" data-cat="hero_sku_health">
+                    <div class="h">/hero_sku_health</div>
+                    <div class="d"><span class="em">🏆</span><span>Top-performing items driving revenue. Protect at all costs. Never let them stock out.</span></div>
+                  </div>
+                  <div class="rep-item" data-cat="dead_capital">
+                    <div class="h">/dead_capital</div>
+                    <div class="d"><span class="em">💀</span><span>Capital locked with zero or negative returns. Liquidate, write off, or audit. Sort by ₹ value.</span></div>
+                  </div>
+                  <div class="rep-item" data-cat="buying_mistakes">
+                    <div class="h">/buying_mistakes</div>
+                    <div class="d"><span class="em">⚠️</span><span>Purchasing happened without sales justification. Stop the bleed. Review buyer decisions.</span></div>
+                  </div>
+                  <div class="rep-item" data-cat="wind_down">
+                    <div class="h">/wind_down</div>
+                    <div class="d"><span class="em">🪟</span><span>Items clearing out by intent or neglect. Track days-to-clear. Recommit or exit cleanly.</span></div>
+                  </div>
+                  <div class="rep-item" data-cat="risk_watch">
+                    <div class="h">/risk_watch</div>
+                    <div class="d"><span class="em">👀</span><span>Needs monitoring but not emergency action. Seasonal demand check. Cash flow exposure.</span></div>
+                  </div>
+                  <div class="rep-item" data-cat="full_portfolio_health">
+                    <div class="h">/full_portfolio_health</div>
+                    <div class="d"><span class="em">📊</span><span>Complete sorted view. Health score 1–100. Sort ascending to find worst items first.</span></div>
+                  </div>
+                </div>
+              </div>
+              <div class="botnav">
+                <div class="nav"><div class="ic">≡</div>Queue</div>
+                <div class="nav"><div class="ic">⟲</div>History</div>
+                <div class="nav cam"><div class="ic">◉</div></div>
+                <div class="nav on"><div class="ic">▤</div>Report</div>
+                <div class="nav"><div class="ic">☺</div>Profile</div>
+              </div>
+              <div class="phone-overlay" data-overlay>
+                <div class="sheet">
+                  <div class="sheet-head">
+                    <div class="sheet-title"><span class="green-dot"></span><span data-rep-title>/act_now</span>.csv</div>
+                    <button class="sheet-close" data-close>✕</button>
+                  </div>
+                  <div class="sheet-toolbar"><span>File</span><span>Edit</span><span>View</span><span>Filter</span><span>Σ</span></div>
+                  <div class="sheet-grid" data-rep-grid>
+                    <table>
+                      <thead>
+                        <tr><th></th><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th></tr>
+                        <tr><th></th><th>stock_item</th><th>sales_6m</th><th>pur_1m</th><th>stock_qty</th><th>stock_₹</th><th>scenario</th></tr>
+                      </thead>
+                      <tbody data-rep-body></tbody>
+                    </table>
+                  </div>
+                  <div class="sheet-foot">
+                    <span data-rep-meta>2,140 rows · sorted by ₹</span>
+                    <span>Σ <span data-rep-sum>₹—</span></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="caption">Slash-headings list. Tap one → loading spinner → sheet slides up bottom-to-top with the rows. ✕ closes.</div>
+        </div>
+
+        <!-- Profile -->
+        <div class="phone-wrap">
+          <div class="variant-tag">Profile</div>
+          <div class="phone">
+            <div class="screen">
+              <div class="content">
+                <div class="profile-hd">
+                  <div class="avatar">RK</div>
+                  <div class="pinfo">
+                    <div class="nm">Ravi Kumar</div>
+                    <div class="em">ravi@store.in · GST 27ABCDE…</div>
+                  </div>
+                </div>
+                <div class="plist">
+                  <div class="prow"><span>Business details</span><span class="arr">›</span></div>
+                  <div class="prow"><span>Tax / GST settings</span><span class="arr">›</span></div>
+                  <div class="prow"><span>Currency &amp; date</span><span class="arr">›</span></div>
+                  <div class="prow"><span>Backup &amp; export</span><span class="arr">›</span></div>
+                  <div class="prow"><span>AI accuracy</span><span class="arr">›</span></div>
+                  <div class="prow"><span>Help &amp; support</span><span class="arr">›</span></div>
+                  <div class="prow" style="border-color:var(--accent); color:var(--accent);"><span>Sign out</span><span class="arr">›</span></div>
+                </div>
+              </div>
+              <div class="botnav">
+                <div class="nav"><div class="ic">≡</div>Queue</div>
+                <div class="nav"><div class="ic">⟲</div>History</div>
+                <div class="nav cam"><div class="ic">◉</div></div>
+                <div class="nav"><div class="ic">▤</div>Report</div>
+                <div class="nav on"><div class="ic">☺</div>Profile</div>
+              </div>
+            </div>
+          </div>
+          <div class="caption">Standard settings list. Surface AI accuracy here so users can flag bad parses.</div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+<script>
+  // tab switching
+  const tabs = document.querySelectorAll('#tabs .tab');
+  const stages = document.querySelectorAll('.stage');
+  tabs.forEach(t => {
+    t.addEventListener('click', () => {
+      tabs.forEach(x => x.classList.remove('is-active'));
+      stages.forEach(s => s.classList.remove('is-active'));
+      t.classList.add('is-active');
+      const id = 'stage-' + t.dataset.stage;
+      document.getElementById(id).classList.add('is-active');
+    });
+  });
+
+  // tweaks
+  const body = document.body;
+  document.getElementById('t-paper').addEventListener('change', e => {
+    body.classList.toggle('mod-clean', !e.target.checked);
+  });
+  document.getElementById('t-tilt').addEventListener('change', e => {
+    document.querySelectorAll('.phone-wrap').forEach(p => {
+      p.style.transform = e.target.checked ? '' : 'rotate(0deg)';
+    });
+  });
+  document.getElementById('t-anno').addEventListener('change', e => {
+    document.querySelectorAll('.anno').forEach(a => {
+      a.style.display = e.target.checked ? '' : 'none';
+    });
+  });
+  // accent swap
+  const sws = document.querySelectorAll('#swatches .sw');
+  sws.forEach(sw => sw.addEventListener('click', () => {
+    sws.forEach(s => s.classList.remove('is-active'));
+    sw.classList.add('is-active');
+    body.classList.remove('mod-blue','mod-green','mod-mono');
+    if (sw.dataset.mod) body.classList.add(sw.dataset.mod);
+  }));
+
+  /* ---------- Login flow interactive demo ---------- */
+  document.querySelectorAll('.phone[data-login-demo]').forEach(phone => {
+    const screen = phone.querySelector('.screen');
+    const seg = phone.querySelector('[data-seg]');
+    const opts = seg.querySelectorAll('.opt');
+    const panes = phone.querySelectorAll('[data-pane]');
+    const steps = phone.querySelectorAll('[data-step]');
+    const backNav = phone.querySelector('[data-back]');
+    let mode = 'email';
+    let isNewUser = true; // phone path → assume new for full demo
+
+    function setMode(m) {
+      mode = m;
+      seg.classList.toggle('is-phone', m === 'phone');
+      opts.forEach(o => o.classList.toggle('is-on', o.dataset.mode === m));
+      panes.forEach(p => p.style.display = p.dataset.pane === m ? '' : 'none');
+    }
+    function gotoStep(name) {
+      steps.forEach(s => s.style.display = s.dataset.step === name ? 'flex' : 'none');
+      backNav.style.visibility = (name === 'entry' || name === 'done') ? 'hidden' : 'visible';
+    }
+    opts.forEach(o => o.addEventListener('click', () => setMode(o.dataset.mode)));
+    backNav.addEventListener('click', () => gotoStep('entry'));
+
+    phone.addEventListener('click', (e) => {
+      const action = e.target.closest('[data-action]')?.dataset.action;
+      if (!action) return;
+      if (action === 'email-login') {
+        gotoStep('done');
+        runProgress();
+      } else if (action === 'send-otp') {
+        gotoStep('otp');
+      } else if (action === 'verify-otp') {
+        gotoStep(isNewUser ? 'setup' : 'done');
+        if (!isNewUser) runProgress();
+      } else if (action === 'finish-setup') {
+        gotoStep('done');
+        runProgress();
+      } else if (action === 'reset-demo') {
+        gotoStep('entry'); setMode('email');
+      }
+    });
+
+    function runProgress() {
+      const bar = phone.querySelector('[data-progress]');
+      if (!bar) return;
+      bar.style.width = '0';
+      requestAnimationFrame(() => requestAnimationFrame(() => bar.style.width = '100%'));
+    }
+  });
+
+  /* ---------- Queue A & C: party click → challan sheet → toast → done ---------- */
+  function showToast(stack, text, kind, ms) {
+    const t = document.createElement('div');
+    t.className = 'toast' + (kind ? ' ' + kind : '');
+    t.innerHTML = '<span class="spinner"></span><span>' + text + '</span>';
+    stack.appendChild(t);
+    requestAnimationFrame(() => t.classList.add('show'));
+    if (ms) setTimeout(() => {
+      t.classList.remove('show');
+      setTimeout(() => t.remove(), 300);
+    }, ms);
+    return t;
+  }
+
+  document.querySelectorAll('.phone[data-queue]').forEach(phone => {
+    const overlay = phone.querySelector('[data-overlay]');
+    const stack = phone.querySelector('[data-toasts]');
+    const tabs = phone.querySelectorAll('.ttab');
+    const partyName = phone.querySelector('[data-party-name]');
+    let activeRow = null;
+
+    // top tab toggle
+    tabs.forEach(tab => tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('on'));
+      tab.classList.add('on');
+    }));
+
+    phone.querySelectorAll('.trow').forEach(row => {
+      const partyEl = row.querySelector('.party');
+      if (!partyEl) return;
+      partyEl.addEventListener('click', () => {
+        if (row.classList.contains('processing') || row.classList.contains('done')) return;
+        activeRow = row;
+        partyName.textContent = row.dataset.party;
+        overlay.classList.add('open');
+      });
+    });
+
+    const doneBtn = phone.querySelector('[data-done]');
+    if (doneBtn) {
+      doneBtn.addEventListener('click', () => {
+        overlay.classList.remove('open');
+        if (!activeRow) return;
+        const row = activeRow;
+        const party = row.dataset.party;
+        const tabName = phone.querySelector('.ttab.on').dataset.tab || 'Sale';
+        const docKind = tabName === 'Sale' ? 'sale challan' : 'purchase invoice';
+        row.classList.add('processing');
+
+        const t1 = showToast(stack, 'Your ' + docKind + ' for <b>' + party + '</b> is being processed…', '', 0);
+        // simulate processing
+        setTimeout(() => {
+          // remove processing toast
+          t1.classList.remove('show');
+          setTimeout(() => t1.remove(), 300);
+          // success toast
+          showToast(stack, '<b>' + party + '</b> · ' + docKind + ' is done', 'success', 2600);
+          row.classList.remove('processing');
+          row.classList.add('done');
+          const chk = row.querySelector('.chk');
+          if (chk) chk.classList.add('on');
+        }, 2200);
+        activeRow = null;
+      });
+    }
+  });
+
+  /* ---------- Report: slash list → loading → bottom-up sheet ---------- */
+  const repFixtures = {
+    act_now: { sum: '₹3.4L', meta: '24 critical items', rows: [
+      ['ALLEN BOLT 12×40 MFL', 132, 0, 4, '₹2,640', 'STARVE'],
+      ['AG-5 (6mm) HIKOKI',     279, 0, 1, '₹1,890', 'STARVE'],
+      ['ALKON DISC 5" G80',     150, 0, 0, '₹0',     'OUT'],
+      ['AG-7 SPITFIRE R44T',    80,  0, 2, '₹1,120', 'STARVE'],
+      ['ALLEN BOLT 16×100',     97,  0, 3, '₹780',   'STARVE'],
+      ['AEROSOL-OS',            52,  0, 0, '₹0',     'OUT'],
+      ['ADJ WRENCH 12"',        24,  0, 1, '₹340',   'STARVE'],
+    ]},
+    hero_sku_health: { sum: '₹18.2L', meta: 'top 12 revenue drivers', rows: [
+      ['ALLEN BOLT 10×60 MFL',  340, 60, 220, '₹26,400','HEALTHY'],
+      ['AG-4 6mm BEAR BLACK',   267, 80, 180, '₹22,140','HEALTHY'],
+      ['AG-5 XPERT RAPID',      210, 40, 150, '₹19,800','HEALTHY'],
+      ['ALKON DISC 5" G80',     188, 50, 130, '₹16,250','HEALTHY'],
+      ['ALLEN BOLT 8×30 MFL',   165, 35, 120, '₹14,400','HEALTHY'],
+    ]},
+    dead_capital: { sum: '₹6.8L', meta: 'sorted by ₹ desc', rows: [
+      ['DIGIMATIC HEIGHT GAUGE 300mm', 0,0, 1, '₹84,000', 'ZERO_MOVE'],
+      ['AIR BELT SANDER 10MM',         0,0, 2, '₹42,000', 'ZERO_MOVE'],
+      ['AG-9 XPERT (FOUNDRY)',         2,0, 18,'₹16,200', 'SLOW'],
+      ['ALLEN BOLT 16×140 MFL',        0,0, 220,'₹9,680', 'ZERO_MOVE'],
+      ['ADJ WRENCH 8" TAPARIA',        1,0, 24,'₹5,760', 'SLOW'],
+    ]},
+    buying_mistakes: { sum: '₹2.1L', meta: '14 items', rows: [
+      ['ALLEN BOLT 12×140 MFL', 4,  60, 240,'₹4,800', 'OVERBUY'],
+      ['AG-4 2.5mm Green SS',   8,  40, 160,'₹3,520', 'OVERBUY'],
+      ['ALLEN BOLT 16×110',     0,  20, 80, '₹2,400', 'OVERBUY'],
+    ]},
+    wind_down: { sum: '₹1.2L', meta: '8 items, ~30d to clear', rows: [
+      ['AG-4 3mm SS DURA PLUS', 25, 0, 14,'₹1,260', 'CLEARING'],
+      ['ALLEN BOLT 10×140',     25, 0, 10,'₹880',   'CLEARING'],
+    ]},
+    risk_watch: { sum: '₹4.6L', meta: 'monitor weekly', rows: [
+      ['AG-4 6mm LONG LIFE',    1,  10, 45,'₹3,150','SEASONAL'],
+      ['ALLEN BOLT 10×30 MFL',  67, 20, 90,'₹2,160','SEASONAL'],
+      ['AG-5 (6mm) HIKOKI',     279,40,160,'₹16,800','SEASONAL'],
+    ]},
+    full_portfolio_health: { sum: '₹46.1L', meta: '2,140 SKUs · score asc', rows: [
+      ['DIGIMATIC HEIGHT GAUGE',0,  0, 1, '₹84,000','12'],
+      ['AIR BELT SANDER 10MM',  0,  0, 2, '₹42,000','14'],
+      ['AG-9 XPERT (FOUNDRY)',  2,  0, 18,'₹16,200','22'],
+      ['ALLEN BOLT 12×140',     4, 60, 240,'₹4,800', '38'],
+      ['AG-4 2.5mm Green SS',   8, 40, 160,'₹3,520', '41'],
+      ['AG-4 6mm BEAR BLACK',   267,80,180,'₹22,140','86'],
+      ['ALLEN BOLT 10×60 MFL',  340,60,220,'₹26,400','92'],
+    ]},
+  };
+
+  document.querySelectorAll('.phone[data-report]').forEach(phone => {
+    const overlay = phone.querySelector('[data-overlay]');
+    const titleEl = phone.querySelector('[data-rep-title]');
+    const body    = phone.querySelector('[data-rep-body]');
+    const meta    = phone.querySelector('[data-rep-meta]');
+    const sum     = phone.querySelector('[data-rep-sum]');
+
+    phone.querySelectorAll('.rep-item').forEach(item => {
+      item.addEventListener('click', () => {
+        if (item.classList.contains('loading')) return;
+        item.classList.add('loading');
+        const cat = item.dataset.cat;
+        const fix = repFixtures[cat] || repFixtures.act_now;
+        setTimeout(() => {
+          item.classList.remove('loading');
+          titleEl.textContent = '/' + cat;
+          body.innerHTML = fix.rows.map((r,i) => {
+            return '<tr><td class="idx">' + (i+1) + '</td>' +
+              '<td>'+r[0]+'</td>' +
+              '<td class="num">'+r[1]+'</td>' +
+              '<td class="num">'+r[2]+'</td>' +
+              '<td class="num">'+r[3]+'</td>' +
+              '<td class="num">'+r[4]+'</td>' +
+              '<td>'+r[5]+'</td></tr>';
+          }).join('') +
+          // pad to look like a real sheet
+          Array.from({length: Math.max(0, 12 - fix.rows.length)}, (_,i)=>{
+            const n = fix.rows.length + i + 1;
+            return '<tr><td class="idx">'+n+'</td><td></td><td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td><td></td></tr>';
+          }).join('');
+          meta.textContent = fix.meta;
+          sum.textContent = fix.sum;
+          overlay.classList.add('open');
+        }, 900);
+      });
+    });
+
+    phone.querySelector('[data-close]').addEventListener('click', () => {
+      overlay.classList.remove('open');
+    });
+  });
+</script>
+</body>
+</html>

@@ -21,6 +21,7 @@ class QueueEntry {
     required this.timeLabel,
     this.checked = false,
     this.status = QueueStatus.pending,
+    this.scanResult,
   });
 
   final String id;
@@ -31,6 +32,7 @@ class QueueEntry {
   final String timeLabel;
   final bool checked;
   final QueueStatus status;
+  final Map<String, dynamic>? scanResult;
 
   QueueEntry copyWith({
     bool? checked,
@@ -45,6 +47,7 @@ class QueueEntry {
       timeLabel: timeLabel,
       checked: checked ?? this.checked,
       status: status ?? this.status,
+      scanResult: scanResult,
     );
   }
 }
@@ -83,6 +86,8 @@ class HistoryEntry {
     required this.amount,
     required this.dateLabel,
     required this.monthLabel,
+    this.sortKey = 0,
+    this.rowId = '',
   });
 
   final String party;
@@ -90,6 +95,8 @@ class HistoryEntry {
   final double amount;
   final String dateLabel;
   final String monthLabel;
+  final int sortKey;
+  final String rowId;
 }
 
 @immutable
@@ -101,6 +108,7 @@ class ReportCategory {
     required this.rows,
     required this.footerMeta,
     required this.footerSum,
+    this.reportId,
   });
 
   final String key;
@@ -109,6 +117,8 @@ class ReportCategory {
   final List<List<String>> rows;
   final String footerMeta;
   final String footerSum;
+  // Backend report ID (R1–R7). When set, data is fetched live from the API.
+  final String? reportId;
 }
 
 @immutable

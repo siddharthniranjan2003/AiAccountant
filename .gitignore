@@ -43,3 +43,21 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Firebase credentials — never commit these
+/firebase_cred/
+android/app/google-services.json
+lib/firebase_options.dart
+
+# Secrets & env
+.env
+
+# Claude session files
+.claude/
+
+# Build artifacts & generated APKs
+apk/
+
+# Session / handoff docs
+SESSION_HANDOUT.md
+GEMINI.md

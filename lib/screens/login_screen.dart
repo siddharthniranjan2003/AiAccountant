@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../core/palette.dart';
@@ -21,6 +22,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   final _phoneCtrl = TextEditingController();
   bool _whatsappOk = true;
+  bool _loading = false;
+  String? _error;
 
   @override
   void dispose() {
@@ -31,6 +34,79 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _signInWithEmail() {
+    if (_loading) return;
+    _doSignInWithEmail();
+  }
+
+  Future<void> _doSignInWithEmail() async {
+    final email = _emailCtrl.text.trim();
+    final pass = _passCtrl.text;
+    if (email.isEmpty || pass.isEmpty) {
+      setState(() => _error = 'Enter email and password');
+      return;
+    }
+    setState(() { _loading = true; _error = null; });
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: pass,
+      );
+      if (mounted) _goToSuccess();
+    } on FirebaseAuthException catch (e) {
+      if (mounted) setState(() { _loading = false; _error = _friendlyError(e.code); });
+    }
+  }
+
+  void _sendOtp() {
+    if (_loading) return;
+    _doSendOtp();
+  }
+
+  Future<void> _doSendOtp() async {
+    final phone = _phoneCtrl.text.trim();
+    if (phone.length < 10) {
+      setState(() => _error = 'Enter a valid 10-digit number');
+      return;
+    }
+    setState(() { _loading = true; _error = null; });
+    await FirebaseAuth.instance.verifyPhoneNumber(
+      phoneNumber: '+91$phone',
+      verificationCompleted: (PhoneAuthCredential credential) async {
+        try {
+          await FirebaseAuth.instance.signInWithCredential(credential);
+          if (mounted) _goToSuccess();
+        } catch (_) {
+          if (mounted) setState(() { _loading = false; _error = 'Auto-verification failed'; });
+        }
+      },
+      verificationFailed: (FirebaseAuthException e) {
+        if (mounted) setState(() { _loading = false; _error = e.message ?? 'Verification failed'; });
+      },
+      codeSent: (String verificationId, int? resendToken) {
+        if (!mounted) return;
+        setState(() => _loading = false);
+        Navigator.of(context).push(
+          PageRouteBuilder(
+            pageBuilder: (_, _, _) => OtpScreen(
+              phone: phone,
+              verificationId: verificationId,
+            ),
+            transitionsBuilder: (_, anim, _, child) => SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(1, 0),
+                end: Offset.zero,
+              ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOut)),
+              child: child,
+            ),
+            transitionDuration: const Duration(milliseconds: 300),
+          ),
+        );
+      },
+      codeAutoRetrievalTimeout: (_) {},
+    );
+  }
+
+  void _goToSuccess() {
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         pageBuilder: (_, _, _) => const SuccessScreen(),
@@ -41,22 +117,16 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _sendOtp() {
-    final phone = _phoneCtrl.text.trim();
-    Navigator.of(context).push(
-      PageRouteBuilder(
-        pageBuilder: (_, _, _) =>
-            OtpScreen(phone: phone.isEmpty ? '9876543210' : phone),
-        transitionsBuilder: (_, anim, _, child) => SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(1, 0),
-            end: Offset.zero,
-          ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOut)),
-          child: child,
-        ),
-        transitionDuration: const Duration(milliseconds: 300),
-      ),
-    );
+  String _friendlyError(String code) {
+    switch (code) {
+      case 'user-not-found': return 'No account found for this email';
+      case 'wrong-password': return 'Incorrect password';
+      case 'invalid-email': return 'Invalid email address';
+      case 'invalid-credential': return 'Incorrect email or password';
+      case 'user-disabled': return 'This account has been disabled';
+      case 'too-many-requests': return 'Too many attempts. Try later';
+      default: return 'Sign in failed. Try again';
+    }
   }
 
   @override
@@ -103,6 +173,25 @@ class _LoginScreenState extends State<LoginScreen> {
                         onSendOtp: _sendOtp,
                       ),
               ),
+              if (_error != null) ...[
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: AppPalette.accent.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(7),
+                    border: Border.all(color: AppPalette.accent.withOpacity(0.3)),
+                  ),
+                  child: Text(
+                    _error!,
+                    style: GoogleFonts.kalam(fontSize: 12, color: AppPalette.accent),
+                  ),
+                ),
+              ],
+              if (_loading) ...[
+                const SizedBox(height: 10),
+                const LinearProgressIndicator(),
+              ],
               const SizedBox(height: 28),
               Row(
                 children: [

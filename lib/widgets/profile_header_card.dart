@@ -63,14 +63,18 @@ class SettingRow extends StatelessWidget {
     super.key,
     required this.label,
     this.destructive = false,
+    this.onTap,
   });
 
   final String label;
   final bool destructive;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.62),
@@ -97,6 +101,7 @@ class SettingRow extends StatelessWidget {
           ),
         ],
       ),
+    ),
     );
   }
 }

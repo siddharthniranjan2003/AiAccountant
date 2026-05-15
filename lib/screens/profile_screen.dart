@@ -1,6 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../widgets/screen_frame.dart';
 import '../widgets/profile_header_card.dart';
+import 'splash_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({
@@ -12,6 +14,15 @@ class ProfileScreen extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onNavSelected;
 
+  Future<void> _signOut(BuildContext context) async {
+    await FirebaseAuth.instance.signOut();
+    if (!context.mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const SplashScreen()),
+      (_) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ScreenFrame(
@@ -19,22 +30,26 @@ class ProfileScreen extends StatelessWidget {
       onNavSelected: onNavSelected,
       body: ListView(
         padding: const EdgeInsets.fromLTRB(12, 14, 12, 16),
-        children: const [
-          ProfileHeaderCard(),
-          SizedBox(height: 14),
-          SettingRow(label: 'Business details'),
-          SizedBox(height: 6),
-          SettingRow(label: 'Tax / GST settings'),
-          SizedBox(height: 6),
-          SettingRow(label: 'Currency & date'),
-          SizedBox(height: 6),
-          SettingRow(label: 'Backup & export'),
-          SizedBox(height: 6),
-          SettingRow(label: 'AI accuracy'),
-          SizedBox(height: 6),
-          SettingRow(label: 'Help & support'),
-          SizedBox(height: 6),
-          SettingRow(label: 'Sign out', destructive: true),
+        children: [
+          const ProfileHeaderCard(),
+          const SizedBox(height: 14),
+          const SettingRow(label: 'Business details'),
+          const SizedBox(height: 6),
+          const SettingRow(label: 'Tax / GST settings'),
+          const SizedBox(height: 6),
+          const SettingRow(label: 'Currency & date'),
+          const SizedBox(height: 6),
+          const SettingRow(label: 'Backup & export'),
+          const SizedBox(height: 6),
+          const SettingRow(label: 'AI accuracy'),
+          const SizedBox(height: 6),
+          const SettingRow(label: 'Help & support'),
+          const SizedBox(height: 6),
+          SettingRow(
+            label: 'Sign out',
+            destructive: true,
+            onTap: () => _signOut(context),
+          ),
         ],
       ),
     );
