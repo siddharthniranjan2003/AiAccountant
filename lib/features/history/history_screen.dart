@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/models.dart';
-import '../../data/seed_data.dart';
 import '../../shared/screen_frame.dart';
 import '../../shared/app_top_tabs.dart';
 import '../queue/voucher_detail_sheet.dart';
@@ -30,14 +29,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
   final Map<String, Map<String, dynamic>> _pushedRowsById = {};
   RealtimeChannel? _channel;
 
-  List<HistoryEntry> get _purchaseHistory {
+  List<HistoryEntry> get _history {
     final entries = _pushedRowsById.values.map(_rowToHistoryEntry).toList();
     entries.sort((a, b) => b.sortKey.compareTo(a.sortKey));
     return entries;
   }
-
-  List<HistoryEntry> get _saleHistory =>
-      seedHistoryEntries.where((e) => e.type == TransactionType.sale).toList();
 
   @override
   void initState() {
@@ -129,6 +125,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
   static HistoryEntry _rowToHistoryEntry(Map<String, dynamic> row) {
     final payload = _parsePayload(row['voucher_payload']);
     final partyName = payload['party_name'] as String? ?? 'Unknown';
+    final voucherType = (payload['voucher_type'] as String? ?? '').toUpperCase();
+    final type = voucherType.contains('SALE') ? TransactionType.sale : TransactionType.purchase;
     final ledgers =
         (payload['ledger_entries'] as List?)?.cast<Map<String, dynamic>>() ?? [];
     final amount = ledgers.isNotEmpty
@@ -146,7 +144,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
     return HistoryEntry(
       party: partyName,
-      type: TransactionType.purchase,
+      type: type,
       amount: amount,
       dateLabel: '${dt.day} ${months[dt.month]}',
       monthLabel: '${fullMonths[dt.month]} ${dt.year}',
@@ -175,9 +173,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
   @override
   Widget build(BuildContext context) {
     final visibleItems = switch (_filterIndex) {
-      0 => [..._saleHistory, ..._purchaseHistory],
-      1 => _saleHistory,
-      _ => _purchaseHistory,
+      0 => _history,
+      1 => _history.where((e) => e.type == TransactionType.sale).toList(),
+      _ => _history.where((e) => e.type == TransactionType.purchase).toList(),
     };
 
     final grouped = <String, List<HistoryEntry>>{};

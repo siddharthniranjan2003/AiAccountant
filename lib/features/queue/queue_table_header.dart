@@ -18,11 +18,7 @@ class QueueTableHeader extends StatelessWidget {
           SizedBox(width: 22, child: _TextCell(text: '#', align: TextAlign.left, isHeader: true)),
           const SizedBox(width: 8),
           const Expanded(child: _TextCell(text: 'Party', align: TextAlign.left, isHeader: true)),
-          SizedBox(width: 76, child: _TextCell(text: 'Amount', align: TextAlign.right, isHeader: true)),
-          const SizedBox(width: 8),
-          SizedBox(width: 52, child: _TextCell(text: 'Time', align: TextAlign.right, isHeader: true)),
-          const SizedBox(width: 8),
-          SizedBox(width: 22, child: _TextCell(text: '', align: TextAlign.center, isHeader: true)),
+          const _TextCell(text: 'Amount', align: TextAlign.right, isHeader: true),
         ],
       ),
     );

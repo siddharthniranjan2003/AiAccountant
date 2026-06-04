@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 
 class ApiClient {
-  static const String _base = 'https://tallybridge-h3do.onrender.com';
+  static const String _base = 'https://tallybridge-backend-950406969086.asia-south1.run.app';
 
   static const String _apiKey = 'sb_publishable_IRsM8wDF6w9OyiPegwB2cw_a9aqW9lt';
 

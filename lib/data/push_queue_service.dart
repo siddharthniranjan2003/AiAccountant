@@ -16,19 +16,7 @@ class PushQueueService {
       status == 'pending' || status == 'push_now';
 
   Future<void> subscribe() async {
-    try {
-      final response = await Supabase.instance.client
-          .from('push_queue')
-          .select('id, status, created_at, voucher_payload')
-          .inFilter('status', ['pending', 'push_now'])
-          .order('created_at', ascending: false);
-
-      _entries = (response as List)
-          .cast<Map<String, dynamic>>()
-          .map(rowToEntry)
-          .toList();
-      onEntriesChanged(List.of(_entries));
-    } catch (_) {}
+    await refresh();
 
     _channel = Supabase.instance.client
         .channel('push_queue_live')
@@ -79,6 +67,24 @@ class PushQueueService {
         .subscribe();
   }
 
+  // Re-fetches the active queue rows from Supabase. Used for the initial load
+  // and for pull-to-refresh on the queue screen.
+  Future<void> refresh() async {
+    try {
+      final response = await Supabase.instance.client
+          .from('push_queue')
+          .select('id, status, created_at, voucher_payload, source_payload')
+          .inFilter('status', ['pending', 'push_now'])
+          .order('created_at', ascending: false);
+
+      _entries = (response as List)
+          .cast<Map<String, dynamic>>()
+          .map(rowToEntry)
+          .toList();
+      onEntriesChanged(List.of(_entries));
+    } catch (_) {}
+  }
+
   void unsubscribe() => _channel?.unsubscribe();
 
   static Map<String, dynamic> parsePayload(dynamic raw) {
@@ -94,6 +100,11 @@ class PushQueueService {
   static QueueEntry rowToEntry(Map<String, dynamic> row) {
     final payload = parsePayload(row['voucher_payload']);
     final partyName = payload['party_name'] as String? ?? 'Unknown';
+    // Classify by voucher_type: "GST SALE" → sale, "Purchase" → purchase.
+    final voucherType = (payload['voucher_type'] as String? ?? '').toUpperCase();
+    final type = voucherType.contains('SALE')
+        ? TransactionType.sale
+        : TransactionType.purchase;
     final ledgers =
         (payload['ledger_entries'] as List?)?.cast<Map<String, dynamic>>() ??
             [];
@@ -106,7 +117,7 @@ class PushQueueService {
 
     return QueueEntry(
       id: 'supabase_${row['id']}',
-      type: TransactionType.purchase,
+      type: type,
       party: partyName,
       amount: amount,
       dayLabel: toDateLabel(createdAt),
@@ -115,6 +126,7 @@ class PushQueueService {
         ...payload,
         '__row_id': row['id']?.toString() ?? '',
         '__status': row['status'] as String? ?? 'pending',
+        '__source_payload': parsePayload(row['source_payload']),
       },
     );
   }

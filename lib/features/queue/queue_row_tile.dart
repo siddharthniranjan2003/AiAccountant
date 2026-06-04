@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import '../../core/palette.dart';
 import '../../core/models.dart';
 import '../../core/utils.dart';
-import '../../shared/ink_checkbox.dart';
-
 class QueueRowTile extends StatelessWidget {
   const QueueRowTile({
     super.key,
@@ -11,19 +9,16 @@ class QueueRowTile extends StatelessWidget {
     required this.serialNumber,
     required this.isFirst,
     required this.onPartyTap,
-    required this.onCheckboxTap,
   });
 
   final QueueEntry entry;
   final int serialNumber;
   final bool isFirst;
   final VoidCallback? onPartyTap;
-  final VoidCallback? onCheckboxTap;
 
   @override
   Widget build(BuildContext context) {
     final isDone = entry.status == QueueStatus.done;
-    final isProcessing = entry.status == QueueStatus.processing;
     final opacity = entry.status == QueueStatus.pending ? 1.0 : 0.56;
 
     return AnimatedOpacity(
@@ -52,57 +47,63 @@ class QueueRowTile extends StatelessWidget {
               Expanded(
                 child: InkWell(
                   onTap: onPartyTap,
-                  child: Text(
-                    entry.party,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: isDone ? AppPalette.muted : AppPalette.pen,
-                          fontWeight: FontWeight.w800,
-                          decoration: isDone
-                              ? TextDecoration.lineThrough
-                              : TextDecoration.underline,
-                        ),
-                  ),
-                ),
-              ),
-              SizedBox(
-                width: 76,
-                child: Text(
-                  formatCurrency(entry.amount),
-                  textAlign: TextAlign.right,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
-                ),
-              ),
-              const SizedBox(width: 8),
-              SizedBox(
-                width: 52,
-                child: Text(
-                  entry.timeLabel,
-                  textAlign: TextAlign.right,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppPalette.inkSoft,
-                        fontWeight: FontWeight.w700,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        entry.party,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: isDone || entry.isBeingEdited ? AppPalette.muted : AppPalette.pen,
+                              fontWeight: FontWeight.w800,
+                              decoration: isDone
+                                  ? TextDecoration.lineThrough
+                                  : TextDecoration.underline,
+                            ),
                       ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              SizedBox(
-                width: 22,
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: InkCheckbox(
-                    value: entry.checked,
-                    success: isDone,
-                    processing: isProcessing,
-                    onTap: onCheckboxTap,
+                      Text(
+                        entry.timeLabel,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppPalette.inkSoft,
+                              fontWeight: FontWeight.w700,
+                            ),
+                      ),
+                    ],
                   ),
                 ),
               ),
+              Text(
+                formatCurrency(entry.amount),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
+              ),
+              if (entry.type == TransactionType.purchase) ...[
+                const SizedBox(width: 8),
+                _SourceIcon(scanResult: entry.scanResult),
+              ],
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+class _SourceIcon extends StatelessWidget {
+  const _SourceIcon({this.scanResult});
+  final Map<String, dynamic>? scanResult;
+
+  @override
+  Widget build(BuildContext context) {
+    final sourcePayload = scanResult?['__source_payload'] as Map<String, dynamic>?;
+    final fetchedFrom = sourcePayload?['fetched_from'] as String?;
+    final isEmail = fetchedFrom == 'email';
+
+    return Icon(
+      isEmail ? Icons.email_outlined : Icons.camera_alt_outlined,
+      size: 16,
+      color: AppPalette.muted,
     );
   }
 }

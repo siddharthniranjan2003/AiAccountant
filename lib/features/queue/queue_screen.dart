@@ -21,6 +21,7 @@ class QueueScreen extends StatefulWidget {
     required this.onNavSelected,
     required this.rows,
     required this.onRowsChanged,
+    required this.onRefresh,
     required this.tabIndex,
     required this.onTabChanged,
   });
@@ -29,6 +30,7 @@ class QueueScreen extends StatefulWidget {
   final ValueChanged<int> onNavSelected;
   final List<QueueEntry> rows;
   final ValueChanged<List<QueueEntry>> onRowsChanged;
+  final Future<void> Function() onRefresh;
   final int tabIndex;
   final ValueChanged<int> onTabChanged;
 
@@ -38,6 +40,7 @@ class QueueScreen extends StatefulWidget {
 
 class _QueueScreenState extends State<QueueScreen> {
   final List<ToastEntry> _toasts = <ToastEntry>[];
+  final Map<String, List<Map<String, dynamic>>> _savedEdits = {};
 
   TransactionType get _activeType =>
       widget.tabIndex == 0 ? TransactionType.sale : TransactionType.purchase;
@@ -80,23 +83,59 @@ class _QueueScreenState extends State<QueueScreen> {
     );
   }
 
-  void _openVoucherDetailSheet(Map<String, dynamic> payload) {
+  void _openVoucherDetailSheet(QueueEntry entry) {
+    final wasAlreadyEditing = entry.isBeingEdited;
+    _updateEntry(entry.id, (e) => e.copyWith(isBeingEdited: false));
+    bool wasEditing = false;
+    List<Map<String, dynamic>> latestItems = [];
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => VoucherDetailSheet(payload: payload),
+      builder: (ctx) => VoucherDetailSheet(
+        payload: entry.scanResult!,
+        imageBytes: entry.imageBytes,
+        initialIsEditing: wasAlreadyEditing,
+        initialEditableItems: wasAlreadyEditing ? _savedEdits[entry.id] : null,
+        onEditStateChanged: (isEditing, items) {
+          wasEditing = isEditing;
+          latestItems = items;
+        },
+        onDiscard: () => _discardEntry(entry),
+      ),
+    ).then((_) {
+      if (!mounted) return;
+      if (wasEditing) {
+        _savedEdits[entry.id] = latestItems;
+        _updateEntry(entry.id, (e) => e.copyWith(isBeingEdited: true));
+      } else {
+        _savedEdits.remove(entry.id);
+      }
+    });
+  }
+
+  // Drops the row from the in-memory list only — no Supabase write. A pull-to-
+  // refresh (or the next realtime event) re-fetches it from the server.
+  void _discardEntry(QueueEntry entry) {
+    widget.onRowsChanged(
+      widget.rows.where((e) => e.id != entry.id).toList(),
     );
+    _savedEdits.remove(entry.id);
   }
 
   Future<void> _openChallanSheet(QueueEntry entry) async {
     if (entry.status == QueueStatus.processing) return;
 
     if (entry.scanResult != null) {
-      if (entry.scanResult!.containsKey('voucher_type')) {
-        _openVoucherDetailSheet(entry.scanResult!);
+      final r = entry.scanResult!;
+      if (r.containsKey('voucher_type') ||
+          r.containsKey('voucher_payload') ||
+          r.containsKey('sale_voucher_payload') ||
+          r.containsKey('parsed') ||
+          r.containsKey('ocr')) {
+        _openVoucherDetailSheet(entry);
       } else {
-        _openScanResultSheet(entry.scanResult!);
+        _openScanResultSheet(r);
       }
       return;
     }
@@ -198,9 +237,12 @@ class _QueueScreenState extends State<QueueScreen> {
                   const QueueTableHeader(),
                   const SizedBox(height: 8),
                   Expanded(
-                    child: ListView(
-                      padding: const EdgeInsets.only(bottom: 18),
-                      children: [
+                    child: RefreshIndicator(
+                      onRefresh: widget.onRefresh,
+                      child: ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.only(bottom: 18),
+                        children: [
                         for (final group in groupedRows.entries) ...[
                           Padding(
                             padding: const EdgeInsets.fromLTRB(2, 4, 2, 6),
@@ -228,19 +270,14 @@ class _QueueScreenState extends State<QueueScreen> {
                                     onPartyTap: group.value[index].status == QueueStatus.processing
                                         ? null
                                         : () => _openChallanSheet(group.value[index]),
-                                    onCheckboxTap: group.value[index].status == QueueStatus.done
-                                        ? null
-                                        : () => _updateEntry(
-                                              group.value[index].id,
-                                              (current) => current.copyWith(checked: !current.checked),
-                                            ),
                                   ),
                               ],
                             ),
                           ),
                           const SizedBox(height: 14),
                         ],
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ],

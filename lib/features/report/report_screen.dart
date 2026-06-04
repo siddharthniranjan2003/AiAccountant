@@ -164,7 +164,7 @@ class _ReportScreenState extends State<ReportScreen> {
                     )
                   : const Center(
                       key: ValueKey('chat'),
-                      child: Text('Coming Soon', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppPalette.muted)),
+                      child: Text('Coming Soon.....', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppPalette.muted)),
                     ),
             ),
           ),

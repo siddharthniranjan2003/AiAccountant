@@ -7,7 +7,44 @@ String sheetSlug(String value) {
 
 String formatCurrency(num amount) {
   final hasDecimals = amount != amount.roundToDouble();
-  return '₹${amount.toStringAsFixed(hasDecimals ? 2 : 0)}';
+  return '₹${_groupIndian(amount.toStringAsFixed(hasDecimals ? 2 : 0))}';
+}
+
+/// Adds Indian-system thousands separators to a plain decimal string
+/// (e.g. "1905150.56" -> "19,05,150.56"): the last 3 integer digits are
+/// grouped together, then the rest in pairs. Any fractional part is preserved.
+String _groupIndian(String number) {
+  final negative = number.startsWith('-');
+  final s = negative ? number.substring(1) : number;
+  final dot = s.indexOf('.');
+  final intPart = dot == -1 ? s : s.substring(0, dot);
+  final frac = dot == -1 ? '' : s.substring(dot);
+
+  String grouped;
+  if (intPart.length <= 3) {
+    grouped = intPart;
+  } else {
+    final last3 = intPart.substring(intPart.length - 3);
+    final head = intPart.substring(0, intPart.length - 3);
+    final pairs = <String>[];
+    for (var i = head.length; i > 0; i -= 2) {
+      final start = i - 2 < 0 ? 0 : i - 2;
+      pairs.insert(0, head.substring(start, i));
+    }
+    grouped = '${pairs.join(',')},$last3';
+  }
+  return '${negative ? '-' : ''}$grouped$frac';
+}
+
+/// Renders a date string as dd/mm/yyyy. Returns the original (or '—' when
+/// empty) if it can't be parsed.
+String formatDate(String? raw) {
+  if (raw == null || raw.isEmpty) return '—';
+  final parsed = DateTime.tryParse(raw);
+  if (parsed == null) return raw;
+  final dd = parsed.day.toString().padLeft(2, '0');
+  final mm = parsed.month.toString().padLeft(2, '0');
+  return '$dd/$mm/${parsed.year}';
 }
 
 Color captureColorForType(TransactionType type, {int seedOffset = 0}) {

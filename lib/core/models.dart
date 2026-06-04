@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 
 enum TransactionType { sale, purchase }
@@ -22,6 +24,8 @@ class QueueEntry {
     this.checked = false,
     this.status = QueueStatus.pending,
     this.scanResult,
+    this.isBeingEdited = false,
+    this.imageBytes,
   });
 
   final String id;
@@ -33,10 +37,13 @@ class QueueEntry {
   final bool checked;
   final QueueStatus status;
   final Map<String, dynamic>? scanResult;
+  final bool isBeingEdited;
+  final Uint8List? imageBytes;
 
   QueueEntry copyWith({
     bool? checked,
     QueueStatus? status,
+    bool? isBeingEdited,
   }) {
     return QueueEntry(
       id: id,
@@ -48,6 +55,8 @@ class QueueEntry {
       checked: checked ?? this.checked,
       status: status ?? this.status,
       scanResult: scanResult,
+      isBeingEdited: isBeingEdited ?? this.isBeingEdited,
+      imageBytes: imageBytes,
     );
   }
 }

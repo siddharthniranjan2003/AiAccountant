@@ -1,45 +1,17 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 
 import '../../core/palette.dart';
 import '../../core/utils.dart';
 
-class ScanResultSheet extends StatefulWidget {
+class ScanResultSheet extends StatelessWidget {
   const ScanResultSheet({super.key, required this.data});
 
   final Map<String, dynamic> data;
 
   @override
-  State<ScanResultSheet> createState() => _ScanResultSheetState();
-}
-
-class _ScanResultSheetState extends State<ScanResultSheet>
-    with SingleTickerProviderStateMixin {
-  late final TabController _tabController;
-  final _searchController = TextEditingController();
-  String _query = '';
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-    _searchController.addListener(
-      () => setState(() => _query = _searchController.text.toLowerCase()),
-    );
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final header =
-        ((widget.data['ocr'] as Map?) ?? {})['header'] as Map<String, dynamic>? ?? {};
+        (((data['parsed'] ?? data['ocr']) as Map?) ?? {})['header'] as Map<String, dynamic>? ?? {};
     final vendorName = header['vendor_name'] as String? ?? '—';
     final invoiceNumber = header['invoice_number'] as String? ?? '—';
     final invoiceDate = header['invoice_date'] as String? ?? '—';
@@ -85,26 +57,8 @@ class _ScanResultSheetState extends State<ScanResultSheet>
               ],
             ),
           ),
-          TabBar(
-            controller: _tabController,
-            labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
-            unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
-            labelColor: AppPalette.ink,
-            unselectedLabelColor: AppPalette.muted,
-            indicatorColor: AppPalette.accent,
-            indicatorWeight: 2.5,
-            tabs: const [Tab(text: 'Invoice'), Tab(text: 'JSON')],
-          ),
           const Divider(height: 1),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _InvoiceTab(data: widget.data),
-                _JsonTab(data: widget.data, searchController: _searchController, query: _query),
-              ],
-            ),
-          ),
+          Expanded(child: _InvoiceTab(data: data)),
         ],
       ),
     );
@@ -118,7 +72,7 @@ class _InvoiceTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final header =
-        ((data['ocr'] as Map?) ?? {})['header'] as Map<String, dynamic>? ?? {};
+        (((data['parsed'] ?? data['ocr']) as Map?) ?? {})['header'] as Map<String, dynamic>? ?? {};
     final items = (data['matched_items'] as List?)?.cast<Map<String, dynamic>>() ?? [];
 
     final vendorName = header['vendor_name'] as String? ?? '—';
@@ -195,120 +149,6 @@ class _InvoiceTab extends StatelessWidget {
         ),
       ],
     );
-  }
-}
-
-class _JsonTab extends StatelessWidget {
-  const _JsonTab({required this.data, required this.searchController, required this.query});
-
-  final Map<String, dynamic> data;
-  final TextEditingController searchController;
-  final String query;
-
-  @override
-  Widget build(BuildContext context) {
-    final prettyJson = const JsonEncoder.withIndent('  ').convert(data);
-    final allLines = prettyJson.split('\n');
-
-    final lines = query.isEmpty
-        ? List.generate(allLines.length, (i) => (i + 1, allLines[i]))
-        : allLines
-            .asMap()
-            .entries
-            .where((e) => e.value.toLowerCase().contains(query))
-            .map((e) => (e.key + 1, e.value))
-            .toList();
-
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
-          child: TextField(
-            controller: searchController,
-            decoration: InputDecoration(
-              hintText: 'Search JSON…',
-              hintStyle: const TextStyle(fontSize: 13),
-              prefixIcon: const Icon(Icons.search_rounded, size: 20),
-              suffixIcon: query.isNotEmpty
-                  ? IconButton(icon: const Icon(Icons.clear_rounded, size: 18), onPressed: searchController.clear)
-                  : null,
-              filled: true,
-              fillColor: AppPalette.gridHeader,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-              contentPadding: const EdgeInsets.symmetric(vertical: 10),
-              isDense: true,
-            ),
-          ),
-        ),
-        if (query.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(left: 20, bottom: 4),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                '${lines.length} match${lines.length == 1 ? '' : 'es'}',
-                style: const TextStyle(fontSize: 11, color: AppPalette.muted),
-              ),
-            ),
-          ),
-        Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.fromLTRB(12, 4, 12, 32),
-            itemCount: lines.length,
-            itemBuilder: (context, index) {
-              final (lineNum, lineText) = lines[index];
-              return _JsonLine(lineNumber: lineNum, text: lineText, query: query);
-            },
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _JsonLine extends StatelessWidget {
-  const _JsonLine({required this.lineNumber, required this.text, required this.query});
-
-  final int lineNumber;
-  final String text;
-  final String query;
-
-  @override
-  Widget build(BuildContext context) {
-    const mono = TextStyle(fontFamily: 'monospace', fontSize: 12, height: 1.65, color: AppPalette.inkSoft);
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 38,
-          child: Text('$lineNumber', textAlign: TextAlign.right, style: mono.copyWith(color: AppPalette.muted, fontSize: 11)),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: query.isEmpty ? Text(text, style: mono) : _highlighted(text, query, mono),
-        ),
-      ],
-    );
-  }
-
-  Widget _highlighted(String text, String query, TextStyle base) {
-    final lower = text.toLowerCase();
-    final spans = <TextSpan>[];
-    int start = 0;
-    int idx;
-
-    while ((idx = lower.indexOf(query, start)) != -1) {
-      if (idx > start) spans.add(TextSpan(text: text.substring(start, idx)));
-      spans.add(TextSpan(
-        text: text.substring(idx, idx + query.length),
-        style: const TextStyle(backgroundColor: Color(0xFFFFD54F), color: AppPalette.ink, fontWeight: FontWeight.w700),
-      ));
-      start = idx + query.length;
-    }
-    if (start < text.length) spans.add(TextSpan(text: text.substring(start)));
-
-    return RichText(text: TextSpan(style: base, children: spans));
   }
 }
 
