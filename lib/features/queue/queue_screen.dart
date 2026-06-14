@@ -1,16 +1,12 @@
 import 'package:flutter/material.dart';
 
 import '../../core/models.dart';
-import '../../core/constants.dart';
 import '../../core/palette.dart';
-import '../../data/seed_data.dart';
-import '../../core/utils.dart';
 import '../../shared/screen_frame.dart';
 import '../../shared/app_top_tabs.dart';
-import '../../shared/toast_stack.dart';
-import '../../shared/spreadsheet_sheet.dart';
 import 'queue_table_header.dart';
 import 'queue_row_tile.dart';
+import 'queue_loading_tile.dart';
 import 'scan_result_sheet.dart';
 import 'voucher_detail_sheet.dart';
 
@@ -24,6 +20,8 @@ class QueueScreen extends StatefulWidget {
     required this.onRefresh,
     required this.tabIndex,
     required this.onTabChanged,
+    this.loadingCount = 0,
+    this.oldestLoadingStart,
   });
 
   final int currentIndex;
@@ -33,40 +31,28 @@ class QueueScreen extends StatefulWidget {
   final Future<void> Function() onRefresh;
   final int tabIndex;
   final ValueChanged<int> onTabChanged;
+  // Number of in-flight parse requests for the active tab, and the start time of
+  // the oldest one. Rendered as a single "Processing…" row with a count badge
+  // and a timer ring at the top of the list.
+  final int loadingCount;
+  final DateTime? oldestLoadingStart;
 
   @override
   State<QueueScreen> createState() => _QueueScreenState();
 }
 
 class _QueueScreenState extends State<QueueScreen> {
-  final List<ToastEntry> _toasts = <ToastEntry>[];
   final Map<String, List<Map<String, dynamic>>> _savedEdits = {};
 
   TransactionType get _activeType =>
       widget.tabIndex == 0 ? TransactionType.sale : TransactionType.purchase;
 
+  // Filtered to the active tab and sorted newest-first by created_at. Sorting
+  // the flat list before grouping/serials makes day headers, within-day order,
+  // and serial numbers all consistent.
   List<QueueEntry> get _visibleRows =>
-      widget.rows.where((entry) => entry.type == _activeType).toList();
-
-  String _showToast(String message, {required ToastKind kind, Duration? autoDismiss}) {
-    final toast = ToastEntry(
-      id: DateTime.now().microsecondsSinceEpoch.toString(),
-      message: message,
-      kind: kind,
-    );
-    setState(() => _toasts.add(toast));
-    if (autoDismiss != null) {
-      Future<void>.delayed(autoDismiss, () {
-        if (!mounted) return;
-        _dismissToast(toast.id);
-      });
-    }
-    return toast.id;
-  }
-
-  void _dismissToast(String id) {
-    setState(() => _toasts.removeWhere((toast) => toast.id == id));
-  }
+      widget.rows.where((entry) => entry.type == _activeType).toList()
+        ..sort((a, b) => b.sortKey.compareTo(a.sortKey));
 
   void _updateEntry(String id, QueueEntry Function(QueueEntry current) transform) {
     widget.onRowsChanged(
@@ -123,75 +109,27 @@ class _QueueScreenState extends State<QueueScreen> {
     _savedEdits.remove(entry.id);
   }
 
-  Future<void> _openChallanSheet(QueueEntry entry) async {
-    if (entry.status == QueueStatus.processing) return;
-
-    if (entry.scanResult != null) {
-      final r = entry.scanResult!;
-      if (r.containsKey('voucher_type') ||
-          r.containsKey('voucher_payload') ||
-          r.containsKey('sale_voucher_payload') ||
-          r.containsKey('parsed') ||
-          r.containsKey('ocr')) {
-        _openVoucherDetailSheet(entry);
-      } else {
-        _openScanResultSheet(r);
-      }
+  void _openChallanSheet(QueueEntry entry) {
+    if (entry.invoiceExists) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('This Invoice Is Already In TallyPrime'),
+          duration: Duration(seconds: 3),
+        ),
+      );
       return;
     }
-
-    final didConfirm = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return AppSpreadsheetSheet(
-          fileName: 'challan_${sheetSlug(entry.party)}.xlsx',
-          toolbarItems: const ['File', 'Edit', 'View', 'Σ', '%'],
-          columnLabels: const ['Item', 'HSN', 'Qty', 'Rate', 'GST%', 'Amount'],
-          columnWidths: const [42, 220, 88, 70, 84, 78, 108],
-          rows: buildChallanRows(entry.party),
-          footerLeading: 'Sheet1 · 5 line items',
-          footerTrailing: 'Σ ₹2,604.26',
-          trailingAction: FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: FilledButton.styleFrom(
-              backgroundColor: AppPalette.accent,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-                side: const BorderSide(color: AppPalette.ink, width: 1.3),
-              ),
-            ),
-            child: const Text('Done'),
-          ),
-        );
-      },
-    );
-
-    if (didConfirm == true) {
-      await _processSingleEntry(entry);
+    final r = entry.scanResult;
+    if (r == null) return;
+    if (r.containsKey('voucher_type') ||
+        r.containsKey('voucher_payload') ||
+        r.containsKey('sale_voucher_payload') ||
+        r.containsKey('parsed') ||
+        r.containsKey('ocr')) {
+      _openVoucherDetailSheet(entry);
+    } else {
+      _openScanResultSheet(r);
     }
-  }
-
-  Future<void> _processSingleEntry(QueueEntry entry) async {
-    _updateEntry(entry.id, (current) => current.copyWith(checked: true, status: QueueStatus.processing));
-
-    final processingToast = _showToast(
-      'Your ${entry.type.label.toLowerCase()} challan for ${entry.party} is being processed…',
-      kind: ToastKind.processing,
-    );
-
-    await Future<void>.delayed(const Duration(seconds: 2));
-    if (!mounted) return;
-
-    _dismissToast(processingToast);
-    _updateEntry(entry.id, (current) => current.copyWith(checked: true, status: QueueStatus.done));
-    _showToast(
-      '${entry.party} · ${entry.type.label.toLowerCase()} challan is done',
-      kind: ToastKind.success,
-      autoDismiss: const Duration(milliseconds: 2600),
-    );
   }
 
   Map<String, List<QueueEntry>> _groupRows(List<QueueEntry> rows) {
@@ -204,24 +142,16 @@ class _QueueScreenState extends State<QueueScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final groupedRows = _groupRows(_visibleRows);
+    final visibleRows = _visibleRows;
+    final groupedRows = _groupRows(visibleRows);
     final serialLookup = <String, int>{
-      for (int index = 0; index < _visibleRows.length; index++)
-        _visibleRows[index].id: index + 1,
+      for (int index = 0; index < visibleRows.length; index++)
+        visibleRows[index].id: index + 1,
     };
 
     return ScreenFrame(
       currentIndex: widget.currentIndex,
       onNavSelected: widget.onNavSelected,
-      overlays: [
-        if (_toasts.isNotEmpty)
-          Positioned(
-            left: 12,
-            right: 12,
-            bottom: kBottomNavHeight + 12,
-            child: ToastStack(toasts: _toasts),
-          ),
-      ],
       body: Column(
         children: [
           AppTopTabs(
@@ -243,6 +173,21 @@ class _QueueScreenState extends State<QueueScreen> {
                         physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.only(bottom: 18),
                         children: [
+                        if (widget.loadingCount > 0 &&
+                            widget.oldestLoadingStart != null) ...[
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.6),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: AppPalette.ink, width: 1.4),
+                            ),
+                            child: QueueLoadingTile(
+                              count: widget.loadingCount,
+                              oldestStart: widget.oldestLoadingStart!,
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                        ],
                         for (final group in groupedRows.entries) ...[
                           Padding(
                             padding: const EdgeInsets.fromLTRB(2, 4, 2, 6),
@@ -267,9 +212,7 @@ class _QueueScreenState extends State<QueueScreen> {
                                     entry: group.value[index],
                                     isFirst: index == 0,
                                     serialNumber: serialLookup[group.value[index].id]!,
-                                    onPartyTap: group.value[index].status == QueueStatus.processing
-                                        ? null
-                                        : () => _openChallanSheet(group.value[index]),
+                                    onPartyTap: () => _openChallanSheet(group.value[index]),
                                   ),
                               ],
                             ),
