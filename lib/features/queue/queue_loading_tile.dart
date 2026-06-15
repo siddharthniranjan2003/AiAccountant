@@ -66,7 +66,7 @@ class _QueueLoadingTileState extends State<QueueLoadingTile> {
           SizedBox(
             width: 24,
             height: 24,
-            child: CustomPaint(painter: _QuarterTimerPainter(elapsed)),
+            child: CustomPaint(painter: _StepTimerPainter(elapsed)),
           ),
         ],
       ),
@@ -103,58 +103,67 @@ class _CountBadge extends StatelessWidget {
   }
 }
 
-// Draws a ring split into four 90° quadrants, each representing 15 seconds of a
-// one-minute window. Quadrants fill clockwise as time elapses, each in an
-// escalating colour (green → amber → orange → red). Past 60s the ring holds
-// full red — the request is taking unusually long.
-class _QuarterTimerPainter extends CustomPainter {
-  _QuarterTimerPainter(this.elapsed);
+// A clock-style filled pie. A solid wedge sweeps clockwise from 12 o'clock, filling
+// the circle over one minute, and the WHOLE wedge changes colour at each 15-second
+// mark: 0–15s green, 15–30s amber, 30–45s orange, 45s+ red. The unfilled part is a
+// faint track. Past 60s it holds a full red circle.
+class _StepTimerPainter extends CustomPainter {
+  _StepTimerPainter(this.elapsed);
 
   final Duration elapsed;
 
-  static const _quarterColors = [
+  static const _stepColors = [
     Color(0xFF1D7A3A), // 0–15s  green
     Color(0xFFF2C94C), // 15–30s amber
     Color(0xFFE08A1E), // 30–45s orange
-    Color(0xFFD94F3A), // 45–60s red
+    Color(0xFFD94F3A), // 45s+   red
   ];
-  static const _trackColor = Color(0xFFD9D4C7);
-  static const double _stroke = 3.2;
-  // 90° per quarter; start at 12 o'clock and sweep clockwise.
-  static const double _quarterSweep = math.pi / 2;
-  static const double _startAngle = -math.pi / 2;
+  static const _trackColor = Colors.white;
+  static const int _windowMs = 15000; // one colour step
+  static const int _fullMs = _windowMs * 4; // 60s = full circle
 
   @override
   void paint(Canvas canvas, Size size) {
-    final rect = Offset.zero & size;
-    final inset = _stroke / 2 + 0.5;
-    final arcRect = rect.deflate(inset);
+    final totalMs = elapsed.inMilliseconds;
+    final step = (totalMs ~/ _windowMs).clamp(0, _stepColors.length - 1);
+    // Fraction of the full minute elapsed → how much of the pie is filled.
+    final progress = (totalMs / _fullMs).clamp(0.0, 1.0);
 
-    final seconds = elapsed.inMilliseconds / 1000.0;
-    final track = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = _stroke
-      ..strokeCap = StrokeCap.butt
-      ..color = _trackColor;
-    final fill = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = _stroke
-      ..strokeCap = StrokeCap.butt;
+    final center = size.center(Offset.zero);
+    final radius = size.shortestSide / 2 - 1;
+    final rect = Rect.fromCircle(center: center, radius: radius);
 
-    for (var q = 0; q < 4; q++) {
-      final quarterStart = _startAngle + q * _quarterSweep;
-      // Faint track behind every quadrant.
-      canvas.drawArc(arcRect, quarterStart, _quarterSweep, false, track);
-      // How far this quadrant has filled (its 15s window).
-      final progress = ((seconds - q * 15) / 15).clamp(0.0, 1.0);
-      if (progress > 0) {
-        fill.color = _quarterColors[q];
-        canvas.drawArc(
-            arcRect, quarterStart, _quarterSweep * progress, false, fill);
-      }
+    // Faint track behind the un-elapsed portion.
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..style = PaintingStyle.fill
+        ..color = _trackColor,
+    );
+    // Coloured wedge sweeping clockwise from 12 o'clock.
+    if (progress > 0) {
+      canvas.drawArc(
+        rect,
+        -math.pi / 2,
+        2 * math.pi * progress,
+        true, // useCenter → a pie slice, not an arc stroke
+        Paint()
+          ..style = PaintingStyle.fill
+          ..color = _stepColors[step],
+      );
     }
+    // Thin border for crisp definition, matching the count badge.
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.4
+        ..color = AppPalette.ink,
+    );
   }
 
   @override
-  bool shouldRepaint(_QuarterTimerPainter old) => old.elapsed != elapsed;
+  bool shouldRepaint(_StepTimerPainter old) => old.elapsed != elapsed;
 }

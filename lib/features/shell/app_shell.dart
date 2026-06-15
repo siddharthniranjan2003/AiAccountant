@@ -1,16 +1,12 @@
-import 'dart:async';
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_document_scanner/google_mlkit_document_scanner.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 import '../../core/models.dart';
 import '../../core/config.dart';
 import '../../data/seed_data.dart';
 import '../../data/push_queue_service.dart';
+import '../../data/scan_inflight_service.dart';
 import '../queue/queue_screen.dart';
 import '../history/history_screen.dart';
 import '../camera/camera_screen.dart';
@@ -32,31 +28,13 @@ class _AccountantShellState extends State<AccountantShell> {
   List<QueueEntry> _saleEntries = [];
   List<QueueEntry> _supabaseEntries = [];
 
-  // Parse requests currently in flight. Each scan registers a job while its
-  // HTTP request runs and removes it on settle (success or error). Drives the
-  // consolidated "Processing…" row (count badge + timer) at the top of the
-  // queue. Lives here (above the IndexedStack) so jobs survive tab navigation
-  // and back-to-back sending — multiple can be in flight at once.
-  final List<_ScanJob> _jobs = [];
+  // The in-flight scan list lives in a process-level singleton (not here) so it
+  // survives the shell being destroyed/recreated while the native scanner is in front.
+  // We listen to it to repaint the "Processing…" count badge + timer.
+  final ScanInFlightService _scanService = ScanInFlightService.instance;
 
   TransactionType get _activeQueueType =>
       _queueTabIndex == 0 ? TransactionType.sale : TransactionType.purchase;
-
-  int _loadingCountFor(TransactionType type) =>
-      _jobs.where((j) => j.type == type).length;
-
-  // Earliest start time among in-flight jobs of this type; drives the timer
-  // ring (oldest = worst-case wait). Null when none are running.
-  DateTime? _oldestStartFor(TransactionType type) {
-    DateTime? oldest;
-    for (final job in _jobs) {
-      if (job.type != type) continue;
-      if (oldest == null || job.startedAt.isBefore(oldest)) {
-        oldest = job.startedAt;
-      }
-    }
-    return oldest;
-  }
 
   late final PushQueueService _pushQueueService;
 
@@ -77,14 +55,24 @@ class _AccountantShellState extends State<AccountantShell> {
 
     _pushQueueService = PushQueueService(
       onEntriesChanged: _onSupabaseEntriesChanged,
+      // When a parsed invoice row lands, clear one "processing" scan of that type.
+      onRowInserted: _scanService.notifyInvoiceArrived,
     );
     _pushQueueService.subscribe();
+
+    // Repaint the count badge/timer whenever the processing set changes.
+    _scanService.addListener(_onInFlightChanged);
   }
 
   @override
   void dispose() {
+    _scanService.removeListener(_onInFlightChanged);
     _pushQueueService.unsubscribe();
     super.dispose();
+  }
+
+  void _onInFlightChanged() {
+    if (mounted) setState(() {});
   }
 
   void _onSupabaseEntriesChanged(List<QueueEntry> freshFromDb) {
@@ -156,15 +144,6 @@ class _AccountantShellState extends State<AccountantShell> {
       final pdfPath = result.pdf?.uri;
       if (pdfPath == null || pdfPath.isEmpty) return;
 
-      // Keep the first page as a JPEG preview for the Image tab.
-      Uint8List? imageBytes;
-      final images = result.images;
-      if (images != null && images.isNotEmpty) {
-        try {
-          imageBytes = await File(images.first).readAsBytes();
-        } catch (_) {}
-      }
-
       setState(() {
         _captures.add(CapturedShot(
           id: '${DateTime.now().microsecondsSinceEpoch}_$pdfPath',
@@ -173,7 +152,7 @@ class _AccountantShellState extends State<AccountantShell> {
         ));
       });
 
-      await _uploadAndShowResult(pdfPath, imageBytes: imageBytes, type: selectedType);
+      _enqueueScan(pdfPath, type: selectedType);
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -189,11 +168,11 @@ class _AccountantShellState extends State<AccountantShell> {
   static const String _purchaseParseUrl = Config.purchaseParseUrl;
   static const String _saleParseUrl = Config.saleParseUrl;
 
-  Future<void> _uploadAndShowResult(
-    String pdfPath, {
-    Uint8List? imageBytes,
-    required TransactionType type,
-  }) async {
+  // Hands the scanned PDF to the in-flight service, which fires its parse request
+  // immediately and tracks it (driving the count badge + timer). The count drops and
+  // the queue refreshes when each reply returns — all in the singleton, so it keeps
+  // working even if this shell is destroyed/recreated while the next scan is in front.
+  void _enqueueScan(String pdfPath, {required TransactionType type}) {
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -204,53 +183,7 @@ class _AccountantShellState extends State<AccountantShell> {
     );
 
     final url = type == TransactionType.sale ? _saleParseUrl : _purchaseParseUrl;
-    final future = _parseDocument(pdfPath, url);
-
-    // Fire-and-forget: the parse runs in the background and is tracked by a
-    // job (drives the queue's count + timer). No blocking modal is opened, so
-    // the user can immediately scan and send the next PDF — multiple requests
-    // run concurrently. The parsed voucher arrives as a queue row via Supabase
-    // realtime; tapping that row opens the detail sheet for review.
-    _trackScanJob(type, future);
-  }
-
-  Future<Map<String, dynamic>> _parseDocument(String pdfPath, String url) async {
-    final bytes = await File(pdfPath).readAsBytes();
-    final response = await http.post(
-      Uri.parse(url),
-      headers: const {'Content-Type': 'application/pdf'},
-      body: bytes,
-    );
-    return jsonDecode(response.body) as Map<String, dynamic>;
-  }
-
-  // Registers an in-flight job (shown as the "Processing…" count + timer in the
-  // matching queue tab) while the parse request runs, removing it when the
-  // request settles — success or error (Option A: tied to the HTTP request, not
-  // the realtime row). Each job is independent, so one slow/failed PDF never
-  // stalls the others. The parsed voucher arrives as a queue row via realtime;
-  // a failed parse just clears its slot and shows a quiet snackbar.
-  Future<void> _trackScanJob(TransactionType type, Future<dynamic> future) async {
-    final job = _ScanJob(type, DateTime.now());
-    setState(() => _jobs.add(job));
-    var failed = false;
-    try {
-      await future;
-    } catch (_) {
-      failed = true;
-    } finally {
-      if (mounted) {
-        setState(() => _jobs.remove(job));
-        if (failed) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('A ${type.label.toLowerCase()} document couldn\'t be processed.'),
-              duration: const Duration(seconds: 3),
-            ),
-          );
-        }
-      }
-    }
+    _scanService.enqueue(type, pdfPath, url);
   }
 
   Future<TransactionType?> _showCaptureTypeDialog() {
@@ -275,8 +208,8 @@ class _AccountantShellState extends State<AccountantShell> {
           onRefresh: _pushQueueService.refresh,
           tabIndex: _queueTabIndex,
           onTabChanged: (i) => setState(() => _queueTabIndex = i),
-          loadingCount: _loadingCountFor(_activeQueueType),
-          oldestLoadingStart: _oldestStartFor(_activeQueueType),
+          loadingCount: _scanService.countFor(_activeQueueType),
+          oldestLoadingStart: _scanService.oldestStartFor(_activeQueueType),
         ),
         HistoryScreen(
           currentIndex: _currentIndex,
@@ -300,13 +233,4 @@ class _AccountantShellState extends State<AccountantShell> {
       ],
     );
   }
-}
-
-// A single in-flight parse request. Identity (not value) distinguishes jobs, so
-// removing one on settle never removes a sibling with the same start time.
-class _ScanJob {
-  _ScanJob(this.type, this.startedAt);
-
-  final TransactionType type;
-  final DateTime startedAt;
 }

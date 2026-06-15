@@ -5,15 +5,19 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../core/models.dart';
 
 class PushQueueService {
-  PushQueueService({required this.onEntriesChanged});
+  PushQueueService({required this.onEntriesChanged, this.onRowInserted});
 
   final void Function(List<QueueEntry> entries) onEntriesChanged;
+  // Fired when a genuinely new active row is inserted via realtime (a freshly parsed
+  // invoice landing). Drives the scan "processing" count down. Not called for the
+  // initial load/refresh — only real INSERT events.
+  final void Function(TransactionType type)? onRowInserted;
 
   RealtimeChannel? _channel;
   List<QueueEntry> _entries = [];
 
   static bool isActiveStatus(String? status) =>
-      status == 'pending' || status == 'push_now';
+      status == 'pending' || status == 'push_now' || status == 'failed';
 
   Future<void> subscribe() async {
     await refresh();
@@ -27,8 +31,11 @@ class PushQueueService {
           callback: (payload) {
             final row = payload.newRecord;
             if (!isActiveStatus(row['status'] as String?)) return;
-            _entries = [rowToEntry(row), ..._entries];
+            final entry = rowToEntry(row);
+            _entries = [entry, ..._entries];
             onEntriesChanged(List.of(_entries));
+            // A freshly parsed invoice landed → clear one "processing" scan of its type.
+            onRowInserted?.call(entry.type);
           },
         )
         .onPostgresChanges(
@@ -74,7 +81,7 @@ class PushQueueService {
       final response = await Supabase.instance.client
           .from('push_queue')
           .select('id, status, created_at, voucher_payload, source_payload')
-          .inFilter('status', ['pending', 'push_now'])
+          .inFilter('status', ['pending', 'push_now', 'failed'])
           .order('created_at', ascending: false);
 
       _entries = (response as List)
@@ -122,6 +129,7 @@ class PushQueueService {
       amount: amount,
       dayLabel: toDateLabel(createdAt),
       timeLabel: toTimeLabel(createdAt),
+      sortKey: createdAt.millisecondsSinceEpoch,
       scanResult: {
         ...payload,
         '__row_id': row['id']?.toString() ?? '',
