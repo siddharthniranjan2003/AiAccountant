@@ -48,6 +48,9 @@ class _QueueLoadingTileState extends State<QueueLoadingTile> {
   @override
   Widget build(BuildContext context) {
     final elapsed = DateTime.now().difference(widget.oldestStart);
+    // One scan sweeps over a minute; two or more in flight stretch the ring to
+    // 90s to better reflect the longer worst-case wait.
+    final fullMs = widget.count >= 2 ? 90000 : 60000;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       child: Row(
@@ -66,7 +69,9 @@ class _QueueLoadingTileState extends State<QueueLoadingTile> {
           SizedBox(
             width: 24,
             height: 24,
-            child: CustomPaint(painter: _StepTimerPainter(elapsed)),
+            child: CustomPaint(
+              painter: _StepTimerPainter(elapsed, fullMs),
+            ),
           ),
         ],
       ),
@@ -104,30 +109,32 @@ class _CountBadge extends StatelessWidget {
 }
 
 // A clock-style filled pie. A solid wedge sweeps clockwise from 12 o'clock, filling
-// the circle over one minute, and the WHOLE wedge changes colour at each 15-second
-// mark: 0–15s green, 15–30s amber, 30–45s orange, 45s+ red. The unfilled part is a
-// faint track. Past 60s it holds a full red circle.
+// the circle over [fullMs] (60s for one scan, 90s for two or more), changing colour
+// in four equal steps green → amber → orange → red. The unfilled part is a faint
+// track. Once the wedge completes it restarts from empty and sweeps again, looping
+// until the scan finishes (this tile is only shown while a scan is in flight).
 class _StepTimerPainter extends CustomPainter {
-  _StepTimerPainter(this.elapsed);
+  _StepTimerPainter(this.elapsed, this.fullMs);
 
   final Duration elapsed;
+  final int fullMs; // full sweep duration; the ring loops every fullMs
 
   static const _stepColors = [
-    Color(0xFF1D7A3A), // 0–15s  green
-    Color(0xFFF2C94C), // 15–30s amber
-    Color(0xFFE08A1E), // 30–45s orange
-    Color(0xFFD94F3A), // 45s+   red
+    Color(0xFF1D7A3A), // step 1  green
+    Color(0xFFF2C94C), // step 2  amber
+    Color(0xFFE08A1E), // step 3  orange
+    Color(0xFFD94F3A), // step 4  red
   ];
   static const _trackColor = Colors.white;
-  static const int _windowMs = 15000; // one colour step
-  static const int _fullMs = _windowMs * 4; // 60s = full circle
 
   @override
   void paint(Canvas canvas, Size size) {
-    final totalMs = elapsed.inMilliseconds;
-    final step = (totalMs ~/ _windowMs).clamp(0, _stepColors.length - 1);
-    // Fraction of the full minute elapsed → how much of the pie is filled.
-    final progress = (totalMs / _fullMs).clamp(0.0, 1.0);
+    final windowMs = fullMs ~/ _stepColors.length; // one colour step
+    // Loop the sweep: restart from empty each time the wedge completes a circle.
+    final cycleMs = elapsed.inMilliseconds % fullMs;
+    final step = (cycleMs ~/ windowMs).clamp(0, _stepColors.length - 1);
+    // Fraction of the current sweep elapsed → how much of the pie is filled.
+    final progress = (cycleMs / fullMs).clamp(0.0, 1.0);
 
     final center = size.center(Offset.zero);
     final radius = size.shortestSide / 2 - 1;
@@ -165,5 +172,6 @@ class _StepTimerPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_StepTimerPainter old) => old.elapsed != elapsed;
+  bool shouldRepaint(_StepTimerPainter old) =>
+      old.elapsed != elapsed || old.fullMs != fullMs;
 }

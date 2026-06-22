@@ -5,13 +5,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../core/models.dart';
 
 class PushQueueService {
-  PushQueueService({required this.onEntriesChanged, this.onRowInserted});
+  PushQueueService({required this.onEntriesChanged});
 
   final void Function(List<QueueEntry> entries) onEntriesChanged;
-  // Fired when a genuinely new active row is inserted via realtime (a freshly parsed
-  // invoice landing). Drives the scan "processing" count down. Not called for the
-  // initial load/refresh — only real INSERT events.
-  final void Function(TransactionType type)? onRowInserted;
 
   RealtimeChannel? _channel;
   List<QueueEntry> _entries = [];
@@ -34,8 +30,6 @@ class PushQueueService {
             final entry = rowToEntry(row);
             _entries = [entry, ..._entries];
             onEntriesChanged(List.of(_entries));
-            // A freshly parsed invoice landed → clear one "processing" scan of its type.
-            onRowInserted?.call(entry.type);
           },
         )
         .onPostgresChanges(
@@ -59,14 +53,29 @@ class PushQueueService {
             final row = payload.newRecord;
             final newStatus = row['status'] as String?;
             final entryId = 'supabase_${row['id']}';
-            if (isActiveStatus(newStatus)) {
-              final updated = rowToEntry(row);
+            // A row only leaves the live queue once it's actually pushed (it
+            // moves to History). Every other status — pending/push_now/failed
+            // AND any transient status the backend sets in between — keeps the
+            // row visible, so a just-pushed voucher doesn't vanish and then
+            // reappear on the next refresh.
+            if (newStatus == 'pushed') {
+              _entries = _entries.where((e) => e.id != entryId).toList();
+            } else {
+              var updated = rowToEntry(row);
               final exists = _entries.any((e) => e.id == entryId);
+              // Supabase Realtime's column cache can lag a freshly-added column,
+              // so an UPDATE echo may omit edit_state and rowToEntry would read
+              // it as none — wiping the "under edit"/"invoice edited" tag. Keep
+              // the editState we already have when the payload doesn't carry the
+              // column; it's seeded authoritatively by refresh()/PostgREST and
+              // the local edit flow, not by these echoes.
+              if (exists && !row.containsKey('edit_state')) {
+                final prior = _entries.firstWhere((e) => e.id == entryId);
+                updated = updated.copyWith(editState: prior.editState);
+              }
               _entries = exists
                   ? _entries.map((e) => e.id == entryId ? updated : e).toList()
                   : [updated, ..._entries];
-            } else {
-              _entries = _entries.where((e) => e.id != entryId).toList();
             }
             onEntriesChanged(List.of(_entries));
           },
@@ -80,7 +89,7 @@ class PushQueueService {
     try {
       final response = await Supabase.instance.client
           .from('push_queue')
-          .select('id, status, created_at, voucher_payload, source_payload')
+          .select('id, status, created_at, voucher_payload, source_payload, edit_state, pushed_at, error_message')
           .inFilter('status', ['pending', 'push_now', 'failed'])
           .order('created_at', ascending: false);
 
@@ -130,10 +139,13 @@ class PushQueueService {
       dayLabel: toDateLabel(createdAt),
       timeLabel: toTimeLabel(createdAt),
       sortKey: createdAt.millisecondsSinceEpoch,
+      editState: QueueEditState.fromDb(row['edit_state'] as String?),
       scanResult: {
         ...payload,
         '__row_id': row['id']?.toString() ?? '',
         '__status': row['status'] as String? ?? 'pending',
+        '__pushed_at': row['pushed_at'] as String?,
+        '__error_message': row['error_message'] as String?,
         '__source_payload': parsePayload(row['source_payload']),
       },
     );

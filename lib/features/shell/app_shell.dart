@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_document_scanner/google_mlkit_document_scanner.dart';
@@ -6,7 +8,8 @@ import '../../core/models.dart';
 import '../../core/config.dart';
 import '../../data/seed_data.dart';
 import '../../data/push_queue_service.dart';
-import '../../data/scan_inflight_service.dart';
+import '../../data/scan_jobs_service.dart';
+import '../../data/scan_uploader.dart';
 import '../queue/queue_screen.dart';
 import '../history/history_screen.dart';
 import '../camera/camera_screen.dart';
@@ -21,17 +24,20 @@ class AccountantShell extends StatefulWidget {
   State<AccountantShell> createState() => _AccountantShellState();
 }
 
-class _AccountantShellState extends State<AccountantShell> {
+class _AccountantShellState extends State<AccountantShell>
+    with WidgetsBindingObserver {
   int _currentIndex = 0;
   int _queueTabIndex = 0;
 
   List<QueueEntry> _saleEntries = [];
   List<QueueEntry> _supabaseEntries = [];
 
-  // The in-flight scan list lives in a process-level singleton (not here) so it
-  // survives the shell being destroyed/recreated while the native scanner is in front.
-  // We listen to it to repaint the "Processing…" count badge + timer.
-  final ScanInFlightService _scanService = ScanInFlightService.instance;
+  // The in-flight scan set is a shared Supabase `scan_jobs` table mirrored over
+  // realtime by this process-level singleton, so the "Processing…" badge + timer
+  // reflect on EVERY client (this phone AND any open web session). It lives
+  // outside this widget so the subscription survives the shell being recreated
+  // while the native scanner is in front. We listen to it to repaint the badge.
+  final ScanJobsService _scanService = ScanJobsService.instance;
 
   TransactionType get _activeQueueType =>
       _queueTabIndex == 0 ? TransactionType.sale : TransactionType.purchase;
@@ -49,26 +55,40 @@ class _AccountantShellState extends State<AccountantShell> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _saleEntries = seedQueueEntries
         .where((e) => e.type == TransactionType.sale)
         .toList();
 
     _pushQueueService = PushQueueService(
       onEntriesChanged: _onSupabaseEntriesChanged,
-      // When a parsed invoice row lands, clear one "processing" scan of that type.
-      onRowInserted: _scanService.notifyInvoiceArrived,
     );
     _pushQueueService.subscribe();
 
-    // Repaint the count badge/timer whenever the processing set changes.
+    // Mirror the shared scan_jobs table and repaint the badge/timer whenever the
+    // in-flight set changes (the parsing service deletes a row when its invoice
+    // lands, draining the badge here and on every other client).
     _scanService.addListener(_onInFlightChanged);
+    _scanService.subscribe();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _scanService.removeListener(_onInFlightChanged);
     _pushQueueService.unsubscribe();
     super.dispose();
+  }
+
+  // Realtime events can be missed while the app/tab is backgrounded (the socket
+  // is suspended → nothing replays), leaving a stale "Processing…" badge or a
+  // missing queue row. On return to the foreground, re-fetch both to catch up.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _scanService.resync();
+      _pushQueueService.refresh();
+    }
   }
 
   void _onInFlightChanged() {
@@ -152,7 +172,7 @@ class _AccountantShellState extends State<AccountantShell> {
         ));
       });
 
-      _enqueueScan(pdfPath, type: selectedType);
+      unawaited(_enqueueScan(pdfPath, type: selectedType));
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -168,11 +188,12 @@ class _AccountantShellState extends State<AccountantShell> {
   static const String _purchaseParseUrl = Config.purchaseParseUrl;
   static const String _saleParseUrl = Config.saleParseUrl;
 
-  // Hands the scanned PDF to the in-flight service, which fires its parse request
-  // immediately and tracks it (driving the count badge + timer). The count drops and
-  // the queue refreshes when each reply returns — all in the singleton, so it keeps
-  // working even if this shell is destroyed/recreated while the next scan is in front.
-  void _enqueueScan(String pdfPath, {required TransactionType type}) {
+  // Records the scan in the shared scan_jobs table (badge +1 on every client via
+  // realtime) and fires the parse request, tagging it with the new row's id as
+  // job_id so the parsing service can delete that exact row when the invoice
+  // lands (badge -1 everywhere). The upload is a top-level fire-and-forget, so it
+  // survives this shell being recreated while the next scan is in front.
+  Future<void> _enqueueScan(String pdfPath, {required TransactionType type}) async {
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -182,8 +203,11 @@ class _AccountantShellState extends State<AccountantShell> {
       ),
     );
 
-    final url = type == TransactionType.sale ? _saleParseUrl : _purchaseParseUrl;
-    _scanService.enqueue(type, pdfPath, url);
+    final jobId = await _scanService.startScan(type);
+    final baseUrl =
+        type == TransactionType.sale ? _saleParseUrl : _purchaseParseUrl;
+    final url = jobId == null ? baseUrl : '$baseUrl&job_id=$jobId';
+    unawaited(sendScanToParser(pdfPath, url));
   }
 
   Future<TransactionType?> _showCaptureTypeDialog() {
