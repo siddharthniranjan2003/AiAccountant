@@ -9,17 +9,34 @@ class QueueRowTile extends StatelessWidget {
     required this.serialNumber,
     required this.isFirst,
     required this.onPartyTap,
+    this.isQueueDuplicate = false,
   });
 
   final QueueEntry entry;
   final int serialNumber;
   final bool isFirst;
   final VoidCallback? onPartyTap;
+  // True when this purchase's invoice number already appeared on an older queue
+  // row (the same invoice uploaded again). Distinct from `invoiceExists`, which
+  // means the voucher is already in TallyPrime.
+  final bool isQueueDuplicate;
 
   @override
   Widget build(BuildContext context) {
-    final isDone = entry.status == QueueStatus.done;
-    final opacity = entry.status == QueueStatus.pending ? 1.0 : 0.56;
+    // The real lifecycle lives in the Supabase status string (carried on the
+    // row as __status); the row reflects that, not a local enum.
+    final status = entry.scanResult?['__status'] as String? ?? 'pending';
+    final isPushed = status == 'pushed';
+    final isFailed = status == 'failed';
+    final isPushing = status == 'push_now';
+    final isDuplicate = entry.invoiceExists;
+    final isUnderEdit = entry.editState == QueueEditState.underEdit;
+    // A saved edit reads as a normal, ready row (just tagged); only an unsaved
+    // mid-edit row is dimmed.
+    final opacity =
+        (status == 'pending' && !isUnderEdit && !isDuplicate && !isQueueDuplicate)
+            ? 1.0
+            : 0.56;
 
     return AnimatedOpacity(
       duration: const Duration(milliseconds: 220),
@@ -56,9 +73,13 @@ class QueueRowTile extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: isDone || entry.isBeingEdited ? AppPalette.muted : AppPalette.pen,
+                              color: isFailed
+                                  ? AppPalette.accent
+                                  : (isPushed || isUnderEdit
+                                      ? AppPalette.muted
+                                      : AppPalette.pen),
                               fontWeight: FontWeight.w800,
-                              decoration: isDone
+                              decoration: isPushed
                                   ? TextDecoration.lineThrough
                                   : TextDecoration.underline,
                             ),
@@ -70,14 +91,52 @@ class QueueRowTile extends StatelessWidget {
                               fontWeight: FontWeight.w700,
                             ),
                       ),
+                      if (isPushing || isFailed) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          isFailed ? 'failed' : 'pushing…',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: isFailed ? AppPalette.accent : const Color(0xFFB45309),
+                                fontWeight: FontWeight.w700,
+                                fontSize: 11,
+                              ),
+                        ),
+                      ],
+                      if (isQueueDuplicate || isDuplicate) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          isQueueDuplicate
+                              ? 'Duplicate: Already Exists In Queue'
+                              : 'Duplicate',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: AppPalette.accent,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 11,
+                              ),
+                        ),
+                      ],
+                      if (entry.editState != QueueEditState.none) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          isUnderEdit ? 'under edit' : 'invoice edited',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: isUnderEdit ? AppPalette.muted : AppPalette.pen,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 11,
+                              ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
               ),
-              Text(
-                formatCurrency(entry.amount),
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
-              ),
+              // A "Garbage invoice" (failed scan) never became a voucher, so it
+              // has no meaningful amount — omit the ₹0 that would otherwise show.
+              if (entry.scanResult?['__garbage'] != true)
+                Text(
+                  formatCurrency(entry.amount),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
+                ),
               if (entry.type == TransactionType.purchase) ...[
                 const SizedBox(width: 8),
                 _SourceIcon(scanResult: entry.scanResult),

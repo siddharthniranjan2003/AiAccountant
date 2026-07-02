@@ -234,6 +234,7 @@ class _AccountantShellState extends State<AccountantShell>
           onTabChanged: (i) => setState(() => _queueTabIndex = i),
           loadingCount: _scanService.countFor(_activeQueueType),
           oldestLoadingStart: _scanService.oldestStartFor(_activeQueueType),
+          garbageRows: _scanService.garbageEntries(),
         ),
         HistoryScreen(
           currentIndex: _currentIndex,
