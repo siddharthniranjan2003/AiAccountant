@@ -1,34 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../core/error_reporter.dart';
+
 class StockItem {
   const StockItem({
     required this.name,
     required this.groupName,
     required this.rate,
+    this.unit = '',
     this.discountPct = 0.0,
     this.source = '',
+    this.partCode = '',
   });
 
   final String name;
   final String groupName;
   final double rate;
+  // Tally base unit (e.g. 'Kgs','Pcs','NOS') from stock_items.unit; '' if unknown.
+  final String unit;
   final double discountPct;
   // 'same_party' | 'different_party' | '' (catalog)
   final String source;
+  // Tally Part No. (== Mailing Name) from stock_items.part_code; '' if none.
+  final String partCode;
 
   static StockItem fromRow(Map<String, dynamic> row) => StockItem(
         name: row['name'] as String? ?? '',
         groupName: row['group_name'] as String? ?? '',
         rate: double.tryParse((row['rate'] ?? '0').toString()) ?? 0.0,
-      );
-
-  static StockItem fromSaleRow(Map<String, dynamic> row) => StockItem(
-        name: row['stock_item_name'] as String? ?? '',
-        groupName: row['source'] == 'different_party' ? 'Other vendors' : '',
-        rate: (row['rate'] as num?)?.toDouble() ?? 0.0,
-        discountPct: (row['discount_pct'] as num?)?.toDouble() ?? 0.0,
-        source: row['source'] as String? ?? '',
+        unit: row['unit'] as String? ?? '',
+        partCode: row['part_code'] as String? ?? '',
       );
 }
 
@@ -41,17 +43,69 @@ class StockItemsCache {
 
   static GlobalKey<ScaffoldMessengerState>? scaffoldKey;
 
+  void clear() {
+    items = [];
+    isLoading = false;
+  }
+
+  // Tally base unit for a stock item by name (case-insensitive), '' if unknown.
+  // Used to give a manually-added line the stock master's unit instead of 'NOS'.
+  String unitFor(String name) {
+    final target = name.trim().toLowerCase();
+    if (target.isEmpty) return '';
+    for (final item in items) {
+      if (item.name.trim().toLowerCase() == target) return item.unit;
+    }
+    return '';
+  }
+
+  // True if a stock item with this name exists in the catalog (case-insensitive,
+  // trimmed). Used to validate invoice lines before pushing to Tally.
+  bool exists(String name) {
+    final target = name.trim().toLowerCase();
+    if (target.isEmpty) return false;
+    for (final item in items) {
+      if (item.name.trim().toLowerCase() == target) return true;
+    }
+    return false;
+  }
+
+  // Tally Part No. for a stock item by name (case-insensitive), '' if unknown.
+  // Lets the party-specific picker path (sourced from voucher_items, which has
+  // no part_code) still show/search the catalog's part code.
+  String partCodeFor(String name) {
+    final target = name.trim().toLowerCase();
+    if (target.isEmpty) return '';
+    for (final item in items) {
+      if (item.name.trim().toLowerCase() == target) return item.partCode;
+    }
+    return '';
+  }
+
   Future<void> fetch() async {
     isLoading = true;
     try {
-      final response = await Supabase.instance.client
-          .from('stock_items')
-          .select('name, group_name, rate');
-      items = (response as List)
-          .cast<Map<String, dynamic>>()
-          .map(StockItem.fromRow)
-          .toList();
-    } catch (e) {
+      // PostgREST caps a single response at 1000 rows, so page through the whole
+      // catalog (13k+ items) with .range(). Ordered by name for stable, non-
+      // overlapping pages. Without this the picker (and unitFor/partCodeFor
+      // lookups) only saw the first 1000 items.
+      const pageSize = 1000;
+      final all = <StockItem>[];
+      var from = 0;
+      while (true) {
+        final page = await Supabase.instance.client
+            .from('stock_items')
+            .select('name, group_name, rate, unit, part_code')
+            .order('name', ascending: true)
+            .range(from, from + pageSize - 1);
+        final rows = (page as List).cast<Map<String, dynamic>>();
+        all.addAll(rows.map(StockItem.fromRow));
+        if (rows.length < pageSize) break;
+        from += pageSize;
+      }
+      items = all;
+    } catch (e, st) {
+      reportHandledError('supabase.stock_items.fetch', e, stackTrace: st);
       scaffoldKey?.currentState?.showSnackBar(
         SnackBar(
           content: Text('download failed $e'),

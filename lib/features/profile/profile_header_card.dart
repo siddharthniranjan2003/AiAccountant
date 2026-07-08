@@ -9,9 +9,10 @@ class ProfileHeaderCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.65),
+        color: AppPalette.card,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppPalette.ink, width: 1.4),
+        border: Border.all(
+            color: AppPalette.cardBorder, width: AppPalette.cardBorderWidth),
       ),
       child: Row(
         children: [
@@ -22,18 +23,20 @@ class ProfileHeaderCard extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: AppPalette.accent2.withValues(alpha: 0.4),
-              border: Border.all(color: AppPalette.ink, width: 1.4),
+              border: Border.all(
+                  color: AppPalette.cardBorder,
+                  width: AppPalette.cardBorderWidth),
             ),
-            child: Text('RK', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
+            child: Text('KV', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Ravi Kumar', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
+                Text('K V Enterprises', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
                 const SizedBox(height: 2),
-                Text('ravi@store.in · GST 27ABCDE1234F1Z5', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppPalette.inkSoft)),
+                Text('kventerprises.fbd@gmail.com · GST 06ALQPB8309N1ZO', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppPalette.inkSoft)),
               ],
             ),
           ),
@@ -62,9 +65,11 @@ class SettingRow extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.62),
+          color: AppPalette.card,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: destructive ? AppPalette.accent : AppPalette.ink, width: 1.4),
+          border: Border.all(
+              color: destructive ? AppPalette.accent : AppPalette.cardBorder,
+              width: AppPalette.cardBorderWidth),
         ),
         child: Row(
           children: [

@@ -42,6 +42,21 @@ android {
         versionName = flutter.versionName
     }
 
+    // Per-environment flavors. Each flavor keeps the same applicationId (the
+    // three builds are NOT installable side-by-side) but points Firebase at a
+    // different project via src/<flavor>/google-services.json. Pair each build
+    // with the matching --dart-define-from-file=env/<flavor>.json so the Dart
+    // FirebaseOptions + Config URLs line up with the native google-services.json.
+    // NOTE: the testing env's flavor is named "staging" because Android Gradle
+    // forbids product-flavor names starting with "test". It still uses the
+    // testing Firebase project (src/staging/google-services.json) + env/testing.json.
+    flavorDimensions += "env"
+    productFlavors {
+        create("staging") { dimension = "env" }
+        create("deployment") { dimension = "env" }
+        create("prod") { dimension = "env" }
+    }
+
     signingConfigs {
         if (hasReleaseKeystore) {
             create("release") {

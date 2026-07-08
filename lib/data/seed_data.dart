@@ -2,40 +2,6 @@ import '../core/models.dart';
 
 const List<QueueEntry> seedQueueEntries = [
   QueueEntry(
-    id: 'sale_abc',
-    type: TransactionType.sale,
-    party: 'ABC Traders',
-    amount: 100,
-    dayLabel: 'Today',
-    timeLabel: '10:14',
-    checked: true,
-  ),
-  QueueEntry(
-    id: 'sale_def',
-    type: TransactionType.sale,
-    party: 'Delta Fasteners',
-    amount: 200,
-    dayLabel: 'Today',
-    timeLabel: '11:02',
-    checked: true,
-  ),
-  QueueEntry(
-    id: 'sale_xyz',
-    type: TransactionType.sale,
-    party: 'XYZ Mart',
-    amount: 300,
-    dayLabel: 'Yesterday',
-    timeLabel: '17:48',
-  ),
-  QueueEntry(
-    id: 'sale_mno',
-    type: TransactionType.sale,
-    party: 'MNO Supply',
-    amount: 450,
-    dayLabel: 'Yesterday',
-    timeLabel: '14:21',
-  ),
-  QueueEntry(
     id: 'purchase_krishna',
     type: TransactionType.purchase,
     party: 'Krishna Steels',

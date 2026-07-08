@@ -1,7 +1,9 @@
 import 'dart:io';
 import 'package:csv/csv.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../core/models.dart';
 import '../../data/seed_data.dart';
@@ -37,6 +39,67 @@ class _ReportScreenState extends State<ReportScreen> {
     return File('${folder.path}/$reportId.csv');
   }
 
+  // Today as yyyy-MM-dd, used to invalidate the cache once per day.
+  String _todayStamp() {
+    final now = DateTime.now();
+    final m = now.month.toString().padLeft(2, '0');
+    final d = now.day.toString().padLeft(2, '0');
+    return '${now.year}-$m-$d';
+  }
+
+  // Formats a yyyy-MM-dd stamp as e.g. "3 Jul 2026" for display.
+  String _prettyDate(String stamp) {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
+    final parts = stamp.split('-');
+    if (parts.length != 3) return stamp;
+    final month = int.tryParse(parts[1]) ?? 0;
+    final day = int.tryParse(parts[2]) ?? 0;
+    if (month < 1 || month > 12) return stamp;
+    return '$day ${months[month - 1]} ${parts[0]}';
+  }
+
+  // Returns the report CSV and the date it was cached. Served from cache when
+  // it was fetched today, otherwise re-downloaded and re-cached with today's
+  // date stamp. The CSV body lives in a file on native and in
+  // shared_preferences on web (where path_provider has no implementation); the
+  // date stamp always lives in shared_preferences so the same expiry logic
+  // works on both.
+  Future<({String csv, String date})> _loadReportCsv(String reportId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = _todayStamp();
+    final dateKey = 'report_cache_date_$reportId';
+    final csvKey = 'report_cache_csv_$reportId';
+
+    Future<String> fetch() => ApiClient.getRaw(
+          '/api/sync/reorder-levels/$reportId',
+          query: {'company_name': 'K V ENTERPRISES', 'format': 'csv'},
+        );
+
+    if (prefs.getString(dateKey) == today) {
+      if (kIsWeb) {
+        final cached = prefs.getString(csvKey);
+        if (cached != null) return (csv: cached, date: today);
+      } else {
+        final file = await _cacheFile(reportId);
+        if (await file.exists()) {
+          return (csv: await file.readAsString(), date: today);
+        }
+      }
+    }
+
+    final csvText = await fetch();
+    if (kIsWeb) {
+      await prefs.setString(csvKey, csvText);
+    } else {
+      await (await _cacheFile(reportId)).writeAsString(csvText);
+    }
+    await prefs.setString(dateKey, today);
+    return (csv: csvText, date: today);
+  }
+
   Future<void> _openReport(ReportCategory category) async {
     setState(() => _loadingCategoryKey = category.key);
 
@@ -44,23 +107,15 @@ class _ReportScreenState extends State<ReportScreen> {
     List<String> columnLabels;
     List<double> columnWidths;
     String footerTrailing;
+    int? sumColumnIndex;
+    String? cachedDate;
 
     try {
       if (category.reportId != null) {
-        final file = await _cacheFile(category.reportId!);
-        final String csvText;
+        final cached = await _loadReportCsv(category.reportId!);
+        cachedDate = _prettyDate(cached.date);
 
-        if (await file.exists()) {
-          csvText = await file.readAsString();
-        } else {
-          csvText = await ApiClient.getRaw(
-            '/api/sync/reorder-levels/${category.reportId}',
-            query: {'company_name': 'K V ENTERPRISES', 'format': 'csv'},
-          );
-          await file.writeAsString(csvText);
-        }
-
-        final parsed = const CsvToListConverter(eol: '\n').convert(csvText);
+        final parsed = const CsvToListConverter(eol: '\n').convert(cached.csv);
         if (parsed.isEmpty) {
           columnLabels = [];
           rows = [];
@@ -79,6 +134,8 @@ class _ReportScreenState extends State<ReportScreen> {
             ...List.filled(columnLabels.length - 1, 96.0),
           ];
           footerTrailing = '${rows.length} rows';
+          final idx = columnLabels.indexOf('closing_stock_amount');
+          sumColumnIndex = idx >= 0 ? idx : null;
         }
       } else {
         columnLabels = const ['stock_item', 'sales_6m', 'pur_1m', 'stock_qty', 'stock_₹', 'scenario'];
@@ -104,13 +161,18 @@ class _ReportScreenState extends State<ReportScreen> {
       builder: (context) {
         return AppSpreadsheetSheet(
           fileName: '/${category.key}.csv',
+          cachedDate: cachedDate,
           toolbarItems: const ['File', 'Edit', 'View', 'Filter', 'Σ'],
           columnLabels: columnLabels,
           columnWidths: columnWidths,
           rows: rows,
           footerLeading: category.footerMeta,
           footerTrailing: footerTrailing,
-          onShare: category.reportId == null
+          sumColumnIndex: sumColumnIndex,
+          footerLeadingLabel: 'Sorted By Closing stock amount',
+          countUnit: sumColumnIndex != null ? 'Items' : 'rows',
+          // File-share relies on the on-disk cache, which doesn't exist on web.
+          onShare: (category.reportId == null || kIsWeb)
               ? null
               : () async {
                   final file = await _cacheFile(category.reportId!);
@@ -162,8 +224,8 @@ class _ReportScreenState extends State<ReportScreen> {
                         );
                       },
                     )
-                  : const Center(
-                      key: ValueKey('chat'),
+                  : Center(
+                      key: const ValueKey('chat'),
                       child: Text('Coming Soon.....', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppPalette.muted)),
                     ),
             ),

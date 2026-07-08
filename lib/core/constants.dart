@@ -4,6 +4,15 @@ import 'models.dart';
 const double kBottomNavHeight = 78;
 const double kBulkBarHeight = 58;
 
+// At or above this width the shell switches from the phone card + bottom nav to
+// a full-width desktop layout with a left navigation rail.
+const double kDesktopBreakpoint = 900;
+const double kSideNavWidth = 96;
+
+// On desktop, auth forms (login/OTP) center at this width instead of stretching
+// edge-to-edge. Modal sheets use the bottom-sheet cap in the theme.
+const double kFormMaxWidth = 440;
+
 const List<BottomNavItemData> bottomNavItems = [
   BottomNavItemData(label: 'Queue', icon: Icons.view_agenda_rounded),
   BottomNavItemData(label: 'History', icon: Icons.history_rounded),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/palette.dart';
-import '../shell/app_shell.dart';
 
 class SuccessScreen extends StatefulWidget {
   const SuccessScreen({super.key});
@@ -28,9 +27,12 @@ class _SuccessScreenState extends State<SuccessScreen>
     _ctrl.forward();
     _ctrl.addStatusListener((status) {
       if (status == AnimationStatus.completed && mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const AccountantShell()),
-        );
+        // Sign-in has flipped the auth stream, so the gate route (`/` in
+        // main.dart) now renders the Shell. Pop the Success/OTP/Login routes
+        // back to it instead of pushing a new Shell — this keeps the reactive
+        // gate as the single base route, so back exits the app and cold-start
+        // persistence stays intact.
+        Navigator.of(context).popUntil((route) => route.isFirst);
       }
     });
   }

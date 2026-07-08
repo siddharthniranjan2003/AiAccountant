@@ -10,6 +10,7 @@ class QueueRowTile extends StatelessWidget {
     required this.isFirst,
     required this.onPartyTap,
     this.isQueueDuplicate = false,
+    this.isAlreadyPushed = false,
   });
 
   final QueueEntry entry;
@@ -20,6 +21,10 @@ class QueueRowTile extends StatelessWidget {
   // row (the same invoice uploaded again). Distinct from `invoiceExists`, which
   // means the voucher is already in TallyPrime.
   final bool isQueueDuplicate;
+  // True when this purchase's invoice number already exists among pushed
+  // vouchers (History) — the original has reached Tally. Takes label precedence
+  // over isQueueDuplicate/invoiceExists.
+  final bool isAlreadyPushed;
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +39,7 @@ class QueueRowTile extends StatelessWidget {
     // A saved edit reads as a normal, ready row (just tagged); only an unsaved
     // mid-edit row is dimmed.
     final opacity =
-        (status == 'pending' && !isUnderEdit && !isDuplicate && !isQueueDuplicate)
+        (status == 'pending' && !isUnderEdit && !isDuplicate && !isQueueDuplicate && !isAlreadyPushed)
             ? 1.0
             : 0.56;
 
@@ -84,6 +89,18 @@ class QueueRowTile extends StatelessWidget {
                                   : TextDecoration.underline,
                             ),
                       ),
+                      if (entry.invoiceNumber != null) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          entry.invoiceNumber!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: AppPalette.muted,
+                                fontWeight: FontWeight.w700,
+                              ),
+                        ),
+                      ],
                       Text(
                         entry.timeLabel,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -102,12 +119,14 @@ class QueueRowTile extends StatelessWidget {
                               ),
                         ),
                       ],
-                      if (isQueueDuplicate || isDuplicate) ...[
+                      if (isAlreadyPushed || isQueueDuplicate || isDuplicate) ...[
                         const SizedBox(height: 2),
                         Text(
-                          isQueueDuplicate
-                              ? 'Duplicate: Already Exists In Queue'
-                              : 'Duplicate',
+                          isAlreadyPushed
+                              ? 'Duplicate: Already Pushed'
+                              : isQueueDuplicate
+                                  ? 'Duplicate: Already Exists In Queue'
+                                  : 'Duplicate: Already Exists',
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                 color: AppPalette.accent,
                                 fontWeight: FontWeight.w700,

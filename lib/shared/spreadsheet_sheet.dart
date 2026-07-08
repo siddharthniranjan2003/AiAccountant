@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/palette.dart';
+import '../core/utils.dart';
 
 class AppSpreadsheetSheet extends StatefulWidget {
   const AppSpreadsheetSheet({
@@ -13,9 +14,15 @@ class AppSpreadsheetSheet extends StatefulWidget {
     required this.footerTrailing,
     required this.trailingAction,
     this.onShare,
+    this.sumColumnIndex,
+    this.footerLeadingLabel,
+    this.countUnit = 'rows',
+    this.cachedDate,
   });
 
   final String fileName;
+  /// Optional "cached on" label shown to the right of [fileName] in the header.
+  final String? cachedDate;
   final List<String> toolbarItems;
   final List<String> columnLabels;
   final List<double> columnWidths;
@@ -24,6 +31,13 @@ class AppSpreadsheetSheet extends StatefulWidget {
   final String footerTrailing;
   final Widget trailingAction;
   final VoidCallback? onShare;
+
+  /// When set, the footer leading shows "[footerLeadingLabel] - ₹[total]",
+  /// where the total is the sum of this cell index across the visible rows
+  /// (recomputed live as the search filter narrows the rows).
+  final int? sumColumnIndex;
+  final String? footerLeadingLabel;
+  final String countUnit;
 
   @override
   State<AppSpreadsheetSheet> createState() => _AppSpreadsheetSheetState();
@@ -48,11 +62,31 @@ class _AppSpreadsheetSheetState extends State<AppSpreadsheetSheet> {
         .toList();
   }
 
+  String get _footerLeading {
+    if (widget.sumColumnIndex == null) return widget.footerLeading;
+    final idx = widget.sumColumnIndex!;
+    num total = 0;
+    for (final row in _filteredRows) {
+      if (idx < row.length) total += _cellToNum(row[idx]);
+    }
+    return '${widget.footerLeadingLabel} - ${formatCurrency(total)}';
+  }
+
   String get _footerTrailing {
+    if (widget.sumColumnIndex != null) {
+      return '${_filteredRows.length} ${widget.countUnit}';
+    }
     if (_query.isEmpty) return widget.footerTrailing;
     final count = _filteredRows.length;
     final total = widget.rows.length;
     return '$count of $total rows';
+  }
+
+  /// Parses a grouped cell value (e.g. "1,36,433") into a number, ignoring
+  /// thousands separators and any non-numeric decoration.
+  num _cellToNum(String cell) {
+    final cleaned = cell.replaceAll(RegExp(r'[^0-9.\-]'), '');
+    return num.tryParse(cleaned) ?? 0;
   }
 
   void _toggleSearch() {
@@ -70,9 +104,9 @@ class _AppSpreadsheetSheetState extends State<AppSpreadsheetSheet> {
     return FractionallySizedBox(
       heightFactor: 0.92,
       child: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: AppPalette.sheet,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         ),
         child: Column(
           children: [
@@ -115,14 +149,32 @@ class _AppSpreadsheetSheetState extends State<AppSpreadsheetSheet> {
                             ),
                             onChanged: (v) => setState(() => _query = v),
                           )
-                        : Text(
-                            widget.fileName,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
-                                ?.copyWith(fontWeight: FontWeight.w800),
+                        : Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  widget.fileName,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(fontWeight: FontWeight.w800),
+                                ),
+                              ),
+                              if (widget.cachedDate != null) ...[
+                                const SizedBox(width: 10),
+                                Text(
+                                  widget.cachedDate!,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(color: AppPalette.muted),
+                                ),
+                              ],
+                            ],
                           ),
                   ),
                   const SizedBox(width: 4),
@@ -178,7 +230,7 @@ class _AppSpreadsheetSheetState extends State<AppSpreadsheetSheet> {
                 children: [
                   Expanded(
                     child: Text(
-                      widget.footerLeading,
+                      _footerLeading,
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ),
@@ -366,8 +418,13 @@ class SpreadsheetGridRow extends StatelessWidget {
           ),
         ),
       ),
-      child: Row(
-        children: [
+      // IntrinsicHeight gives the Row a concrete height (the tallest cell) so
+      // CrossAxisAlignment.stretch can make every cell — and its divider —
+      // full-height once cells wrap to multiple lines.
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
           for (int index = 0; index < cells.length; index++)
             Container(
               width: widths[index],
@@ -381,21 +438,27 @@ class SpreadsheetGridRow extends StatelessWidget {
                         ),
                 ),
               ),
-              child: Text(
-                cells[index],
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: index == 0 ? TextAlign.center : TextAlign.left,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: cells[index].isEmpty
-                          ? AppPalette.muted
-                          : AppPalette.ink,
-                      fontWeight:
-                          isHeader ? FontWeight.w800 : FontWeight.w600,
-                    ),
+              // Wrap the full text onto extra lines instead of truncating with
+              // an ellipsis when the column width can't fit it on one line.
+              child: Align(
+                alignment:
+                    index == 0 ? Alignment.center : Alignment.centerLeft,
+                child: Text(
+                  cells[index],
+                  softWrap: true,
+                  textAlign: index == 0 ? TextAlign.center : TextAlign.left,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: cells[index].isEmpty
+                            ? AppPalette.muted
+                            : AppPalette.ink,
+                        fontWeight:
+                            isHeader ? FontWeight.w800 : FontWeight.w600,
+                      ),
+                ),
               ),
             ),
-        ],
+          ],
+        ),
       ),
     );
   }

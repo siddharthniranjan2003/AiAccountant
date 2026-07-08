@@ -40,7 +40,7 @@ class _AccountantShellState extends State<AccountantShell>
   final ScanJobsService _scanService = ScanJobsService.instance;
 
   TransactionType get _activeQueueType =>
-      _queueTabIndex == 0 ? TransactionType.sale : TransactionType.purchase;
+      _queueTabIndex == 0 ? TransactionType.purchase : TransactionType.sale;
 
   late final PushQueueService _pushQueueService;
 
@@ -235,6 +235,7 @@ class _AccountantShellState extends State<AccountantShell>
           loadingCount: _scanService.countFor(_activeQueueType),
           oldestLoadingStart: _scanService.oldestStartFor(_activeQueueType),
           garbageRows: _scanService.garbageEntries(),
+          pushedReferences: _pushQueueService.pushedPurchaseReferences,
         ),
         HistoryScreen(
           currentIndex: _currentIndex,

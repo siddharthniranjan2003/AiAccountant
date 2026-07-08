@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import '../../data/session_store.dart';
 import '../../shared/screen_frame.dart';
-import '../auth/splash_screen.dart';
 import 'profile_header_card.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -14,13 +14,12 @@ class ProfileScreen extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onNavSelected;
 
-  Future<void> _signOut(BuildContext context) async {
+  Future<void> _signOut() async {
+    // Clear the saved number first so the gate doesn't silently re-login.
+    await SessionStore.clear();
+    // No manual navigation: signing out flips the auth stream, and the gate in
+    // main.dart reactively renders LoginScreen at the base route.
     await FirebaseAuth.instance.signOut();
-    if (!context.mounted) return;
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const SplashScreen()),
-      (_) => false,
-    );
   }
 
   @override
@@ -45,7 +44,7 @@ class ProfileScreen extends StatelessWidget {
           const SizedBox(height: 6),
           const SettingRow(label: 'Help & support'),
           const SizedBox(height: 6),
-          SettingRow(label: 'Sign out', destructive: true, onTap: () => _signOut(context)),
+          SettingRow(label: 'Sign out', destructive: true, onTap: _signOut),
         ],
       ),
     );

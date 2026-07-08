@@ -1,0 +1,8 @@
+{
+  "projects": {
+    "default": "aiaccountant-b60ed",
+    "prod": "aiaccountant-b60ed",
+    "testing": "tallybridge-testing-env-636d4",
+    "deployment": "tallybridge-deployment-env"
+  }
+}

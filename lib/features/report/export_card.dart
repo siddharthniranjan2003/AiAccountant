@@ -18,9 +18,10 @@ class ExportCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.65),
+        color: AppPalette.card,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppPalette.ink, width: 1.4),
+        border: Border.all(
+            color: AppPalette.cardBorder, width: AppPalette.cardBorderWidth),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -32,7 +33,7 @@ class ExportCard extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
               color: AppPalette.accent2.withValues(alpha: 0.35),
-              border: Border.all(color: AppPalette.ink, width: 1.2),
+              border: Border.all(color: AppPalette.cardBorder, width: 1.2),
             ),
             child: Icon(icon, color: AppPalette.ink),
           ),

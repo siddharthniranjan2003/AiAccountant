@@ -3,7 +3,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../core/constants.dart';
 import '../../core/palette.dart';
+import '../../data/session_store.dart';
+import '../../shared/responsive.dart';
 import 'success_screen.dart';
 
 class OtpScreen extends StatefulWidget {
@@ -22,6 +25,9 @@ class _OtpScreenState extends State<OtpScreen> {
   Timer? _resendTimer;
   bool _loading = false;
   String? _error;
+  // Captures physical-keyboard input so desktop users can just type the code
+  // instead of tapping the on-screen keypad.
+  final FocusNode _keyboardFocus = FocusNode();
 
   @override
   void initState() {
@@ -32,7 +38,36 @@ class _OtpScreenState extends State<OtpScreen> {
   @override
   void dispose() {
     _resendTimer?.cancel();
+    _keyboardFocus.dispose();
     super.dispose();
+  }
+
+  KeyEventResult _onKey(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+      return KeyEventResult.ignored;
+    }
+    final key = event.logicalKey;
+    if (key == LogicalKeyboardKey.backspace || key == LogicalKeyboardKey.delete) {
+      _backspace();
+      return KeyEventResult.handled;
+    }
+    if (key == LogicalKeyboardKey.enter || key == LogicalKeyboardKey.numpadEnter) {
+      _verify();
+      return KeyEventResult.handled;
+    }
+    // Ctrl/⌘ + V → paste a copied code.
+    if (key == LogicalKeyboardKey.keyV &&
+        (HardwareKeyboard.instance.isControlPressed ||
+            HardwareKeyboard.instance.isMetaPressed)) {
+      _paste();
+      return KeyEventResult.handled;
+    }
+    final ch = event.character;
+    if (ch != null && ch.length == 1 && RegExp(r'[0-9]').hasMatch(ch)) {
+      _inputDigit(ch);
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
   }
 
   void _startTimer() {
@@ -96,6 +131,9 @@ class _OtpScreenState extends State<OtpScreen> {
         smsCode: otp,
       );
       await FirebaseAuth.instance.signInWithCredential(credential);
+      // Remember the number so the app can silently re-authenticate on cold
+      // start if Firebase drops its persisted session.
+      await SessionStore.savePhone(widget.phone);
       if (mounted) {
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
@@ -129,12 +167,18 @@ class _OtpScreenState extends State<OtpScreen> {
     return Scaffold(
       backgroundColor: AppPalette.paper,
       body: SafeArea(
-        child: Column(
+        child: Focus(
+          focusNode: _keyboardFocus,
+          autofocus: true,
+          onKeyEvent: _onKey,
+          child: Column(
           children: [
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 18),
-                child: Column(
+                child: ResponsiveCenter(
+                  maxWidth: kFormMaxWidth,
+                  child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const SizedBox(height: 16),
@@ -225,11 +269,14 @@ class _OtpScreenState extends State<OtpScreen> {
                       _AuthButton(label: 'Verify →', onTap: _verify),
                     const SizedBox(height: 24),
                   ],
+                  ),
                 ),
               ),
             ),
-            _NumKeypad(onDigit: _inputDigit, onBackspace: _backspace, onPaste: _paste),
+            if (!context.isWideScreen)
+              _NumKeypad(onDigit: _inputDigit, onBackspace: _backspace, onPaste: _paste),
           ],
+          ),
         ),
       ),
     );

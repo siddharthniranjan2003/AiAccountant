@@ -19,9 +19,9 @@ class ScanResultSheet extends StatelessWidget {
 
     return Container(
       height: screenHeight * 0.88,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppPalette.sheet,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: Column(
         children: [

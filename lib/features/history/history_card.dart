@@ -22,9 +22,10 @@ class HistoryCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.65),
+          color: AppPalette.card,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppPalette.ink, width: 1.4),
+          border: Border.all(
+              color: AppPalette.cardBorder, width: AppPalette.cardBorderWidth),
         ),
         child: Row(
           children: [
@@ -34,10 +35,12 @@ class HistoryCard extends StatelessWidget {
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppPalette.ink, width: 1.3),
+                border: Border.all(color: AppPalette.cardBorder, width: 1.3),
                 color: isSale
                     ? AppPalette.accent2.withValues(alpha: 0.35)
-                    : AppPalette.line.withValues(alpha: 0.35),
+                    // The blue-grey badge fill predates the web palette split
+                    // (it was AppPalette.line); keep it fixed on both.
+                    : const Color(0xFFB9C8DF).withValues(alpha: 0.35),
               ),
               child: Text(
                 isSale ? 'S' : 'P',

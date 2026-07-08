@@ -51,7 +51,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     try {
       final response = await Supabase.instance.client
           .from('push_queue')
-          .select('id, status, pushed_at, created_at, voucher_payload')
+          .select('id, status, pushed_at, created_at, voucher_payload, source_payload, error_message')
           .eq('status', 'pushed')
           .order('pushed_at', ascending: false);
 
@@ -72,12 +72,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
           schema: 'public',
           table: 'push_queue',
           callback: (payload) {
-            if (!mounted) return;
             final row = payload.newRecord;
             if (row['status'] != 'pushed') return;
-            final id = row['id']?.toString() ?? '';
-            if (id.isEmpty) return;
-            setState(() => _pushedRowsById[id] = row);
+            _ingestPushedRow(row);
           },
         )
         .onPostgresChanges(
@@ -89,13 +86,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
             final row = payload.newRecord;
             final id = row['id']?.toString() ?? '';
             if (id.isEmpty) return;
-            setState(() {
-              if (row['status'] == 'pushed') {
-                _pushedRowsById[id] = row;
-              } else {
-                _pushedRowsById.remove(id);
-              }
-            });
+            if (row['status'] == 'pushed') {
+              _ingestPushedRow(row);
+            } else {
+              setState(() => _pushedRowsById.remove(id));
+            }
           },
         )
         .onPostgresChanges(
@@ -110,6 +105,29 @@ class _HistoryScreenState extends State<HistoryScreen> {
           },
         )
         .subscribe();
+  }
+
+  // Adds a just-pushed row to the history map. Supabase Realtime omits
+  // unchanged TOASTed columns on UPDATE, so a row that flips to 'pushed'
+  // (its large voucher_payload JSON unchanged) arrives without the payload and
+  // would render as "Unknown". When the payload is missing, re-fetch the full
+  // row from PostgREST before showing it.
+  Future<void> _ingestPushedRow(Map<String, dynamic> row) async {
+    final id = row['id']?.toString() ?? '';
+    if (id.isEmpty) return;
+    var full = row;
+    if (_parsePayload(row['voucher_payload']).isEmpty) {
+      try {
+        final fetched = await Supabase.instance.client
+            .from('push_queue')
+            .select('id, status, pushed_at, created_at, voucher_payload, source_payload, error_message')
+            .eq('id', id)
+            .maybeSingle();
+        if (fetched != null) full = fetched;
+      } catch (_) {}
+    }
+    if (!mounted) return;
+    setState(() => _pushedRowsById[id] = full);
   }
 
   static Map<String, dynamic> _parsePayload(dynamic raw) {
@@ -158,15 +176,29 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final row = _pushedRowsById[entry.rowId];
     if (row == null) return;
     final payload = _parsePayload(row['voucher_payload']);
+    final screenWidth = MediaQuery.of(context).size.width;
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => VoucherDetailSheet(payload: {
-        ...payload,
-        '__row_id': entry.rowId,
-        '__status': row['status'] as String? ?? 'pushed',
-      }),
+      // Lift Material's default modal width cap so the sheet can use ~90% of a
+      // wide (web/desktop) screen for the side-by-side image+summary layout.
+      // 900 matches kDesktopBreakpoint (context.isWideScreen) so the 90% width
+      // and the two-pane layout switch on together.
+      constraints: BoxConstraints(
+        maxWidth: screenWidth >= 900 ? screenWidth * 0.9 : double.infinity,
+      ),
+      builder: (_) => VoucherDetailSheet(
+        readOnly: true,
+        payload: {
+          ...payload,
+          '__row_id': entry.rowId,
+          '__status': row['status'] as String? ?? 'pushed',
+          '__pushed_at': row['pushed_at'] as String?,
+          '__error_message': row['error_message'] as String?,
+          '__source_payload': _parsePayload(row['source_payload']),
+        },
+      ),
     );
   }
 
@@ -174,8 +206,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget build(BuildContext context) {
     final visibleItems = switch (_filterIndex) {
       0 => _history,
-      1 => _history.where((e) => e.type == TransactionType.sale).toList(),
-      _ => _history.where((e) => e.type == TransactionType.purchase).toList(),
+      1 => _history.where((e) => e.type == TransactionType.purchase).toList(),
+      _ => _history.where((e) => e.type == TransactionType.sale).toList(),
     };
 
     final grouped = <String, List<HistoryEntry>>{};
@@ -189,7 +221,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       body: Column(
         children: [
           AppTopTabs(
-            labels: const ['All', 'Sale', 'Purchase'],
+            labels: const ['All', 'Purchase', 'Sale'],
             selectedIndex: _filterIndex,
             onSelected: (index) => setState(() => _filterIndex = index),
           ),

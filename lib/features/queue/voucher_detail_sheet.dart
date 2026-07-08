@@ -1,18 +1,54 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/gestures.dart' show PointerDeviceKind;
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/palette.dart';
+import '../../core/config.dart';
+import '../../core/error_reporter.dart';
 import '../../core/utils.dart';
 import '../../data/customers_cache.dart';
+import '../../data/vendors_cache.dart';
 import '../../data/stock_items_cache.dart';
+import '../../services/api_client.dart';
+import '../../shared/responsive.dart';
 
 // ── View mode enum ────────────────────────────────────────────────────────────
 
 enum _VdsViewMode { image, summary }
+
+// Why a queue row is a duplicate, in the same precedence as its label
+// (queue_row_tile). Carries the confirm-dialog message shown before opening or
+// pushing such a row. `none` = not a duplicate (no confirmation).
+enum DuplicateKind { none, alreadyExistsInTally, alreadyExistsInQueue, alreadyPushed }
+
+extension DuplicateKindMessage on DuplicateKind {
+  // The text before the comma in the confirm prompts; empty for `none`.
+  String get baseMessage => switch (this) {
+        DuplicateKind.none => '',
+        DuplicateKind.alreadyExistsInTally => 'This Invoice Already Exists In TallyPrime',
+        DuplicateKind.alreadyExistsInQueue => 'This Invoice Already Exists in queue',
+        DuplicateKind.alreadyPushed => 'This Invoice Is Already Pushed',
+      };
+}
+
+// Lets the scanned-image scroll views be panned by click-and-drag with a mouse
+// or trackpad (Flutter web only enables touch drag by default), so a zoomed-in
+// document can be moved around to read any corner.
+class _DragScrollBehavior extends MaterialScrollBehavior {
+  const _DragScrollBehavior();
+
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse,
+        PointerDeviceKind.trackpad,
+        PointerDeviceKind.stylus,
+      };
+}
 
 extension on _VdsViewMode {
   String get label => switch (this) {
@@ -25,15 +61,61 @@ extension on _VdsViewMode {
 // scrollable, so each numeric column gets enough room to never wrap to a new
 // line; the Item column keeps a comfortable width and wraps long names.
 const double _kItemColW = 150;
-const double _kQtyColW = 64;
-const double _kDiscColW = 52;
-const double _kRateColW = 88;
-const double _kAmountColW = 96;
+// Numeric columns are scaled up 40% on web to match the 1.4× web text (main.dart),
+// so the bigger numbers don't overflow their cells.
+const double _kQtyColW = kIsWeb ? 64 * 1.4 : 64;
+const double _kDiscColW = kIsWeb ? 52 * 1.4 : 52;
+const double _kRateColW = kIsWeb ? 88 * 1.4 : 88;
+// List Price = Qty · Rate (gross, before discount). UI-only column derived at
+// render time; never stored or pushed. Sized like the Taxable value column
+// since it holds the same magnitude of numbers (often larger — no discount).
+const double _kListPriceColW = kIsWeb ? 96 * 1.4 : 96;
+const double _kAmountColW = kIsWeb ? 96 * 1.4 : 96;
 const double _kDeleteColW = 40;
+// "New Item" flag column (sale only): shows "Y" when a line's rate came from a
+// different party (source_payload rate_source == 'different_party') — i.e. the
+// customer never bought this item before, so the suggested rate is borrowed.
+// Placed left of Qty. Not rendered for purchase (rate_source is sale-only).
+const double _kNewItemColW = kIsWeb ? 56 * 1.4 : 56;
+// Insets for the borderless Charges block so its amounts line up directly
+// beneath the items table's "Taxable value" column. Item rows have, to the
+// right of that column, the delete column plus the row's 12px horizontal
+// padding and the table's 1.2px border; the left inset is that same padding +
+// border so the charge labels start under the item content.
+const double _kChargesLeftInset = 12 + 1.2;
+const double _kChargesRightInset = _kDeleteColW + 12 + 1.2;
+// Leading serial-number ("#") column, shown for both sale and purchase.
+const double _kSerialColW = 30;
+// Number of header fields that take part in the Enter-to-move chain ahead of
+// the item rows: Invoice # (order 0) and Narration (order 1). Date is skipped
+// (it's a tap-to-open calendar, not a typeable field). Each item row then takes
+// 5 ordered stops — Item, Qty, Disc, Rate, Amount — starting at this offset.
+const int _kHeaderFocusCount = 2;
+const int _kCellsPerItemRow = 5;
 // Column widths + the row's horizontal padding (12*2) and container border
 // (~1.2*2) so the inner Row gets the full column width without overflowing.
 const double _kItemsTableW =
-    _kItemColW + _kQtyColW + _kDiscColW + _kRateColW + _kAmountColW + _kDeleteColW + 27;
+    _kSerialColW + _kItemColW + _kQtyColW + _kRateColW + _kDiscColW + _kListPriceColW + _kAmountColW + _kDeleteColW + 27;
+
+// Wide (desktop/pane) layouts let the Item column flex to fill all the slack
+// so the numeric columns sit at the right edge — that puts the Taxable value
+// column directly above the Charges amounts. Phones keep it fixed and scroll
+// the table horizontally.
+Widget _itemCell(bool wide, Widget child) =>
+    wide ? Expanded(child: child) : SizedBox(width: _kItemColW, child: child);
+
+// On web the sheet is as wide as the browser, so the summary body is capped and
+// centered instead of stretching edge-to-edge; phones get full width.
+const double _kSheetContentMaxW = kIsWeb ? 1080 : 800;
+Widget _centerOnWide(bool wide, Widget child) => wide
+    ? Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: _kSheetContentMaxW),
+          child: child,
+        ),
+      )
+    : child;
 
 class VoucherDetailSheet extends StatefulWidget {
   const VoucherDetailSheet({
@@ -45,6 +127,9 @@ class VoucherDetailSheet extends StatefulWidget {
     this.onEditStateChanged,
     this.imageBytes,
     this.onDiscard,
+    this.onPushed,
+    this.readOnly = false,
+    this.duplicateKind = DuplicateKind.none,
   }) : assert(payload != null || pendingPayload != null,
             'Provide either a resolved payload or a pendingPayload future');
 
@@ -57,13 +142,31 @@ class VoucherDetailSheet extends StatefulWidget {
 
   final bool initialIsEditing;
   final List<Map<String, dynamic>>? initialEditableItems;
-  final void Function(bool isEditing, List<Map<String, dynamic>> items)? onEditStateChanged;
+  // Reports the current edit state on every toggle/add/revert. `everSaved` is
+  // true once edits have been saved back to the row this session (and false
+  // again after a Revert), so the queue can tell a saved row from a viewed one.
+  final void Function(bool isEditing, List<Map<String, dynamic>> items, bool everSaved)? onEditStateChanged;
   final Uint8List? imageBytes;
 
   /// When provided, a red "Discard" button shows at the bottom of the sheet.
   /// Confirming it calls this and pops; the queue screen drops the row locally
   /// only (no Supabase write), so a refresh re-fetches and shows it again.
   final VoidCallback? onDiscard;
+
+  /// Called after a successful Push to Tally so the queue can re-fetch from
+  /// Supabase (mirrors a manual page reload) and show the row in its new
+  /// push_now state instead of relying on the realtime event, which can drop
+  /// the row mid-transition.
+  final VoidCallback? onPushed;
+
+  /// Hides the Edit/Add/Revert and Push-to-Tally actions (used by History,
+  /// where pushed vouchers are view-only).
+  final bool readOnly;
+
+  /// When this voucher is a duplicate (opened from a flagged queue row), the
+  /// Push-to-Tally confirm shows a kind-specific warning instead of the generic
+  /// prompt. `none` keeps the normal confirm.
+  final DuplicateKind duplicateKind;
 
   @override
   State<VoucherDetailSheet> createState() => _VoucherDetailSheetState();
@@ -74,9 +177,28 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
   bool _loading = false;
   String? _loadError;
   late String _status;
+  // Push outcome surfaced as a "Push Details" block once a row is pushed/failed:
+  // when the desktop pushed it (push_queue.pushed_at) and the error if it failed.
+  String? _pushedAt;
+  String? _errorMessage;
   bool _isSubmitting = false;
+  // True between a successful activate POST and the TallyPrime result arriving
+  // over realtime (tally_response / status). While set, the sheet stays open in
+  // a "pushing…" state; the result modal is shown when the row goes terminal.
+  bool _awaitingPushResult = false;
   bool _isEditing = false;
+  // Image pane controls (two-pane/web layout): whether the scanned image is
+  // shown, and its zoom factor driven by the on-image zoom in/out buttons.
+  bool _showImage = true;
+  double _imageScale = 1.0;
+  // True once edits have been saved back to the row in this sheet session;
+  // reset by Revert. Surfaced to the queue so it can tag the row "invoice edited".
+  bool _everSaved = false;
   String? _editablePartyName;
+  // Editable header fields (Invoice # / Date / Narration). Date is ISO yyyy-MM-dd.
+  String? _editableVoucherNumber;
+  String? _editableDate;
+  String? _editableNarration;
   // Captured once on first edit entry; never mutated so comparisons always
   // reference the true server/original values for this sheet session.
   String? _originalPartyName;
@@ -88,6 +210,10 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
   List<Map<String, dynamic>> _editableLedgers = [];
   double? _editableDiscount;
   double? _editableTotal;
+  // Tax ratios derived once on edit entry: ledger_name → amount/gstSale.
+  // Used to scale CGST/SGST proportionally when item amounts change.
+  Map<String, double> _taxRatios = {};
+  String? _inventoryLedgerName;
   RealtimeChannel? _channel;
   late _VdsViewMode _viewMode;
   late List<_VdsViewMode> _availableModes;
@@ -111,16 +237,44 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
       (_p['items'] as List?)?.cast<Map<String, dynamic>>() ??
       const [];
 
+  // Supabase row id this voucher belongs to (null for seed / fresh-scan rows).
+  String? get _imageRowId {
+    final id = _p['__row_id'] as String?;
+    return (id != null && id.isNotEmpty) ? id : null;
+  }
+
+  // Number of scanned page images the backend stored for this row, read from
+  // source_payload.scan.pages. 0 when none (email-sourced or pre-feature rows).
+  int get _scanPageCount {
+    final sp = _p['__source_payload'];
+    final scan = sp is Map ? sp['scan'] : null;
+    final pages = scan is Map ? scan['pages'] : null;
+    if (pages is int) return pages;
+    if (pages is num) return pages.toInt();
+    return 0;
+  }
+
+  bool get _hasStoredImages => _imageRowId != null && _scanPageCount > 0;
+
   bool get _isSale {
     final vt = (_p['voucher_type'] as String? ?? '').toUpperCase();
     if (vt.isNotEmpty) return vt.contains('SALE');
     return _p.containsKey('sale_voucher_payload');
   }
 
+  // Party name currently shown in the sheet (edited value wins, else payload).
+  String get _currentPartyName =>
+      _editablePartyName ??
+      _p['party_name'] as String? ??
+      _voucher?['party_name'] as String? ??
+      _voucher?['party_ledger_name'] as String? ??
+      _header?['vendor_name'] as String? ??
+      '—';
+
   // True when the party name currently shown differs from the original captured
   // at first edit entry. Stays true across save cycles.
   bool get _partyNameWasChanged {
-    if (!_isSale || _originalPartyName == null) return false;
+    if (_originalPartyName == null) return false;
     final current = _editablePartyName ??
         _p['party_name'] as String? ??
         _voucher?['party_name'] as String? ??
@@ -144,23 +298,38 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
     return true;
   }
 
-  static const _activateUrl =
-      'https://tallybridge-backend-xx3yz3b3kq-el.a.run.app/api/sync/push-queue/activate';
-  static const _apiKey = 'sb_publishable_c2Cov2CT8hxOd1FFEo_yaA_6nEt8_Nl';
+  static const _activateUrl = Config.activateUrl;
+  static const _apiKey = Config.activateApiKey;
+  // Every Push to Tally overwrites the voucher narration with this fixed value.
+  static const _pushNarration = 'Replara AI';
 
   @override
   void initState() {
     super.initState();
     _isEditing = widget.initialIsEditing;
-    if (widget.initialIsEditing && widget.initialEditableItems != null && widget.initialEditableItems!.isNotEmpty) {
-      _editableItems = widget.initialEditableItems!
-          .map((e) => Map<String, dynamic>.from(e))
-          .toList();
-    }
 
     if (widget.payload != null) {
       _status = widget.payload!['__status'] as String? ?? 'pending';
+      _pushedAt = widget.payload!['__pushed_at'] as String?;
+      _errorMessage = widget.payload!['__error_message'] as String?;
       _applyPayload(widget.payload!);
+      // Open editable rows straight into edit mode so the sheet is ready to edit
+      // without tapping Edit first. Only pending rows are editable; once queued
+      // for push (push_now/pushed) or failed, the sheet stays read-only — same
+      // gate as _toggleEdit.
+      if (_status == 'pending') _isEditing = true;
+      // Seed the edit session from the payload — same as tapping Edit — so the
+      // items show even after a reload wiped the in-memory edit stash. If that
+      // stash survived (same session), its in-progress items take precedence.
+      if (_isEditing) {
+        _seedEditSession();
+        if (widget.initialEditableItems != null &&
+            widget.initialEditableItems!.isNotEmpty) {
+          _editableItems = widget.initialEditableItems!
+              .map((e) => Map<String, dynamic>.from(e))
+              .toList();
+        }
+      }
     } else {
       // Freshly scanned: show the image immediately while the parse is in flight.
       _status = 'processing';
@@ -174,16 +343,17 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
     }
   }
 
-  // Decide which tabs to show. Email-sourced entries have no scanned image,
-  // so they get [Summary]; OCR/camera entries get [Image, Summary].
+  // Decide which tabs to show. Entries with a scanned image get [Image, Summary];
+  // those without (e.g. pre-feature rows) get [Summary].
   void _applyPayload(Map<String, dynamic> p, {bool preserveViewMode = false}) {
     _payload = p;
     final rowId = p['__row_id'] as String? ?? '';
     if (rowId.isNotEmpty) _subscribeToStatus(rowId);
 
-    final sourcePayload = p['__source_payload'] as Map<String, dynamic>?;
-    final isEmail = sourcePayload?['fetched_from'] == 'email';
-    final hasImage = !isEmail && widget.imageBytes != null;
+    // Show the Image tab when there's a local fresh-scan image OR scanned pages
+    // were stored in GCS for this row (source_payload.scan.pages > 0). Email-sourced
+    // invoices now carry scanned pages too, so they get the Image tab like camera scans.
+    final hasImage = widget.imageBytes != null || _hasStoredImages;
     final keep = preserveViewMode ? _viewMode : null;
     _availableModes = [
       if (hasImage) _VdsViewMode.image,
@@ -207,6 +377,8 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
     setState(() {
       _loading = false;
       _status = p['__status'] as String? ?? 'pending';
+      _pushedAt = p['__pushed_at'] as String?;
+      _errorMessage = p['__error_message'] as String?;
       _applyPayload(p, preserveViewMode: true);
     });
   }
@@ -220,7 +392,7 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
   }
 
   void _notifyEditState() {
-    widget.onEditStateChanged?.call(_isEditing, List.of(_editableItems));
+    widget.onEditStateChanged?.call(_isEditing, List.of(_editableItems), _everSaved);
   }
 
   @override
@@ -229,7 +401,80 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
     super.dispose();
   }
 
+  // Enters edit mode: captures the originals snapshot (once per sheet lifetime)
+  // and seeds the editable copies of the items and charges from _payloadItems.
+  // Pure field mutation — callers (the Edit toggle, and initState when the sheet
+  // opens straight into edit mode after a reload) supply their own setState
+  // context, so this must not call setState itself.
+  void _seedEditSession() {
+    final items = _payloadItems;
+    // Entering edit mode — capture originals once for the lifetime of the sheet
+    _editablePartyName = null;
+    _editableVoucherNumber = null;
+    _editableDate = null;
+    _editableNarration = null;
+    if (_originalPartyName == null) {
+      _originalPartyName = _p['party_name'] as String? ??
+          _voucher?['party_name'] as String? ??
+          _voucher?['party_ledger_name'] as String? ??
+          _header?['vendor_name'] as String?;
+      _originalItemNames =
+          items.map((e) => e['stock_item_name'] as String? ?? '').toList();
+      _originalPayload = _payload != null ? Map<String, dynamic>.from(_payload!) : null;
+    }
+    _editableItems = items.map((e) => Map<String, dynamic>.from(e)).toList();
+    // Many purchase rows store the discount baked into `amount` with no
+    // discount_pct field (rate·qty ≠ amount). Derive and seed discount_pct
+    // so the Disc cell, _recalcAmount, and the Charges discount all agree.
+    // Full precision (unrounded) so _recalcAmount reproduces the original
+    // amount exactly when qty/rate are unchanged. No-op when present.
+    for (final it in _editableItems) {
+      if (it['discount_pct'] != null) continue;
+      final q = (it['quantity'] as num?)?.toDouble() ??
+          (it['qty'] as num?)?.toDouble() ?? 0;
+      final r = (it['rate'] as num?)?.toDouble() ?? 0;
+      final a = (it['amount'] as num?)?.toDouble() ?? 0;
+      final gross = q * r;
+      if (gross > 0) {
+        it['discount_pct'] = ((1 - a / gross) * 100).clamp(0.0, 100.0);
+      }
+    }
+    final charges = _computeCharges();
+    _editableLedgers =
+        charges.breakdown.map((e) => Map<String, dynamic>.from(e)).toList();
+    _editableDiscount = charges.discount;
+    _editableTotal = charges.total;
+    _inventoryLedgerName = charges.invLedger;
+    _taxRatios = {};
+    if (charges.invLedger != null) {
+      final gstSaleEntry = charges.breakdown.where(
+        (e) => e['ledger_name'] == charges.invLedger).firstOrNull;
+      final originalGstSale =
+          (gstSaleEntry?['amount'] as num?)?.toDouble().abs() ?? 0;
+      if (originalGstSale > 0) {
+        for (final entry in charges.breakdown) {
+          final name = entry['ledger_name'] as String? ?? '';
+          if (name != charges.invLedger) {
+            final amount = (entry['amount'] as num?)?.toDouble().abs() ?? 0;
+            _taxRatios[name] = amount / originalGstSale;
+          }
+        }
+      }
+    }
+  }
+
   void _toggleEdit() {
+    // Only pending rows are editable; once tallybridge owns the row
+    // (push_now / pushed) its payload must not change underneath it.
+    if (!_isEditing && _status != 'pending') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('This voucher is already queued for push and can\'t be edited.'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
     if (!_isEditing && StockItemsCache.instance.isLoading) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -239,26 +484,9 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
       );
       return;
     }
-    final items = _payloadItems;
     setState(() {
       if (!_isEditing) {
-        // Entering edit mode — capture originals once for the lifetime of the sheet
-        _editablePartyName = null;
-        if (_originalPartyName == null) {
-          _originalPartyName = _p['party_name'] as String? ??
-              _voucher?['party_name'] as String? ??
-              _voucher?['party_ledger_name'] as String? ??
-              _header?['vendor_name'] as String?;
-          _originalItemNames =
-              items.map((e) => e['stock_item_name'] as String? ?? '').toList();
-          _originalPayload = _payload != null ? Map<String, dynamic>.from(_payload!) : null;
-        }
-        _editableItems = items.map((e) => Map<String, dynamic>.from(e)).toList();
-        final charges = _computeCharges();
-        _editableLedgers =
-            charges.breakdown.map((e) => Map<String, dynamic>.from(e)).toList();
-        _editableDiscount = charges.discount;
-        _editableTotal = charges.total;
+        _seedEditSession();
       } else {
         // Saving — write all edits back into the local payload so that
         // _payloadItems and party_name reflect the saved state immediately.
@@ -267,6 +495,11 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
           if (_editablePartyName != null) {
             updated['party_name'] = _editablePartyName;
           }
+          if (_editableVoucherNumber != null) {
+            updated['voucher_number'] = _editableVoucherNumber;
+          }
+          if (_editableDate != null) updated['date'] = _editableDate;
+          if (_editableNarration != null) updated['narration'] = _editableNarration;
           if (_editableItems.isNotEmpty) {
             if (updated['voucher_payload'] is Map) {
               final vp = Map<String, dynamic>.from(updated['voucher_payload'] as Map);
@@ -284,31 +517,245 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
               updated['items'] = List<Map<String, dynamic>>.from(_editableItems);
             }
           }
+          // Write the recomputed charges back too, so ledger_entries and
+          // discount_total reflect the edited items (not just party/items).
+          _writeChargesBack(updated);
           _payload = updated;
+          _persistEditsToSupabase(updated);
+          _everSaved = true;
         }
         _editablePartyName = null;
+        _editableVoucherNumber = null;
+        _editableDate = null;
+        _editableNarration = null;
       }
       _isEditing = !_isEditing;
     });
     _notifyEditState();
   }
 
+
   // Discards every edit (items + charges) and leaves edit mode, restoring the
   // original parsed values. Since edit mode is off afterwards, the Revert
   // button hides until Edit is tapped again.
   void _revert() {
+    // Whether this session actually changed the server payload (the only thing a
+    // revert needs to undo). Captured before setState clears it below.
+    final didSave = _everSaved;
     setState(() {
       _isEditing = false;
+      _everSaved = false;
       _editablePartyName = null;
+      _editableVoucherNumber = null;
+      _editableDate = null;
+      _editableNarration = null;
       _editableItems = [];
       _editableLedgers = [];
       _editableDiscount = null;
       _editableTotal = null;
+      _taxRatios = {};
+      _inventoryLedgerName = null;
       if (_originalPayload != null) {
         _payload = Map<String, dynamic>.from(_originalPayload!);
       }
     });
     _notifyEditState();
+    // Only write to the server when a Save actually changed the payload this
+    // session — that's the only thing a revert needs to undo. When nothing was
+    // saved the DB row is already the original, so rewriting voucher_payload is a
+    // no-op that only makes the backend re-touch the row's status; the queue's
+    // status-filtered refresh then briefly drops the row, making it vanish and
+    // reappear. Skip the write and just confirm the (UI-only) revert.
+    if (didSave && _originalPayload != null) {
+      _persistEditsToSupabase(_originalPayload!, successMessage: 'Reverted to original.');
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Reverted to original.'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  // Adds a new line to the voucher. Opens the stock picker (sale → party-aware
+  // history; purchase → catalog) and appends the chosen item to _editableItems
+  // (qty defaults to 1), then rescales the Charges block. Persists on Save.
+  Future<void> _addItem() async {
+    // Adding a line is an edit, so enter edit mode first if we aren't already.
+    // _toggleEdit captures the originals snapshot and seeds the editable copies,
+    // and enforces the pending/loading guards (it stays in view mode if blocked).
+    if (!_isEditing) {
+      _toggleEdit();
+      if (!_isEditing) return;
+    }
+    final partyName = _editablePartyName ??
+        _p['party_name'] as String? ??
+        _voucher?['party_name'] as String? ??
+        _voucher?['party_ledger_name'] as String? ??
+        _header?['vendor_name'] as String?;
+    final selected = await showModalBottomSheet<StockItem>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _StockItemPickerSheet(
+        partyName: partyName,
+        isSale: _isSale,
+        voucherItemNames: _editableItems
+            .map((it) => (it['stock_item_name'] as String?) ?? '')
+            .toList(),
+      ),
+    );
+    if (selected == null || !mounted) return;
+    setState(() {
+      const qty = 1.0;
+      final gross = qty * selected.rate;
+      final discount = gross * selected.discountPct / 100;
+      // The pushed voucher / Tally XML should carry the stock master's unit.
+      // Prefer the picked item's own unit; the party-specific RPC may omit it,
+      // so fall back to the catalog cache by name, then to NOS as a last resort.
+      final unit = selected.unit.isNotEmpty
+          ? selected.unit
+          : StockItemsCache.instance.unitFor(selected.name);
+      _editableItems.add({
+        'stock_item_name': selected.name,
+        'quantity': qty,
+        'rate': selected.rate,
+        'discount_pct': selected.discountPct,
+        'amount': gross - discount,
+        'unit': unit.isNotEmpty ? unit : 'NOS',
+        'godown_name': 'Main Location',
+      });
+    });
+    _recomputeChargesFromItems();
+    _notifyEditState();
+  }
+
+  // Opens a calendar for the Date field and stores the pick as ISO yyyy-MM-dd.
+  Future<void> _pickDate(BuildContext context, String? rawDate) async {
+    final initial = DateTime.tryParse(rawDate ?? '') ?? DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (picked == null || !mounted) return;
+    final iso = '${picked.year.toString().padLeft(4, '0')}-'
+        '${picked.month.toString().padLeft(2, '0')}-'
+        '${picked.day.toString().padLeft(2, '0')}';
+    setState(() => _editableDate = iso);
+  }
+
+  void _recomputeChargesFromItems() {
+    if (_editableLedgers.isEmpty || _inventoryLedgerName == null) return;
+    final newGstSale = _editableItems.fold<double>(
+        0, (sum, item) => sum + ((item['amount'] as num?)?.toDouble() ?? 0));
+    final newDiscount = _editableItems.fold<double>(0, (sum, item) {
+      final qty = (item['quantity'] as num?)?.toDouble() ??
+          (item['qty'] as num?)?.toDouble() ?? 0;
+      final rate = (item['rate'] as num?)?.toDouble() ?? 0;
+      final discPct = (item['discount_pct'] as num?)?.toDouble() ?? 0;
+      return sum + (qty * rate * discPct / 100);
+    });
+    setState(() {
+      for (final entry in _editableLedgers) {
+        final name = entry['ledger_name'] as String? ?? '';
+        if (name == _inventoryLedgerName) {
+          entry['amount'] = newGstSale;
+        } else if (_taxRatios.containsKey(name)) {
+          entry['amount'] = newGstSale * _taxRatios[name]!;
+        }
+      }
+      _editableDiscount = newDiscount;
+      _editableTotal = _editableLedgers.fold<double>(
+          0, (sum, e) => sum + ((e['amount'] as num?)?.toDouble().abs() ?? 0));
+    });
+  }
+
+  // Writes the recomputed charges (ledger_entries + discount_total) back into
+  // the given flat payload. Matches ledgers by name; the party entry (largest
+  // abs amount) takes the new total. Each entry's original sign is preserved.
+  void _writeChargesBack(Map<String, dynamic> target) {
+    if (_editableLedgers.isEmpty) return;
+    final ledgerEntries =
+        (target['ledger_entries'] as List?)?.cast<Map<String, dynamic>>();
+    if (ledgerEntries == null || ledgerEntries.isEmpty) return;
+
+    final partyEntry = ledgerEntries.reduce((a, b) =>
+        ((a['amount'] as num).abs() >= (b['amount'] as num).abs() ? a : b));
+
+    final editedByName = {
+      for (final e in _editableLedgers) e['ledger_name'] as String? ?? '': e,
+    };
+
+    final rebuilt = ledgerEntries.map((entry) {
+      final updated = Map<String, dynamic>.from(entry);
+      final originalAmount = (entry['amount'] as num?)?.toDouble() ?? 0;
+      final sign = originalAmount < 0 ? -1 : 1;
+      if (identical(entry, partyEntry)) {
+        updated['amount'] = (_editableTotal ?? originalAmount.abs()) * sign;
+        // The party line is matched by ledger_name == party_name, so a vendor
+        // change must rename it too — otherwise the pushed voucher posts against
+        // the old vendor ledger.
+        final newParty = _editablePartyName?.trim();
+        if (newParty != null && newParty.isNotEmpty) {
+          updated['ledger_name'] = newParty;
+        }
+      } else {
+        final name = entry['ledger_name'] as String? ?? '';
+        final edited = editedByName[name];
+        if (edited != null) {
+          final newAmount = (edited['amount'] as num?)?.toDouble().abs() ?? originalAmount.abs();
+          updated['amount'] = newAmount * sign;
+        }
+      }
+      return updated;
+    }).toList();
+
+    target['ledger_entries'] = rebuilt;
+    if (_editableDiscount != null) {
+      target['discount_total'] = _editableDiscount;
+    }
+  }
+
+  // Pushes the edited voucher_payload back to the push_queue row. Only touches
+  // rows still in 'pending' (a row already flipped to push_now/pushed by
+  // tallybridge is left alone). Fire-and-forget with a confirm/warn snackbar.
+  Future<void> _persistEditsToSupabase(
+    Map<String, dynamic> updated, {
+    String successMessage = 'Changes saved.',
+  }) async {
+    final rowId = updated['__row_id'] as String? ?? '';
+    if (rowId.isEmpty) return; // seed / fresh-scan rows have no Supabase row
+    final messenger = ScaffoldMessenger.of(context);
+    final cleanPayload = Map<String, dynamic>.from(updated)
+      ..removeWhere((k, _) => k.startsWith('__'));
+    try {
+      final rows = await Supabase.instance.client
+          .from('push_queue')
+          .update({'voucher_payload': cleanPayload})
+          .eq('id', rowId)
+          .eq('status', 'pending')
+          .select('id');
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text((rows as List).isNotEmpty
+              ? successMessage
+              : 'Couldn\'t save — this voucher may already be queued for push.'),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } catch (e, st) {
+      reportHandledError('supabase.push_queue.update', e,
+          stackTrace: st, context: {'row_id': rowId});
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Couldn\'t save changes. Please try again.'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
   }
 
   // Derives the Charges block: the non-party ledger rows, the invoice total,
@@ -340,9 +787,22 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
         : ledgerEntries.where((e) => e != partyEntry).toList();
     final discount = (_p['discount_total'] as num?)?.toDouble() ??
         (voucher?['discount_total'] as num?)?.toDouble() ??
-        _payloadItems.fold<double>(
-            0, (sum, it) => sum + ((it['discount'] as num?)?.toDouble() ?? 0));
-    final inventoryLedgerName = voucher?['inventory_ledger_name'] as String?;
+        _payloadItems.fold<double>(0, (sum, it) {
+          // Prefer an explicit rupee discount; otherwise derive the discount
+          // baked into amount (qty·rate − amount), so rows without any discount
+          // field still report the real total.
+          final dsc = (it['discount'] as num?)?.toDouble();
+          if (dsc != null) return sum + dsc;
+          final q = (it['quantity'] as num?)?.toDouble() ??
+              (it['qty'] as num?)?.toDouble() ?? 0;
+          final r = (it['rate'] as num?)?.toDouble() ?? 0;
+          final a = (it['amount'] as num?)?.toDouble() ?? 0;
+          final implied = q * r - a;
+          return sum + (implied > 0 ? implied : 0);
+        });
+    final inventoryLedgerName =
+        voucher?['inventory_ledger_name'] as String? ??
+        _p['inventory_ledger_name'] as String?;
     return (
       breakdown: breakdown,
       total: total,
@@ -351,28 +811,114 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
     );
   }
 
-  // Asks for confirmation before pushing to Tally. "Yes" runs the original
-  // activate flow; "Cancel" just dismisses the dialog and stays on the sheet.
-  Future<void> _confirmAndActivate() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (_) => const _PushConfirmDialog(),
-    );
-    if (confirmed == true && mounted) {
-      await _activate();
+  // Enter on the Total field (end of the Enter-to-move chain) pushes to Tally.
+  // Mirrors the Push To Tally button: same submitting/blocked guards.
+  void _submitFromTotal() {
+    if (_isSubmitting) return;
+    final pushBlocked = _partyNameWasChanged && !_allItemsDifferentFromOriginal;
+    if (pushBlocked) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Party Name is Changed!!\nChange all the items'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
     }
+    _confirmAndActivate();
   }
 
-  // Confirms then discards: removes the row from the queue locally only (no
-  // Supabase write), so a refresh re-fetches and shows it again.
+  // Asks for confirmation before pushing to Tally. "Yes" runs the original
+  // activate flow; "Cancel" just dismisses the dialog and stays on the sheet.
+  // When edit mode is on, the edits aren't saved yet, so we warn and — on OK —
+  // save first (which persists to Supabase) and then push.
+  Future<void> _confirmAndActivate() async {
+    if (_isEditing) {
+      // While editing, pushing is blocked: prompt the user to Save first. OK
+      // just dismisses the dialog (no save, no push); the user must hit Save,
+      // after which Push To Tally follows the normal (non-editing) flow below.
+      await showDialog<void>(
+        context: context,
+        builder: (_) => const _SaveBeforePushDialog(),
+      );
+      return;
+    }
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => widget.duplicateKind == DuplicateKind.none
+          ? const _PushConfirmDialog()
+          : DuplicateActionDialog(
+              message:
+                  '${widget.duplicateKind.baseMessage}, Are you sure you want to push'),
+    );
+    if (confirmed != true || !mounted) return;
+
+    // Guard: catalog still downloading — can't validate reliably. Mirror the
+    // existing edit-gate message and abort (the user retries once it's loaded).
+    if (StockItemsCache.instance.isLoading) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Loading of stock items in process, please wait'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    // Validate every line against the cached stock catalog before pushing, so a
+    // missing item is caught here instead of failing the whole push in Tally.
+    // Item name lives on `stock_item_name`.
+    final names = _payloadItems
+        .map((it) => (it['stock_item_name'] as String? ?? '').trim())
+        .where((n) => n.isNotEmpty)
+        .toList();
+
+    final valid = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => _StockValidationDialog(itemNames: names),
+    );
+    if (valid == true && mounted) {
+      await _activate();
+    }
+    // valid != true → missing items; the dialog already told the user which
+    // ones. Stay in view mode (no auto-edit); the user edits, saves and pushes
+    // again, which re-runs this check.
+  }
+
+  // Confirms then deletes the push_queue row from Supabase. Removes it locally
+  // and closes the sheet immediately; the realtime DELETE event keeps every
+  // other client in sync. Seed / fresh-scan rows (no __row_id) are dropped
+  // locally only.
   Future<void> _confirmAndDiscard() async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => const _DiscardConfirmDialog(),
     );
-    if (confirmed == true && mounted) {
-      widget.onDiscard?.call();
-      Navigator.of(context).pop();
+    if (confirmed != true || !mounted) return;
+
+    final rowId = _p['__row_id'] as String? ?? '';
+    final messenger = ScaffoldMessenger.of(context);
+
+    widget.onDiscard?.call();
+    Navigator.of(context).pop();
+
+    if (rowId.isEmpty) return;
+
+    try {
+      await Supabase.instance.client.from('push_queue').delete().eq('id', rowId);
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Deleted.'), duration: Duration(seconds: 2)),
+      );
+    } catch (e, st) {
+      reportHandledError('supabase.push_queue.delete', e,
+          stackTrace: st, context: {'row_id': rowId});
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Couldn\'t delete. Please try again.'),
+          duration: Duration(seconds: 3),
+        ),
+      );
     }
   }
 
@@ -380,11 +926,27 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
     final rowId = _p['__row_id'] as String? ?? '';
     if (rowId.isEmpty) return;
 
+    final requestId = ApiClient.newRequestId();
     setState(() => _isSubmitting = true);
     try {
-      final response = await http.post(
+      // Every push overwrites the narration with the fixed value, persisted to
+      // the push_queue row before activating so tallybridge reads the new value.
+      final clean = Map<String, dynamic>.from(_payload ?? {})
+        ..removeWhere((k, _) => k.startsWith('__'));
+      clean['narration'] = _pushNarration;
+      await Supabase.instance.client
+          .from('push_queue')
+          .update({'voucher_payload': clean})
+          .eq('id', rowId);
+      if (mounted) _payload?['narration'] = _pushNarration;
+
+      final response = await ApiClient.client.post(
         Uri.parse(_activateUrl),
-        headers: {'Content-Type': 'application/json', 'x-api-key': _apiKey},
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': _apiKey,
+          'x-request-id': requestId,
+        },
         body: jsonEncode({'job_id': rowId}),
       );
 
@@ -392,14 +954,42 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
       if (response.statusCode >= 200 && response.statusCode < 300) {
         _isEditing = false;
         _notifyEditState();
-        Navigator.of(context).pop();
+        // The POST only queues the push; the actual TallyPrime result (created /
+        // errors in tally_response, or status pushed/failed) arrives later over
+        // realtime. Stay open in a "pushing…" state until _subscribeToStatus
+        // sees the terminal row and shows the result modal. Keep _isSubmitting
+        // true so the button keeps its spinner.
+        setState(() => _awaitingPushResult = true);
+        // Guard the race where the terminal update already arrived before this
+        // POST returned: if the row is already terminal, resolve now.
+        if (_status == 'pushed' || _status == 'failed') {
+          _handlePushResult({
+            'status': _status,
+            'pushed_at': _pushedAt,
+            'error_message': _errorMessage,
+          });
+        }
       } else {
+        ApiClient.reportFailure(
+          'POST',
+          '/api/sync/push-queue/activate',
+          requestId,
+          status: response.statusCode,
+          body: response.body,
+        );
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed (${response.statusCode}): ${response.body}')),
         );
         setState(() => _isSubmitting = false);
       }
-    } catch (e) {
+    } catch (e, st) {
+      ApiClient.reportFailure(
+        'POST',
+        '/api/sync/push-queue/activate',
+        requestId,
+        error: e,
+        stack: st,
+      );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
       setState(() => _isSubmitting = false);
@@ -420,11 +1010,132 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
           ),
           callback: (payload) {
             if (!mounted) return;
-            final newStatus = payload.newRecord['status'] as String? ?? _status;
-            setState(() => _status = newStatus);
+            final rec = payload.newRecord;
+            final newStatus = rec['status'] as String? ?? _status;
+            setState(() {
+              _status = newStatus;
+              _pushedAt = rec['pushed_at'] as String? ?? _pushedAt;
+              _errorMessage = rec['error_message'] as String? ?? _errorMessage;
+            });
+            if (_awaitingPushResult) _handlePushResult(rec);
           },
         )
         .subscribe();
+  }
+
+  // Called for each realtime row update while a push is in flight. Reads the
+  // TallyPrime outcome — tally_response.created/errors, falling back to status
+  // (pushed/failed) — and once the row goes terminal, closes the sheet and shows
+  // the success or failure modal (sale only). push_now / transient states are
+  // ignored so we keep waiting. error_message carries the Tally failure reason.
+  void _handlePushResult(Map<String, dynamic> rec) {
+    final status = rec['status'] as String? ?? _status;
+    final tally = rec['tally_response'];
+    final tallyMap = tally is Map ? tally : null;
+    final created = (tallyMap?['created'] as num?)?.toInt();
+    final errors = (tallyMap?['errors'] as num?)?.toInt();
+
+    final success = status == 'pushed' || (created != null && created >= 1);
+    final failed = status == 'failed' ||
+        (created == 0 && errors != null && errors >= 1);
+    if (!success && !failed) return; // still pending / push_now — keep waiting
+
+    _awaitingPushResult = false;
+
+    // Capture everything before pop() disposes this State.
+    final isSale = _isSale;
+    final customer = _currentPartyName;
+    final amount = _computeCharges().total;
+    final pushedAt =
+        DateTime.tryParse(rec['pushed_at'] as String? ?? '')?.toLocal() ??
+            DateTime.now();
+    final errMsg = (rec['error_message'] as String?)?.trim();
+    final rootCtx = Navigator.of(context, rootNavigator: true).context;
+    // The bottom sheet's route — its `popped` future completes only after the
+    // sheet has fully slid away, so we can show the result modal afterwards
+    // instead of stacking it on top of the still-closing sheet.
+    final sheetRoute = ModalRoute.of(context);
+
+    // Re-fetch the queue (pushed rows drop to History; failed rows stay).
+    widget.onPushed?.call();
+    Navigator.of(context).pop();
+
+    if (!isSale) return;
+
+    void showResultDialog() {
+      if (!rootCtx.mounted) return;
+      showDialog<void>(
+        context: rootCtx,
+        builder: (_) => success
+            ? _SalePushedDialog(
+                customerName: customer,
+                amount: amount,
+                pushedAt: pushedAt,
+              )
+            : _SalePushFailedDialog(
+                customerName: customer,
+                errorMessage:
+                    (errMsg == null || errMsg.isEmpty) ? 'Push to Tally failed.' : errMsg,
+              ),
+      );
+    }
+
+    // Wait for the sheet to finish closing before showing the modal; fall back
+    // to showing it immediately if the route is somehow unavailable.
+    if (sheetRoute != null) {
+      sheetRoute.popped.then((_) => showResultDialog());
+    } else {
+      showResultDialog();
+    }
+  }
+
+  // "Push Details" block shown in the header once a voucher is pushed/failed
+  // (History rows, or a failed row still in the queue). Date/Time from
+  // push_queue.pushed_at; Status shows the error_message when it failed.
+  Widget _buildPushDetails(BuildContext context) {
+    final dt = DateTime.tryParse(_pushedAt ?? '')?.toLocal();
+    const months = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final dateStr = dt != null ? '${dt.day} ${months[dt.month]} ${dt.year}' : '—';
+    final timeStr = dt != null
+        ? '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}'
+        : '—';
+    final err = _errorMessage?.trim() ?? '';
+    final statusText = _status == 'pushed'
+        ? 'Pushed'
+        : (err.isNotEmpty ? 'Failed — $err' : 'Failed');
+    final labelStyle = Theme.of(context)
+        .textTheme
+        .bodySmall
+        ?.copyWith(color: AppPalette.muted, fontWeight: FontWeight.w500);
+    final valueStyle = Theme.of(context)
+        .textTheme
+        .bodySmall
+        ?.copyWith(color: AppPalette.ink, fontWeight: FontWeight.w600);
+    Widget row(String k, String v, {Color? color}) => Padding(
+          padding: const EdgeInsets.only(top: 2),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(width: 54, child: Text(k, style: labelStyle)),
+              Expanded(
+                child: Text(v, style: color != null ? valueStyle?.copyWith(color: color) : valueStyle),
+              ),
+            ],
+          ),
+        );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Push Details',
+            style: Theme.of(context)
+                .textTheme
+                .bodySmall
+                ?.copyWith(fontWeight: FontWeight.w800, color: AppPalette.ink)),
+        row('Date', dateStr),
+        row('Time', timeStr),
+        row('Status', statusText, color: _statusColor(_status)),
+      ],
+    );
   }
 
   static Color _statusColor(String status) {
@@ -452,14 +1163,18 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
         voucher?['party_name'] as String? ??
         voucher?['party_ledger_name'] as String? ??
         header?['vendor_name'] as String? ?? '—';
-    final voucherNumber =
+    final voucherNumber = _editableVoucherNumber ??
         _p['voucher_number'] as String? ??
         voucher?['voucher_number'] as String? ??
         header?['invoice_number'] as String? ?? '—';
-    final date = formatDate(_p['date'] as String? ??
+    final rawDate = _editableDate ??
+        _p['date'] as String? ??
         voucher?['date'] as String? ??
-        header?['invoice_date'] as String?);
-    final narration = _p['narration'] as String? ?? voucher?['narration'] as String?;
+        header?['invoice_date'] as String?;
+    final date = formatDate(rawDate);
+    final narration = _editableNarration ??
+        _p['narration'] as String? ??
+        voucher?['narration'] as String?;
     final reference = _p['reference'] as String? ?? voucher?['reference'] as String?;
 
     final items = _payloadItems;
@@ -475,16 +1190,44 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
     // values survive rebuilds; otherwise it reflects the parsed payload.
     final breakdownEntries = _isEditing ? _editableLedgers : charges.breakdown;
     final total = _isEditing ? (_editableTotal ?? charges.total) : charges.total;
-    final discount =
-        _isEditing ? (_editableDiscount ?? charges.discount) : charges.discount;
 
-    final screenHeight = MediaQuery.of(context).size.height;
+    final screenSize = MediaQuery.of(context).size;
+    // On wide screens (web/desktop) show the image and summary side by side (no
+    // toggle); phones keep the Image/Summary tab switcher. The sheet is sized to
+    // ~90% width at the showModalBottomSheet call site (Material otherwise caps
+    // modal width), and to 90% height here.
+    final wide = context.isWideScreen;
+    final hasImageMode = _availableModes.contains(_VdsViewMode.image);
+    final twoPane = wide && hasImageMode;
+
+    // Built per-context so the two-pane layout can render the summary for the
+    // PANE width (via a scoped MediaQuery) rather than the whole window — that
+    // keeps the items table sized to (and scrolling within) the pane.
+    Widget buildSummary(BuildContext ctx) => _loading
+        ? _buildLoadingBody(ctx)
+        : _loadError != null
+            ? _buildErrorBody(ctx)
+            : _buildSummaryView(
+                ctx,
+                partyName: partyName,
+                voucherNumber: voucherNumber,
+                date: date,
+                rawDate: rawDate,
+                reference: reference,
+                narration: narration,
+                total: total,
+                breakdownEntries: breakdownEntries,
+                inventoryLedgerName: inventoryLedgerName,
+                items: items,
+                sourceItems: sourceItems,
+              );
 
     return Container(
-      height: screenHeight * 0.88,
-      decoration: const BoxDecoration(
+      width: double.infinity,
+      height: screenSize.height * 0.9,
+      decoration: BoxDecoration(
         color: AppPalette.sheet,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: Column(
         children: [
@@ -502,14 +1245,21 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (_isEditing && _isSale && !_loading)
+                      if (_isEditing && !_loading)
                         GestureDetector(
                           onTap: () async {
-                            if (CustomersCache.instance.isLoading) {
+                            // Sale → customers (Sundry Debtors); purchase →
+                            // vendors (Sundry Creditors).
+                            final loading = _isSale
+                                ? CustomersCache.instance.isLoading
+                                : VendorsCache.instance.isLoading;
+                            if (loading) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Please wait, customer list is still downloading…'),
-                                  duration: Duration(seconds: 2),
+                                SnackBar(
+                                  content: Text(_isSale
+                                      ? 'Please wait, customer list is still downloading…'
+                                      : 'Please wait, vendor list is still downloading…'),
+                                  duration: const Duration(seconds: 2),
                                 ),
                               );
                               return;
@@ -518,7 +1268,14 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
                               context: context,
                               isScrollControlled: true,
                               backgroundColor: Colors.transparent,
-                              builder: (_) => const _CustomerPickerSheet(),
+                              builder: (_) => _CustomerPickerSheet(
+                                items: _isSale
+                                    ? CustomersCache.instance.items
+                                    : VendorsCache.instance.items,
+                                searchHint: _isSale
+                                    ? 'Search customers…'
+                                    : 'Search vendors…',
+                              ),
                             );
                             if (selected != null && mounted) {
                               setState(() => _editablePartyName = selected.name);
@@ -534,7 +1291,7 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
                                 ),
                               ),
                               const SizedBox(width: 4),
-                              const Icon(Icons.arrow_drop_down, size: 22, color: AppPalette.muted),
+                              Icon(Icons.arrow_drop_down, size: 22, color: AppPalette.muted),
                             ],
                           ),
                         )
@@ -571,6 +1328,11 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
                             ),
                           ),
                         ),
+                        if (_status == 'pushed' || _status == 'failed') ...[
+                          const SizedBox(height: 10),
+                          _buildPushDetails(context),
+                        ],
+                        if (widget.pendingPayload == null && !widget.readOnly) ...[
                         const SizedBox(height: 8),
                         Row(
                           children: [
@@ -589,7 +1351,7 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
                             ),
                             const SizedBox(width: 8),
                             FilledButton.icon(
-                              onPressed: null,
+                              onPressed: _addItem,
                               icon: const Icon(Icons.add_rounded, size: 16),
                               label: const Text('Add'),
                               style: FilledButton.styleFrom(
@@ -604,6 +1366,26 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
                                 textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
                               ),
                             ),
+                            // Image show/hide toggle (two-pane/web only). On by
+                            // default; turning it off collapses the image pane so
+                            // the summary uses the full width.
+                            if (twoPane) ...[
+                              const SizedBox(width: 12),
+                              Icon(
+                                _showImage ? Icons.image_rounded : Icons.hide_image_rounded,
+                                size: 16,
+                                color: _showImage ? const Color(0xFF1D4ED8) : AppPalette.muted,
+                              ),
+                              Transform.scale(
+                                scale: 0.8,
+                                child: Switch(
+                                  value: _showImage,
+                                  activeThumbColor: const Color(0xFF1D4ED8),
+                                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  onChanged: (v) => setState(() => _showImage = v),
+                                ),
+                              ),
+                            ],
                             // Revert appears only while editing; it discards all
                             // edits back to the original parsed values and exits
                             // edit mode, so it disappears once tapped.
@@ -625,6 +1407,7 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
                             ],
                           ],
                         ),
+                        ], // pendingPayload == null
                       ],
                     ],
                   ),
@@ -637,42 +1420,59 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
             ),
           ),
           const Divider(height: 1),
-          // Only show the Image/Summary switcher when there's an image to
-          // switch to. Push-queue entries have no scanned image, so the lone
-          // "Summary" pill is pointless and is hidden.
-          if (_availableModes.length > 1)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-              child: _TabPill(
-                modes: _availableModes,
-                selected: _viewMode,
-                onChanged: (m) => setState(() => _viewMode = m),
+          // Wide screens: image (left) and summary (right) side by side, no
+          // switcher. Narrow screens: keep the Image/Summary toggle (only shown
+          // when there's actually an image to switch to).
+          if (twoPane)
+            Expanded(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (_showImage) ...[
+                    Expanded(flex: 5, child: _buildImageView(context)),
+                    const VerticalDivider(width: 1),
+                  ],
+                  Expanded(
+                    flex: 6,
+                    child: LayoutBuilder(
+                      builder: (paneCtx, paneConstraints) {
+                        final mq = MediaQuery.of(paneCtx);
+                        // Report the pane's own width to the summary subtree so it
+                        // decides wide-vs-scroll against the pane, not the window.
+                        // When the pane is wide the items table fills it with a
+                        // flexing Item column (no overflow — it shrinks to fit),
+                        // putting Taxable value directly above the Charges amounts.
+                        return MediaQuery(
+                          data: mq.copyWith(
+                            size: Size(paneConstraints.maxWidth, mq.size.height),
+                          ),
+                          child: Builder(builder: buildSummary),
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
+            )
+          else ...[
+            if (_availableModes.length > 1)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                child: _TabPill(
+                  modes: _availableModes,
+                  selected: _viewMode,
+                  onChanged: (m) => setState(() => _viewMode = m),
+                ),
+              ),
+            Expanded(
+              child: switch (_viewMode) {
+                _VdsViewMode.image => _buildImageView(context),
+                _VdsViewMode.summary => buildSummary(context),
+              },
             ),
-          Expanded(
-            child: switch (_viewMode) {
-              _VdsViewMode.image => _buildImageView(context),
-              _VdsViewMode.summary => _loading
-                  ? _buildLoadingBody(context)
-                  : _loadError != null
-                      ? _buildErrorBody(context)
-                      : _buildSummaryView(
-                          context,
-                          partyName: partyName,
-                          voucherNumber: voucherNumber,
-                          date: date,
-                          reference: reference,
-                          narration: narration,
-                          total: total,
-                          discount: discount,
-                          breakdownEntries: breakdownEntries,
-                          inventoryLedgerName: inventoryLedgerName,
-                          items: items,
-                          sourceItems: sourceItems,
-                        ),
-            },
-          ),
-          if (!_loading || widget.onDiscard != null)
+          ],
+          if (widget.onDiscard != null ||
+              (!_loading && widget.pendingPayload == null && !widget.readOnly))
             SafeArea(
               top: false,
               child: Padding(
@@ -684,7 +1484,7 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
                         child: FilledButton.icon(
                           onPressed: _confirmAndDiscard,
                           icon: const Icon(Icons.delete_outline_rounded, size: 18),
-                          label: const Text('Discard'),
+                          label: const Text('Delete'),
                           style: FilledButton.styleFrom(
                             backgroundColor: AppPalette.accent,
                             foregroundColor: Colors.white,
@@ -696,7 +1496,7 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
                       ),
                       const SizedBox(width: 12),
                     ],
-                    if (!_loading)
+                    if (!_loading && widget.pendingPayload == null && !widget.readOnly)
                       Builder(builder: (context) {
                         final pushBlocked = _partyNameWasChanged && !_allItemsDifferentFromOriginal;
                         return Expanded(
@@ -750,7 +1550,7 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
   String _chargeValue(Map<String, dynamic> entry, String? inventoryLedgerName) {
     final amount = (entry['amount'] as num?)?.toDouble().abs() ?? 0;
     final name = entry['ledger_name'] as String?;
-    final isRate = inventoryLedgerName != null && name != inventoryLedgerName;
+    final isRate = inventoryLedgerName != null && name != inventoryLedgerName && amount < 100;
     if (isRate) {
       return '${amount % 1 == 0 ? amount.toInt() : amount}%';
     }
@@ -799,9 +1599,78 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
     );
   }
 
+  void _setImageScale(double s) =>
+      setState(() => _imageScale = s.clamp(1.0, 4.0));
+
+  // Zoom in/out buttons overlaid at the top-right of the image pane. Drives the
+  // shared _imageScale used by both the fresh-scan and stored-image renderers.
+  Widget _zoomControls() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppPalette.line),
+        boxShadow: const [
+          BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 2)),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            onPressed: _imageScale <= 1.0 ? null : () => _setImageScale(_imageScale - 0.5),
+            icon: const Icon(Icons.zoom_out_rounded),
+            iconSize: 20,
+            visualDensity: VisualDensity.compact,
+            tooltip: 'Zoom out',
+          ),
+          IconButton(
+            onPressed: _imageScale >= 4.0 ? null : () => _setImageScale(_imageScale + 0.5),
+            icon: const Icon(Icons.zoom_in_rounded),
+            iconSize: 20,
+            visualDensity: VisualDensity.compact,
+            tooltip: 'Zoom in',
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildImageView(BuildContext context) {
+    // A freshly scanned voucher carries its image locally; show it directly.
     final bytes = widget.imageBytes;
-    if (bytes == null) {
+    Widget? content;
+    if (bytes != null) {
+      content = Padding(
+        padding: const EdgeInsets.all(16),
+        child: LayoutBuilder(
+          builder: (context, c) => SingleChildScrollView(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.memory(
+                  bytes,
+                  fit: BoxFit.fitWidth,
+                  width: c.maxWidth * _imageScale,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    } else {
+      // Queue/history rows: the scanned pages live in GCS, served by the backend.
+      final rowId = _imageRowId;
+      if (rowId != null && _scanPageCount > 0) {
+        content = _StoredInvoiceImages(
+          rowId: rowId,
+          pageCount: _scanPageCount,
+          scale: _imageScale,
+        );
+      }
+    }
+    if (content == null) {
       return Center(
         child: Text(
           'No image available',
@@ -809,18 +1678,16 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
         ),
       );
     }
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: InteractiveViewer(
-          minScale: 1,
-          maxScale: 5,
-          child: SizedBox.expand(
-            child: Image.memory(bytes, fit: BoxFit.contain),
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: ScrollConfiguration(
+            behavior: const _DragScrollBehavior(),
+            child: content,
           ),
         ),
-      ),
+        Positioned(top: 20, right: 20, child: _zoomControls()),
+      ],
     );
   }
 
@@ -829,175 +1696,333 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
     required String partyName,
     required String voucherNumber,
     required String date,
+    required String? rawDate,
     required String? reference,
     required String? narration,
     required double total,
-    required double discount,
     required List<Map<String, dynamic>> breakdownEntries,
     required String? inventoryLedgerName,
     required List<Map<String, dynamic>> items,
     required List<Map<String, dynamic>> sourceItems,
   }) {
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            color: AppPalette.gridHeader,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppPalette.line, width: 1.2),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Column(
-            children: [
-              _SheetHeaderRow('Vendor', partyName),
-              _SheetHeaderRow('Invoice #', voucherNumber),
-              _SheetHeaderRow('Date', date),
-              if (reference != null && reference != voucherNumber)
-                _SheetHeaderRow('Reference', reference),
-              if (narration != null) _SheetHeaderRow('Narration', narration),
-              _SheetHeaderRow('Total', formatCurrency(total), bold: true),
-            ],
-          ),
+    // While editing, render the working copy so newly added rows show up;
+    // in view mode show the resolved payload items.
+    final displayItems = _isEditing ? _editableItems : items;
+    // On desktop the body is capped and centered (see _centerOnWide); on phones
+    // it fills the width and the item table scrolls horizontally.
+    final wide = context.isWideScreen;
+    // Charges fields are ordered right after the last item row's cells, so
+    // Enter flows Amount(last) → GST Sale → CGST → … → Discount → Total.
+    final chargesOrderBase =
+        _kHeaderFocusCount + displayItems.length * _kCellsPerItemRow;
+    // Build the major blocks once, then arrange them into slivers below so the
+    // items column header can be pinned while the rows scroll under it.
+    final vendorCard = Container(
+      decoration: BoxDecoration(
+        color: AppPalette.gridHeader,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppPalette.line, width: 1.2),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Column(
+        children: [
+          _SheetHeaderRow('Vendor', partyName),
+          if (_isEditing)
+            FocusTraversalOrder(
+              order: const NumericFocusOrder(0),
+              child: _SheetEditableTextRow(
+                label: 'Invoice #',
+                initial: voucherNumber == '—' ? '' : voucherNumber,
+                // Keyboard-first entry starts here on desktop/web so Enter walks
+                // Invoice # → Narration → items. Skipped on phones to avoid
+                // popping the keyboard the moment edit mode opens.
+                autofocus: wide,
+                onChanged: (v) => _editableVoucherNumber = v,
+              ),
+            )
+          else
+            _SheetHeaderRow('Invoice #', voucherNumber),
+          if (_isEditing)
+            _SheetEditableTextRow(
+              label: 'Date',
+              initial: date == '—' ? '' : date,
+              onTap: () => _pickDate(context, rawDate),
+              icon: Icons.calendar_today_rounded,
+            )
+          else
+            _SheetHeaderRow('Date', date),
+          if (reference != null && reference != voucherNumber)
+            _SheetHeaderRow('Reference', reference),
+          if (_isEditing)
+            FocusTraversalOrder(
+              order: const NumericFocusOrder(1),
+              child: _SheetEditableTextRow(
+                label: 'Narration',
+                initial: narration ?? '',
+                onChanged: (v) => _editableNarration = v,
+              ),
+            )
+          else if (narration != null)
+            _SheetHeaderRow('Narration', narration),
+          _SheetHeaderRow('Total', formatCurrency(total), bold: true),
+        ],
+      ),
+    );
+
+    final itemsHeader = Container(
+      decoration: BoxDecoration(
+        color: AppPalette.gridHeader,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+        border: Border.all(color: AppPalette.line, width: 1.2),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Row(
+        children: [
+          const SizedBox(
+              width: _kSerialColW,
+              child: Text('#', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12))),
+          // Mirror _itemCell: flex on wide so the numeric headers align with the
+          // right-edge columns; fixed width when the table scrolls on phones.
+          if (wide)
+            const Expanded(
+                child: Text('Items', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12)))
+          else
+            const SizedBox(
+                width: _kItemColW,
+                child: Text('Items', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12))),
+          if (_isSale) const _SheetColHeader('New Item', width: _kNewItemColW),
+          const _SheetColHeader('Qty', width: _kQtyColW),
+          const _SheetColHeader('Rate', width: _kRateColW),
+          const _SheetColHeader('Disc', width: _kDiscColW),
+          const _SheetColHeader('List price', width: _kListPriceColW),
+          const _SheetColHeader('Taxable value', width: _kAmountColW),
+          const SizedBox(width: _kDeleteColW),
+        ],
+      ),
+    );
+
+    final itemsBody = Container(
+      decoration: BoxDecoration(
+        border: Border(
+          left: BorderSide(color: AppPalette.line, width: 1.2),
+          right: BorderSide(color: AppPalette.line, width: 1.2),
+          bottom: BorderSide(color: AppPalette.line, width: 1.2),
         ),
-        if (items.isNotEmpty) ...[
-          const SizedBox(height: 20),
-          Text(
-            'Items',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
+      ),
+      child: Column(children: [
+        for (var i = 0; i < displayItems.length; i++)
+          _SheetItemRow(
+            item: displayItems[i],
+            serialNumber: i + 1,
+            wide: wide,
+            source: i < sourceItems.length ? sourceItems[i]['source'] as String? : null,
+            score: i < sourceItems.length ? sourceItems[i]['score'] as String? : null,
+            rateSource: i < sourceItems.length ? sourceItems[i]['rate_source'] as String? : null,
+            isEditing: _isEditing,
+            partyName: partyName,
+            isSale: _isSale,
+            voucherItemNames: displayItems
+                .map((it) => (it['stock_item_name'] as String?) ?? '')
+                .toList(),
+            showDelete: !widget.readOnly,
+            orderBase: _kHeaderFocusCount + i * _kCellsPerItemRow,
+            isEdited: () {
+              final orig = _originalItemNames;
+              if (orig == null) return false;
+              // Rows added during this edit session sit beyond the captured
+              // originals — treat them as edited (new).
+              if (i >= orig.length) return true;
+              final currentName = displayItems[i]['stock_item_name'] as String? ?? '';
+              return currentName != orig[i];
+            }(),
+            onStockItemSelected: (selected) {
+              setState(() {
+                if (i < _editableItems.length) {
+                  _editableItems[i]['stock_item_name'] = selected.name;
+                  // Switch the unit to the NEW item's unit — keeping the old
+                  // item's unit (e.g. KIT) makes Tally reject the line, since the
+                  // qty unit must match the stock item's base unit. Prefer the
+                  // picked unit; fall back to the catalog by name, then NOS.
+                  final newUnit = selected.unit.isNotEmpty
+                      ? selected.unit
+                      : StockItemsCache.instance.unitFor(selected.name);
+                  _editableItems[i]['unit'] = newUnit.isNotEmpty ? newUnit : 'NOS';
+                  // Purchase: the vendor invoice is the source of truth for
+                  // pricing, so swapping the matched stock item only corrects the
+                  // item identity — keep the original rate / discount / amount.
+                  // Sale: the rate comes from the price list, so adopt the picked
+                  // item's rate + discount and rescale the amount.
+                  if (_isSale) {
+                    _editableItems[i]['rate'] = selected.rate;
+                    _editableItems[i]['discount_pct'] = selected.discountPct;
+                    // Purchase items key quantity as `qty`, sales as `quantity`
+                    // — read whichever exists (mirrors _SheetItemRow / recompute).
+                    final qty = (_editableItems[i]['qty'] as num?)?.toDouble() ??
+                        (_editableItems[i]['quantity'] as num?)?.toDouble() ?? 0;
+                    final gross = qty * selected.rate;
+                    final discount = gross * selected.discountPct / 100;
+                    _editableItems[i]['amount'] = gross - discount;
+                  }
+                }
+              });
+              _recomputeChargesFromItems();
+              _notifyEditState();
+            },
+            onItemChanged: () {
+              _recomputeChargesFromItems();
+              _notifyEditState();
+            },
+            onDelete: () {
+              setState(() => _editableItems.removeAt(i));
+              _recomputeChargesFromItems();
+              _notifyEditState();
+            },
           ),
-          const SizedBox(height: 10),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: SizedBox(
-              width: _kItemsTableW,
-              child: Column(
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      color: AppPalette.gridHeader,
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                      border: Border.all(color: AppPalette.line, width: 1.2),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    child: const Row(
-                      children: [
-                        SizedBox(width: _kItemColW, child: Text('Item', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12))),
-                        _SheetColHeader('Qty', width: _kQtyColW),
-                        _SheetColHeader('Disc', width: _kDiscColW),
-                        _SheetColHeader('Rate', width: _kRateColW),
-                        _SheetColHeader('Amount', width: _kAmountColW),
-                        SizedBox(width: _kDeleteColW),
-                      ],
-                    ),
-                  ),
-          Container(
-            decoration: BoxDecoration(
-              border: Border(
-                left: BorderSide(color: AppPalette.line, width: 1.2),
-                right: BorderSide(color: AppPalette.line, width: 1.2),
-                bottom: BorderSide(color: AppPalette.line, width: 1.2),
-              ),
-              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
-            ),
-            child: Column(children: [
-              for (var i = 0; i < items.length; i++)
-                _SheetItemRow(
-                  item: i < _editableItems.length ? _editableItems[i] : items[i],
-                  source: i < sourceItems.length ? sourceItems[i]['source'] as String? : null,
-                  score: i < sourceItems.length ? sourceItems[i]['score'] as String? : null,
-                  isEditing: _isEditing,
-                  partyName: partyName,
-                  isSale: _isSale,
-                  isEdited: () {
-                    final currentName = i < _editableItems.length
-                        ? (_editableItems[i]['stock_item_name'] as String? ?? '')
-                        : (items[i]['stock_item_name'] as String? ?? '');
-                    final origName = (_originalItemNames != null && i < _originalItemNames!.length)
-                        ? _originalItemNames![i]
-                        : (items[i]['stock_item_name'] as String? ?? '');
-                    return currentName != origName;
-                  }(),
-                  onStockItemSelected: (selected) {
-                    setState(() {
-                      if (i < _editableItems.length) {
-                        _editableItems[i]['stock_item_name'] = selected.name;
-                        _editableItems[i]['rate'] = selected.rate;
-                        _editableItems[i]['discount_pct'] = selected.discountPct;
-                        final qty = (_editableItems[i]['quantity'] as num?)?.toDouble() ?? 0;
-                        final gross = qty * selected.rate;
-                        final discount = gross * selected.discountPct / 100;
-                        _editableItems[i]['amount'] = gross - discount;
-                      }
-                    });
-                    _notifyEditState();
-                  },
-                  onItemChanged: _notifyEditState,
-                  onDelete: () {
-                    setState(() => _editableItems.removeAt(i));
-                    _notifyEditState();
-                  },
+      ]),
+    );
+
+    // Charges rows in display order: the taxable subtotal (the inventory/GST
+    // Sale·Purchase ledger) first, then the GST tax rows. The taxable row sits
+    // directly beneath the "Taxable value" column as its subtotal, so it carries
+    // no label; each GST row is prefixed "Add:" in invoice style. The Discount
+    // line is intentionally dropped (it's already baked into the taxable value).
+    final taxableEntry = inventoryLedgerName != null
+        ? breakdownEntries
+            .where((e) => e['ledger_name'] == inventoryLedgerName)
+            .firstOrNull
+        // No named inventory ledger: the taxable subtotal is the largest row.
+        : (breakdownEntries.isNotEmpty
+            ? breakdownEntries.reduce((a, b) =>
+                ((a['amount'] as num).abs() >= (b['amount'] as num).abs() ? a : b))
+            : null);
+    final orderedCharges = [
+      ?taxableEntry,
+      ...breakdownEntries.where((e) => !identical(e, taxableEntry)),
+    ];
+
+    // Borderless: the amounts sit in a column beneath "Taxable value" rather
+    // than inside a boxed card (see _kChargesRightInset).
+    final chargesCard = Padding(
+      padding: const EdgeInsets.only(
+        left: _kChargesLeftInset,
+        right: _kChargesRightInset,
+      ),
+      child: Column(
+        children: [
+          for (final (ci, entry) in orderedCharges.indexed)
+            if (_isEditing)
+              FocusTraversalOrder(
+                order: NumericFocusOrder((chargesOrderBase + ci).toDouble()),
+                child: _SheetEditableRow(
+                  key: ValueKey('ledger_${entry['ledger_name']}_${entry['amount']}'),
+                  label: identical(entry, taxableEntry)
+                      ? ''
+                      : 'Add: ${entry['ledger_name'] as String? ?? '—'}',
+                  initial: (entry['amount'] as num?)?.toDouble().abs() ?? 0,
+                  isPercent: inventoryLedgerName != null &&
+                      entry['ledger_name'] != inventoryLedgerName &&
+                      ((entry['amount'] as num?)?.toDouble().abs() ?? 0) < 100,
+                  valueRight: true,
+                  labelExpands: true,
+                  onChanged: (v) => entry['amount'] = v,
                 ),
-            ]),
-                  ),
-                ],
+              )
+            else
+              _SheetHeaderRow(
+                identical(entry, taxableEntry)
+                    ? ''
+                    : 'Add: ${entry['ledger_name'] as String? ?? '—'}',
+                _chargeValue(entry, inventoryLedgerName),
+                valueRight: true,
+                labelExpands: true,
+              ),
+          const Divider(height: 16),
+          if (_isEditing)
+            FocusTraversalOrder(
+              order: NumericFocusOrder(
+                  (chargesOrderBase + orderedCharges.length).toDouble()),
+              child: _SheetEditableRow(
+                key: ValueKey('total_$total'),
+                label: 'Total Value',
+                initial: total,
+                bold: true,
+                valueRight: true,
+                labelExpands: true,
+                onChanged: (v) => _editableTotal = v,
+                // Last field in the Enter-to-move chain: the final Enter pushes
+                // to Tally (mirrors the Push To Tally button, guards included).
+                onSubmitted: _submitFromTotal,
+              ),
+            )
+          else
+            _SheetHeaderRow('Total Value', formatCurrency(total), bold: true, valueRight: true, labelExpands: true),
+        ],
+      ),
+    );
+
+    final titleStyle = Theme.of(context)
+        .textTheme
+        .titleMedium
+        ?.copyWith(fontWeight: FontWeight.w800);
+
+    return FocusTraversalGroup(
+      // Explicit (ordered) traversal so Enter walks every numeric cell in
+      // sequence — the geometry-based default skipped narrow columns (Disc).
+      policy: OrderedTraversalPolicy(),
+      child: _centerOnWide(
+        wide,
+        CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    vendorCard,
+                    if (displayItems.isNotEmpty) ...[
+                      const SizedBox(height: 20),
+                      Text('Items', style: titleStyle),
+                      const SizedBox(height: 10),
+                    ],
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
-        if (breakdownEntries.isNotEmpty) ...[
-          const SizedBox(height: 20),
-          Text(
-            'Charges',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
-          ),
-          const SizedBox(height: 10),
-          Container(
-            decoration: BoxDecoration(
-              color: AppPalette.gridHeader,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppPalette.line, width: 1.2),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Items table. On wide the header sits inline above the body
+                    // (both stretch to the pane); on narrow they share one
+                    // horizontal scroll view so their columns stay aligned.
+                    if (displayItems.isNotEmpty)
+                      wide
+                          ? Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [itemsHeader, itemsBody],
+                            )
+                          : SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: SizedBox(
+                                width: _kItemsTableW + (_isSale ? _kNewItemColW : 0),
+                                child: Column(children: [itemsHeader, itemsBody]),
+                              ),
+                            ),
+                    if (breakdownEntries.isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      chargesCard,
+                    ],
+                  ],
+                ),
+              ),
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Column(
-              children: [
-                for (final entry in breakdownEntries)
-                  if (_isEditing)
-                    _SheetEditableRow(
-                      label: entry['ledger_name'] as String? ?? '—',
-                      initial: (entry['amount'] as num?)?.toDouble().abs() ?? 0,
-                      isPercent: inventoryLedgerName != null &&
-                          entry['ledger_name'] != inventoryLedgerName,
-                      onChanged: (v) => entry['amount'] = v,
-                    )
-                  else
-                    _SheetHeaderRow(
-                      entry['ledger_name'] as String? ?? '—',
-                      _chargeValue(entry, inventoryLedgerName),
-                    ),
-                if (_isEditing)
-                  _SheetEditableRow(
-                    label: 'Discount',
-                    initial: discount,
-                    onChanged: (v) => _editableDiscount = v,
-                  )
-                else
-                  _SheetHeaderRow('Discount', formatCurrency(discount)),
-                const Divider(height: 16),
-                if (_isEditing)
-                  _SheetEditableRow(
-                    label: 'Total',
-                    initial: total,
-                    bold: true,
-                    onChanged: (v) => _editableTotal = v,
-                  )
-                else
-                  _SheetHeaderRow('Total', formatCurrency(total), bold: true),
-              ],
-            ),
-          ),
-        ],
-      ],
+          ],
+        ),
+      ),
     );
   }
 
@@ -1082,30 +2107,288 @@ class _TabPill extends StatelessWidget {
 }
 
 class _SheetHeaderRow extends StatelessWidget {
-  const _SheetHeaderRow(this.label, this.value, {this.bold = false});
+  const _SheetHeaderRow(this.label, this.value,
+      {this.bold = false, this.valueRight = false, this.labelExpands = false});
   final String label;
   final String value;
   final bool bold;
+  // Right-aligns the value under the items table's right column. Used by the
+  // Charges block so amounts sit in a column beneath "Taxable value".
+  final bool valueRight;
+  // Charges rows: let the label take the full available width on a single line
+  // (ellipsis only if truly too narrow) instead of the fixed 90px column that
+  // wraps long names like "Add: CARTAGE INWARD". The amount stays at the right.
+  final bool labelExpands;
 
   @override
   Widget build(BuildContext context) {
+    final labelStyle = Theme.of(context).textTheme.bodySmall?.copyWith(color: AppPalette.muted);
+    final valueStyle = Theme.of(context).textTheme.bodySmall?.copyWith(
+          fontWeight: bold ? FontWeight.w800 : FontWeight.w600,
+          color: bold ? AppPalette.ink : AppPalette.inkSoft,
+        );
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 90,
-            child: Text(label, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppPalette.muted)),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontWeight: bold ? FontWeight.w800 : FontWeight.w600,
-                    color: bold ? AppPalette.ink : AppPalette.inkSoft,
+        children: labelExpands
+            ? [
+                Expanded(
+                  child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: labelStyle),
+                ),
+                const SizedBox(width: 8),
+                Text(value, textAlign: TextAlign.right, style: valueStyle),
+              ]
+            : [
+                SizedBox(width: 90, child: Text(label, style: labelStyle)),
+                Expanded(
+                  child: Text(
+                    value,
+                    textAlign: valueRight ? TextAlign.right : TextAlign.left,
+                    style: valueStyle,
                   ),
-            ),
+                ),
+              ],
+      ),
+    );
+  }
+}
+
+/// Compact right-aligned numeric field for the editable Qty/Disc/Rate/Amount
+/// cells. Uncontrolled [initial] so the cursor isn't reset between keystrokes.
+class _EditableNumCell extends StatefulWidget {
+  const _EditableNumCell({
+    required this.width,
+    required this.initial,
+    required this.onChanged,
+    this.suffix,
+  });
+  final double width;
+  final double initial;
+  final ValueChanged<double> onChanged;
+  final String? suffix;
+
+  @override
+  State<_EditableNumCell> createState() => _EditableNumCellState();
+}
+
+class _EditableNumCellState extends State<_EditableNumCell> {
+  late final TextEditingController _controller;
+  late final FocusNode _focusNode;
+
+  static String _format(double v) =>
+      v % 1 == 0 ? v.toInt().toString() : v.toStringAsFixed(2);
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: _format(widget.initial));
+    _focusNode = FocusNode();
+    // Select the whole value when the field gains focus (via Enter-advance or a
+    // mouse click) so the user can immediately type over it, TallyPrime-style.
+    _focusNode.addListener(() {
+      if (_focusNode.hasFocus) {
+        _controller.selection = TextSelection(
+          baseOffset: 0,
+          extentOffset: _controller.text.length,
+        );
+      }
+    });
+  }
+
+  @override
+  void didUpdateWidget(_EditableNumCell oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Only rewrite the field when the value changed from OUTSIDE (e.g. a
+    // stock-item pick rewrote rate/amount). If the new value already matches
+    // what the user just typed, leave the controller — and the cursor — alone
+    // so typing isn't interrupted. (This replaces the old value-based ValueKey,
+    // which recreated the field on every keystroke and dropped focus.)
+    if (widget.initial != oldWidget.initial &&
+        double.tryParse(_controller.text.trim()) != widget.initial) {
+      _controller.text = _format(widget.initial);
+    }
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: widget.width,
+      child: TextFormField(
+        controller: _controller,
+        focusNode: _focusNode,
+        textAlign: TextAlign.right,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        textInputAction: TextInputAction.next,
+        // Suppress TextField's built-in "next" advance so Enter doesn't jump
+        // TWICE (its default + our handler), which would skip every other cell.
+        onEditingComplete: () {},
+        // Enter advances exactly one cell, in the explicit order set by the
+        // FocusTraversalOrder wrappers: Item→Qty→Disc→Rate→Amount→next row's
+        // Item… (the delete button is a GestureDetector, so it's skipped).
+        onFieldSubmitted: (_) => FocusScope.of(context).nextFocus(),
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppPalette.ink, fontWeight: FontWeight.w600),
+        decoration: InputDecoration(
+          isDense: true,
+          suffixText: widget.suffix,
+          suffixStyle: TextStyle(fontSize: 10, color: AppPalette.muted),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: AppPalette.line.withValues(alpha: 0.3), width: 1)),
+          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppPalette.ink, width: 1.8)),
+        ),
+        onChanged: (v) {
+          final parsed = double.tryParse(v.trim());
+          if (parsed != null) widget.onChanged(parsed);
+        },
+      ),
+    );
+  }
+}
+
+/// Editable numeric Charges row (ledger / discount / total). Shows ₹ or %.
+class _SheetEditableRow extends StatelessWidget {
+  const _SheetEditableRow({
+    super.key,
+    required this.label,
+    required this.initial,
+    required this.onChanged,
+    this.isPercent = false,
+    this.bold = false,
+    this.valueRight = false,
+    this.onSubmitted,
+    this.labelExpands = false,
+  });
+  final String label;
+  final double initial;
+  final ValueChanged<double> onChanged;
+  final bool isPercent;
+  final bool bold;
+  // Right-aligns the field's text so editable charge amounts line up in the
+  // same column as their read-only counterparts (beneath "Taxable value").
+  final bool valueRight;
+  // When set, Enter runs this instead of advancing focus. Used by the last
+  // Charges field (Total) so the final Enter triggers Push to Tally.
+  final VoidCallback? onSubmitted;
+  // Charges rows: label takes the available width on one line (ellipsis if too
+  // narrow) and the field is fixed-width on the right, so long ledger names like
+  // "Add: CARTAGE INWARD" don't wrap. See _SheetHeaderRow.labelExpands.
+  final bool labelExpands;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = initial % 1 == 0 ? initial.toInt().toString() : initial.toStringAsFixed(2);
+    final field = TextFormField(
+      initialValue: text,
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      textInputAction: TextInputAction.next,
+      // Suppress the built-in "next" advance so Enter moves only one
+      // field (otherwise the default + our handler jump twice).
+      onEditingComplete: () {},
+      // Enter advances one Charges field at a time, continuing the
+      // items-table chain: GST Sale → CGST → SGST → … → Discount → Total.
+      // The last field (Total) overrides this to push to Tally instead.
+      onFieldSubmitted: (_) => onSubmitted != null
+          ? onSubmitted!()
+          : FocusScope.of(context).nextFocus(),
+      textAlign: valueRight ? TextAlign.right : TextAlign.left,
+      style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: bold ? FontWeight.w800 : FontWeight.w600, color: AppPalette.ink),
+      decoration: InputDecoration(
+        isDense: true,
+        prefixText: isPercent ? null : '₹',
+        suffixText: isPercent ? '%' : null,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: AppPalette.line.withValues(alpha: 0.3), width: 1)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppPalette.ink, width: 1.8)),
+      ),
+      onChanged: (v) {
+        final parsed = double.tryParse(v.trim());
+        if (parsed != null) onChanged(parsed);
+      },
+    );
+    final labelText = Text(label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppPalette.muted));
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: labelExpands
+            ? [
+                Expanded(child: labelText),
+                const SizedBox(width: 8),
+                SizedBox(width: 150, child: field),
+              ]
+            : [
+                SizedBox(width: 90, child: labelText),
+                Expanded(child: field),
+              ],
+      ),
+    );
+  }
+}
+
+/// Editable text Header row (Invoice # / Narration). When [onTap] is set the
+/// field is read-only and tapping triggers it (used by the Date calendar).
+class _SheetEditableTextRow extends StatelessWidget {
+  const _SheetEditableTextRow({
+    required this.label,
+    required this.initial,
+    this.onChanged,
+    this.onTap,
+    this.icon,
+    this.autofocus = false,
+  });
+  final String label;
+  final String initial;
+  final ValueChanged<String>? onChanged;
+  final VoidCallback? onTap;
+  final IconData? icon;
+  final bool autofocus;
+
+  @override
+  Widget build(BuildContext context) {
+    final decoration = InputDecoration(
+      isDense: true,
+      suffixIcon: icon == null ? null : Icon(icon, size: 16, color: AppPalette.muted),
+      suffixIconConstraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: AppPalette.line.withValues(alpha: 0.3), width: 1)),
+      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppPalette.ink, width: 1.8)),
+    );
+    final style = Theme.of(context).textTheme.bodySmall?.copyWith(color: AppPalette.ink, fontWeight: FontWeight.w600);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          SizedBox(width: 90, child: Text(label, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppPalette.muted))),
+          Expanded(
+            child: onTap != null
+                ? GestureDetector(
+                    onTap: onTap,
+                    child: InputDecorator(
+                      decoration: decoration,
+                      child: Text(initial.isEmpty ? '—' : initial, style: style),
+                    ),
+                  )
+                : TextFormField(
+                    initialValue: initial,
+                    autofocus: autofocus,
+                    style: style,
+                    decoration: decoration,
+                    textInputAction: TextInputAction.next,
+                    // Suppress the built-in "next" so Enter advances exactly one
+                    // field (header → header → first item), matching the cells.
+                    onEditingComplete: () {},
+                    onFieldSubmitted: (_) => FocusScope.of(context).nextFocus(),
+                    onChanged: onChanged,
+                  ),
           ),
         ],
       ),
@@ -1113,6 +2396,8 @@ class _SheetHeaderRow extends StatelessWidget {
   }
 }
 
+// Pins the items column header at the top of the scroll view while rows scroll
+// under it. Fixed extent (min == max) so it stays put without resizing.
 class _SheetColHeader extends StatelessWidget {
   const _SheetColHeader(this.label, {required this.width});
   final String label;
@@ -1127,126 +2412,14 @@ class _SheetColHeader extends StatelessWidget {
   }
 }
 
-/// Compact right-aligned numeric field used for the editable Qty/Disc/Rate/
-/// Amount cells in the items table. Mutates via [onChanged]; uses an
-/// uncontrolled [initialValue] so the cursor isn't reset between keystrokes.
-class _EditableNumCell extends StatelessWidget {
-  const _EditableNumCell({
-    super.key,
-    required this.width,
-    required this.initial,
-    required this.onChanged,
-    this.suffix,
-  });
-  final double width;
-  final double initial;
-  final ValueChanged<double> onChanged;
-  final String? suffix;
-
-  @override
-  Widget build(BuildContext context) {
-    final text = initial % 1 == 0 ? initial.toInt().toString() : initial.toString();
-    return SizedBox(
-      width: width,
-      child: TextFormField(
-        initialValue: text,
-        textAlign: TextAlign.right,
-        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: AppPalette.ink,
-              fontWeight: FontWeight.w600,
-            ),
-        decoration: InputDecoration(
-          isDense: true,
-          suffixText: suffix,
-          suffixStyle: const TextStyle(fontSize: 10, color: AppPalette.muted),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
-          // Unfocused cells get a dull border; the focused cell pops with a
-          // bold dark border so the box being edited is obvious.
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: AppPalette.line.withValues(alpha: 0.3), width: 1),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: AppPalette.ink, width: 1.8),
-          ),
-        ),
-        onChanged: (v) {
-          final parsed = double.tryParse(v.trim());
-          if (parsed != null) onChanged(parsed);
-        },
-      ),
-    );
-  }
-}
-
-/// Editable variant of [_SheetHeaderRow] for the Charges block (ledger rows,
-/// Discount, Total). Shows a ₹ or % affix to match the read-only display.
-class _SheetEditableRow extends StatelessWidget {
-  const _SheetEditableRow({
-    required this.label,
-    required this.initial,
-    required this.onChanged,
-    this.isPercent = false,
-    this.bold = false,
-  });
-  final String label;
-  final double initial;
-  final ValueChanged<double> onChanged;
-  final bool isPercent;
-  final bool bold;
-
-  @override
-  Widget build(BuildContext context) {
-    final text = initial % 1 == 0 ? initial.toInt().toString() : initial.toString();
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 90,
-            child: Text(label, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppPalette.muted)),
-          ),
-          Expanded(
-            child: TextFormField(
-              initialValue: text,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontWeight: bold ? FontWeight.w800 : FontWeight.w600,
-                    color: AppPalette.ink,
-                  ),
-              decoration: InputDecoration(
-                isDense: true,
-                prefixText: isPercent ? null : '₹',
-                suffixText: isPercent ? '%' : null,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: AppPalette.line.withValues(alpha: 0.3), width: 1),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: AppPalette.ink, width: 1.8),
-                ),
-              ),
-              onChanged: (v) {
-                final parsed = double.tryParse(v.trim());
-                if (parsed != null) onChanged(parsed);
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _SheetItemRow extends StatelessWidget {
   const _SheetItemRow({
     required this.item,
+    this.serialNumber = 0,
+    this.wide = false,
     this.source,
     this.score,
+    this.rateSource,
     this.isEditing = false,
     this.isEdited = false,
     this.onStockItemSelected,
@@ -1254,19 +2427,50 @@ class _SheetItemRow extends StatelessWidget {
     this.onDelete,
     this.partyName,
     this.isSale = false,
+    this.voucherItemNames = const [],
+    this.orderBase = 0,
+    this.showDelete = true,
   });
   final Map<String, dynamic> item;
+  final int serialNumber;
+  final bool wide;
   final String? source;
   final String? score;
+  // source_payload rate provenance for this line: 'same_party' | 'different_party'
+  // | 'none'. Drives the sale-only "New Item" flag ("Y" when different_party).
+  final String? rateSource;
   final bool isEditing;
   final bool isEdited;
+  // History opens the sheet read-only; the per-row delete button is hidden
+  // there (you can't delete a pushed voucher's lines).
+  final bool showDelete;
+  // Base focus-traversal order for this row's five stops: Item name (orderBase),
+  // then Qty/Disc/Rate/Amount (orderBase+1..4). Lets Enter walk every cell in
+  // sequence, including the item-name field.
+  final int orderBase;
   final void Function(StockItem)? onStockItemSelected;
+  // Called after a numeric cell (Qty/Disc/Rate/Amount) is edited; the item map
+  // is mutated in place, so the parent recomputes charges and persists.
+  final VoidCallback? onItemChanged;
   final String? partyName;
   final bool isSale;
-  // Called after a numeric field (Qty/Disc/Rate/Amount) is typed so the parent
-  // can persist the edited snapshot. The item map is mutated in place.
-  final VoidCallback? onItemChanged;
+  // Names of all lines on this voucher, forwarded to the picker so its sale
+  // tier-2 fallback can price+flag items this party never sold.
+  final List<String> voucherItemNames;
   final VoidCallback? onDelete;
+
+  // Recomputes this line's amount from qty·rate·(1−disc%/100) so the Charges
+  // block (which sums item amounts) rescales when Qty/Disc/Rate are edited
+  // inline. Runs for sale and purchase; relies on discount_pct being present
+  // (purchase rows without one are seeded at edit entry in _toggleEdit).
+  // Mirrors the formula in _addItem / onStockItemSelected.
+  void _recalcAmount() {
+    final q = (item['qty'] as num?)?.toDouble() ??
+        (item['quantity'] as num?)?.toDouble() ?? 0;
+    final r = (item['rate'] as num?)?.toDouble() ?? 0;
+    final d = (item['discount_pct'] as num?)?.toDouble() ?? 0;
+    item['amount'] = q * r * (1 - d / 100);
+  }
 
   static double? _parseScore(String? s) {
     if (s == null || s.isEmpty) return null;
@@ -1288,12 +2492,17 @@ class _SheetItemRow extends StatelessWidget {
     final amount = (item['amount'] as num?)?.toDouble() ?? 0;
     final unit = item['unit'] as String? ?? '';
     // Discount %: stored rows carry discount_pct directly; the docstrange
-    // purchase response instead gives a rupee `discount` per item, so derive
-    // the percentage from discount/amount. Round to drop float noise (3.0000…).
+    // purchase response instead gives a rupee `discount` per item. Many purchase
+    // rows carry neither and bake the discount into `amount` (rate·qty ≠ amount),
+    // so derive the percentage from 1 − amount/(qty·rate). Round to drop float
+    // noise (3.0000…).
     final discPct = (item['discount_pct'] as num?)?.toDouble();
     final discAmt = (item['discount'] as num?)?.toDouble();
+    final gross = qty * rate;
     final discValue = discPct ??
-        ((discAmt != null && amount != 0) ? discAmt / amount * 100 : 0.0);
+        ((discAmt != null && amount != 0)
+            ? discAmt / amount * 100
+            : (gross > 0 ? ((1 - amount / gross) * 100).clamp(0.0, 100.0) : 0.0));
     final disc = double.parse(discValue.toStringAsFixed(2));
 
     final isPurchaseMatching = source == 'Purchase_Matching';
@@ -1304,7 +2513,7 @@ class _SheetItemRow extends StatelessWidget {
     String? statusLabel;
 
     if (isPurchaseMatching) {
-      nameColor = AppPalette.muted;
+      nameColor = const Color(0xFF16A34A);
       statusLabel = 'No need to edit, Historical Data';
     } else if (isAlgorithm && scoreVal != null) {
       if (scoreVal >= 90) {
@@ -1320,8 +2529,65 @@ class _SheetItemRow extends StatelessWidget {
     }
 
     if (isEdited) {
-      nameColor = const Color(0xFF7C3AED);
+      nameColor = const Color(0xFF16A34A);
       statusLabel = 'Item Edited';
+    }
+
+    // Opens the stock-item picker (with the confidence/historical warning where
+    // applicable). Triggered by tapping the item name, or by pressing the Down
+    // arrow while the item field is focused via Enter-to-move.
+    Future<void> openPicker() async {
+      String? warnMessage;
+      if (isPurchaseMatching) {
+        warnMessage = 'Are you sure you want to edit this item, Its taken from historical Data';
+      } else if (isAlgorithm && scoreVal != null && scoreVal >= 90) {
+        warnMessage = 'Are you sure you want to edit this item, I have high confidence on this item';
+      }
+
+      if (warnMessage != null) {
+        final ok = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+            content: Text(
+              warnMessage!,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, height: 1.4),
+            ),
+            actionsAlignment: MainAxisAlignment.spaceEvenly,
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                style: TextButton.styleFrom(foregroundColor: AppPalette.muted),
+                child: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.w700)),
+              ),
+              TextButton(
+                // Autofocused so Enter (after Down opened this dialog via
+                // Enter-to-move) activates OK without a mouse click.
+                autofocus: true,
+                onPressed: () => Navigator.of(ctx).pop(true),
+                style: TextButton.styleFrom(foregroundColor: AppPalette.accent),
+                child: const Text('OK', style: TextStyle(fontWeight: FontWeight.w700)),
+              ),
+            ],
+          ),
+        );
+        if (ok != true) return;
+        if (!context.mounted) return;
+      }
+
+      final selected = await showModalBottomSheet<StockItem>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (_) => _StockItemPickerSheet(
+          changingFrom: name,
+          partyName: partyName,
+          isSale: isSale,
+          voucherItemNames: voucherItemNames,
+        ),
+      );
+      if (selected != null) onStockItemSelected?.call(selected);
     }
 
     return Container(
@@ -1331,87 +2597,88 @@ class _SheetItemRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: _kItemColW,
-            child: isEditing
-                      ? GestureDetector(
-                          onTap: () async {
-                            String? warnMessage;
-                            if (isPurchaseMatching) {
-                              warnMessage = 'Are you sure you want to edit this item, Its taken from historical Data';
-                            } else if (isAlgorithm && scoreVal != null && scoreVal >= 90) {
-                              warnMessage = 'Are you sure you want to edit this item, I have high confidence on this item';
-                            }
-
-                            if (warnMessage != null) {
-                              final ok = await showDialog<bool>(
-                                context: context,
-                                builder: (ctx) => AlertDialog(
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-                                  content: Text(
-                                    warnMessage!,
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, height: 1.4),
-                                  ),
-                                  actionsAlignment: MainAxisAlignment.spaceEvenly,
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.of(ctx).pop(false),
-                                      style: TextButton.styleFrom(foregroundColor: AppPalette.muted),
-                                      child: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.w700)),
-                                    ),
-                                    TextButton(
-                                      onPressed: () => Navigator.of(ctx).pop(true),
-                                      style: TextButton.styleFrom(foregroundColor: AppPalette.accent),
-                                      child: const Text('OK', style: TextStyle(fontWeight: FontWeight.w700)),
-                                    ),
-                                  ],
-                                ),
-                              );
-                              if (ok != true) return;
-                              if (!context.mounted) return;
-                            }
-
-                            final selected = await showModalBottomSheet<StockItem>(
-                              context: context,
-                              isScrollControlled: true,
-                              backgroundColor: Colors.transparent,
-                              builder: (_) => _StockItemPickerSheet(
-                                changingFrom: name,
-                                partyName: partyName,
-                                isSale: isSale,
-                              ),
-                            );
-                            if (selected != null) onStockItemSelected?.call(selected);
-                          },
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      name,
-                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                            color: nameColor,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                    ),
-                                  ),
-                                  const Icon(Icons.arrow_drop_down, size: 18, color: AppPalette.muted),
-                                ],
-                              ),
-                              if (statusLabel != null) ...[
-                                const SizedBox(height: 2),
-                                Text(
-                                  statusLabel,
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                        color: _darken(nameColor),
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w500,
+            width: _kSerialColW,
+            child: Text(
+              '$serialNumber',
+              style: TextStyle(fontSize: 12, color: AppPalette.muted, fontWeight: FontWeight.w600),
+            ),
+          ),
+          _itemCell(
+            wide,
+            isEditing
+                      ? FocusTraversalOrder(
+                          order: NumericFocusOrder(orderBase.toDouble()),
+                          child: Focus(
+                            // Enter (from the field before) lands here; Enter
+                            // again advances to Qty, Down arrow opens the picker.
+                            onKeyEvent: (node, event) {
+                              if (event is! KeyDownEvent) {
+                                return KeyEventResult.ignored;
+                              }
+                              final key = event.logicalKey;
+                              if (key == LogicalKeyboardKey.arrowDown) {
+                                openPicker();
+                                return KeyEventResult.handled;
+                              }
+                              if (key == LogicalKeyboardKey.enter ||
+                                  key == LogicalKeyboardKey.numpadEnter) {
+                                node.nextFocus();
+                                return KeyEventResult.handled;
+                              }
+                              return KeyEventResult.ignored;
+                            },
+                            child: Builder(
+                              builder: (ctx) {
+                                final focused = Focus.of(ctx).hasFocus;
+                                return GestureDetector(
+                                  onTap: openPicker,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: focused
+                                            ? AppPalette.ink
+                                            : Colors.transparent,
+                                        width: 1.4,
                                       ),
-                                ),
-                              ],
-                            ],
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 4, vertical: 2),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Flexible(
+                                              child: Text(
+                                                name,
+                                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                                      color: nameColor,
+                                                      fontWeight: FontWeight.w600,
+                                                    ),
+                                              ),
+                                            ),
+                                            Icon(Icons.arrow_drop_down, size: 18, color: AppPalette.muted),
+                                          ],
+                                        ),
+                                        if (statusLabel != null) ...[
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            statusLabel,
+                                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                                  color: _darken(nameColor),
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
                           ),
                         )
                       : Column(
@@ -1438,15 +2705,33 @@ class _SheetItemRow extends StatelessWidget {
                           ],
                         ),
           ),
+          // "New Item" flag (sale only): "Y" when the rate was borrowed from a
+          // different party (this customer never bought the item before).
+          if (isSale)
+            SizedBox(
+              width: _kNewItemColW,
+              child: Text(
+                rateSource == 'different_party' ? 'Y' : '',
+                textAlign: TextAlign.right,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFFDC2626),
+                    ),
+              ),
+            ),
           isEditing
-              ? _EditableNumCell(
-                  width: _kQtyColW,
-                  initial: qty,
-                  suffix: unit.isNotEmpty ? unit : null,
-                  onChanged: (v) {
-                    item[item.containsKey('qty') ? 'qty' : 'quantity'] = v;
-                    onItemChanged?.call();
-                  },
+              ? FocusTraversalOrder(
+                  order: NumericFocusOrder((orderBase + 1).toDouble()),
+                  child: _EditableNumCell(
+                    width: _kQtyColW,
+                    initial: qty,
+                    suffix: unit.isNotEmpty ? unit : null,
+                    onChanged: (v) {
+                      item[item.containsKey('qty') ? 'qty' : 'quantity'] = v;
+                      _recalcAmount();
+                      onItemChanged?.call();
+                    },
+                  ),
                 )
               : SizedBox(
                   width: _kQtyColW,
@@ -1456,46 +2741,59 @@ class _SheetItemRow extends StatelessWidget {
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppPalette.inkSoft),
                   ),
                 ),
+          // Rate then Disc, matching the column order (Qty · Rate · Disc).
           isEditing
-              ? _EditableNumCell(
-                  key: ValueKey('disc_$disc'),
-                  width: _kDiscColW,
-                  initial: disc,
-                  suffix: '%',
-                  onChanged: (v) {
-                    item['discount_pct'] = v;
-                    onItemChanged?.call();
-                  },
-                )
-              : SizedBox(
-                  width: _kDiscColW,
-                  child: Text('${disc % 1 == 0 ? disc.toInt() : disc}%', textAlign: TextAlign.right, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppPalette.inkSoft)),
-                ),
-          isEditing
-              ? _EditableNumCell(
-                  // Re-key on value so picking a stock item (which updates rate
-                  // via setState) refreshes the field instead of showing stale.
-                  key: ValueKey('rate_$rate'),
-                  width: _kRateColW,
-                  initial: rate,
-                  onChanged: (v) {
-                    item['rate'] = v;
-                    onItemChanged?.call();
-                  },
+              ? FocusTraversalOrder(
+                  order: NumericFocusOrder((orderBase + 2).toDouble()),
+                  child: _EditableNumCell(
+                    width: _kRateColW,
+                    initial: rate,
+                    onChanged: (v) {
+                      item['rate'] = v;
+                      _recalcAmount();
+                      onItemChanged?.call();
+                    },
+                  ),
                 )
               : SizedBox(
                   width: _kRateColW,
                   child: Text(formatCurrency(rate), textAlign: TextAlign.right, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppPalette.inkSoft)),
                 ),
           isEditing
-              ? _EditableNumCell(
-                  key: ValueKey('amount_$amount'),
-                  width: _kAmountColW,
-                  initial: amount,
-                  onChanged: (v) {
-                    item['amount'] = v;
-                    onItemChanged?.call();
-                  },
+              ? FocusTraversalOrder(
+                  order: NumericFocusOrder((orderBase + 3).toDouble()),
+                  child: _EditableNumCell(
+                    width: _kDiscColW,
+                    initial: disc,
+                    suffix: '%',
+                    onChanged: (v) {
+                      item['discount_pct'] = v;
+                      _recalcAmount();
+                      onItemChanged?.call();
+                    },
+                  ),
+                )
+              : SizedBox(
+                  width: _kDiscColW,
+                  child: Text('${disc % 1 == 0 ? disc.toInt() : disc}%', textAlign: TextAlign.right, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppPalette.inkSoft)),
+                ),
+          // List price = Qty · Rate (gross, before discount). Display-only — it
+          // recomputes live as Qty/Rate are edited but is never written back.
+          SizedBox(
+            width: _kListPriceColW,
+            child: Text(formatCurrency(gross), textAlign: TextAlign.right, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppPalette.inkSoft)),
+          ),
+          isEditing
+              ? FocusTraversalOrder(
+                  order: NumericFocusOrder((orderBase + 4).toDouble()),
+                  child: _EditableNumCell(
+                    width: _kAmountColW,
+                    initial: amount,
+                    onChanged: (v) {
+                      item['amount'] = v;
+                      onItemChanged?.call();
+                    },
+                  ),
                 )
               : SizedBox(
                   width: _kAmountColW,
@@ -1503,7 +2801,9 @@ class _SheetItemRow extends StatelessWidget {
                 ),
           SizedBox(
             width: _kDeleteColW,
-            child: GestureDetector(
+            child: !showDelete
+                ? null
+                : GestureDetector(
               onTap: () async {
                 final confirmed = await showDialog<bool>(
                   context: context,
@@ -1551,10 +2851,12 @@ class _SheetItemRow extends StatelessWidget {
   }
 }
 
-// ── Customer picker sheet (sale party name) ───────────────────────────────────
+// ── Party picker sheet (sale customers / purchase vendors) ────────────────────
 
 class _CustomerPickerSheet extends StatefulWidget {
-  const _CustomerPickerSheet();
+  const _CustomerPickerSheet({required this.items, required this.searchHint});
+  final List<Customer> items;
+  final String searchHint;
 
   @override
   State<_CustomerPickerSheet> createState() => _CustomerPickerSheetState();
@@ -1567,7 +2869,7 @@ class _CustomerPickerSheetState extends State<_CustomerPickerSheet> {
   @override
   void initState() {
     super.initState();
-    _filtered = CustomersCache.instance.items;
+    _filtered = widget.items;
     _controller.addListener(_onSearch);
   }
 
@@ -1581,8 +2883,8 @@ class _CustomerPickerSheetState extends State<_CustomerPickerSheet> {
     final query = _controller.text.toLowerCase();
     setState(() {
       _filtered = query.isEmpty
-          ? CustomersCache.instance.items
-          : CustomersCache.instance.items
+          ? widget.items
+          : widget.items
               .where((c) => c.name.toLowerCase().contains(query))
               .toList();
     });
@@ -1592,9 +2894,9 @@ class _CustomerPickerSheetState extends State<_CustomerPickerSheet> {
   Widget build(BuildContext context) {
     return Container(
       height: MediaQuery.of(context).size.height * 0.72,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppPalette.sheet,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
         children: [
@@ -1610,7 +2912,7 @@ class _CustomerPickerSheetState extends State<_CustomerPickerSheet> {
               controller: _controller,
               autofocus: true,
               decoration: InputDecoration(
-                hintText: 'Search customers…',
+                hintText: widget.searchHint,
                 hintStyle: const TextStyle(fontSize: 13),
                 prefixIcon: const Icon(Icons.search_rounded, size: 20),
                 suffixIcon: _controller.text.isNotEmpty
@@ -1653,10 +2955,18 @@ class _CustomerPickerSheetState extends State<_CustomerPickerSheet> {
 // ── Stock item picker sheet ───────────────────────────────────────────────────
 
 class _StockItemPickerSheet extends StatefulWidget {
-  const _StockItemPickerSheet({this.changingFrom, this.partyName, this.isSale = false});
+  const _StockItemPickerSheet({
+    this.changingFrom,
+    this.partyName,
+    this.isSale = false,
+    this.voucherItemNames = const [],
+  });
   final String? changingFrom;
   final String? partyName;
   final bool isSale;
+  // Item names already on this voucher. Sale tier-2 fallback: any of these the
+  // party never traded gets a borrowed rate from another party, flagged "new".
+  final List<String> voucherItemNames;
 
   @override
   State<_StockItemPickerSheet> createState() => _StockItemPickerSheetState();
@@ -1664,69 +2974,252 @@ class _StockItemPickerSheet extends StatefulWidget {
 
 class _StockItemPickerSheetState extends State<_StockItemPickerSheet> {
   final _controller = TextEditingController();
+  final _scrollController = ScrollController();
+  // Keyboard navigation: index of the highlighted row. Down/Up move it, Enter
+  // selects it. Reset to 0 whenever the filtered list changes.
+  int _highlighted = 0;
+  final Map<int, GlobalKey> _itemKeys = {};
   List<StockItem> _allItems = [];
   List<StockItem> _filtered = [];
-  bool _loading = false;
+  // Starts true so the first frame shows a spinner until the deferred initial
+  // load (see initState) populates the list.
+  bool _loading = true;
+  // false → party-specific items (this party's history + sale tier-2 fallback);
+  // true ("All items") → the full stock catalog from cache.
+  // Sale opens party-first (toggle off); purchase / party-less pickers still
+  // default to the full catalog.
+  late bool _showAll = !widget.isSale;
 
   @override
   void initState() {
     super.initState();
     _controller.addListener(_onSearch);
-    if (widget.isSale && widget.partyName != null) {
-      _fetchSaleItems();
+    // Defer the first load to after the initial frame. Sale opens on the async
+    // party fetch; kicking it off during initState can leave the list showing
+    // nothing until the user toggles. Post-frame guarantees the fetch's
+    // setState lands on a mounted, already-built widget.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _load();
+    });
+  }
+
+  void _load() {
+    if (_showAll || widget.partyName == null) {
+      setState(() {
+        _allItems = StockItemsCache.instance.items;
+        _applyFilter();
+        _loading = false;
+      });
     } else {
-      _allItems = StockItemsCache.instance.items;
-      _filtered = _allItems;
+      // Sale → items sold to this customer; purchase → items bought from this
+      // vendor (party-specific RPCs).
+      _fetchPartyItems();
     }
   }
 
-  Future<void> _fetchSaleItems() async {
+  Future<void> _fetchPartyItems() async {
     setState(() => _loading = true);
+    // The get_{sale,purchase}_items_for_party RPCs match on
+    // voucher_items.party_name, which the sync leaves null — so they return
+    // nothing for every party. Query the line items directly instead and resolve
+    // the party (and sale/purchase) through the parent voucher via an inner-join
+    // embed. Sale dedups to the latest rate per item and adds a tier-2 fallback
+    // (voucher lines the party never sold, borrowed from another party); purchase
+    // lists every occurrence with its per-invoice rate (no dedup).
+    final typeMatch = widget.isSale ? '%sale%' : '%purchase%';
     try {
-      final response = await Supabase.instance.client
-          .rpc('get_sale_items_for_party', params: {'p_party_name': widget.partyName});
-      final items = (response as List)
-          .cast<Map<String, dynamic>>()
-          .map(StockItem.fromSaleRow)
-          .toList();
+      // PostgREST caps a single response at 1000 rows, so page through every
+      // matching line item with .range(). A high-volume party can have several
+      // thousand lines; without paging the picker would silently stop at 1000.
+      const pageSize = 1000;
+      final rows = <Map<String, dynamic>>[];
+      var from = 0;
+      while (true) {
+        final page = await Supabase.instance.client
+            .from('voucher_items')
+            .select(
+                'stock_item_name, rate, unit, discount_pct, vouchers!inner(date, party_name, voucher_type)')
+            .eq('vouchers.party_name', widget.partyName!)
+            .ilike('vouchers.voucher_type', typeMatch)
+            .range(from, from + pageSize - 1);
+        final batch = (page as List).cast<Map<String, dynamic>>();
+        rows.addAll(batch);
+        if (batch.length < pageSize) break;
+        from += pageSize;
+      }
+      // Most recent first (by parent voucher date), so the newest invoices'
+      // lines appear at the top of the list.
+      rows.sort((a, b) {
+        final da = (a['vouchers'] as Map?)?['date'] as String? ?? '';
+        final db = (b['vouchers'] as Map?)?['date'] as String? ?? '';
+        return db.compareTo(da);
+      });
+      final items = <StockItem>[];
+      if (widget.isSale) {
+        // Tier 1: dedup to the latest rate per item. Rows are date-desc, so the
+        // first time a name appears is its most recent sale — keep only that.
+        final seen = <String>{};
+        for (final row in rows) {
+          final name = row['stock_item_name'] as String? ?? '';
+          if (name.isEmpty || !seen.add(name)) continue;
+          items.add(StockItem(
+            name: name,
+            groupName: '',
+            rate: (row['rate'] as num?)?.toDouble() ?? 0.0,
+            unit: row['unit'] as String? ?? '',
+            discountPct: (row['discount_pct'] as num?)?.toDouble() ?? 0.0,
+            source: 'same_party',
+            // voucher_items has no part_code; pull it from the catalog cache.
+            partCode: StockItemsCache.instance.partCodeFor(name),
+          ));
+        }
+        // Tier 2: voucher lines this party never sold — borrow the most recent
+        // rate from a different party and flag them (mirrors the Apps Script).
+        final missing = widget.voucherItemNames
+            .map((n) => n.trim())
+            .where((n) => n.isNotEmpty && n != 'NO MATCH' && !seen.contains(n))
+            .toSet();
+        final fallbacks = await Future.wait(missing.map(_fetchFallbackItem));
+        items.addAll(fallbacks.whereType<StockItem>());
+      } else {
+        // Purchase: unchanged — every occurrence, with its per-invoice rate.
+        for (final row in rows) {
+          final name = row['stock_item_name'] as String? ?? '';
+          if (name.isEmpty) continue;
+          items.add(StockItem(
+            name: name,
+            groupName: '',
+            rate: (row['rate'] as num?)?.toDouble() ?? 0.0,
+            unit: row['unit'] as String? ?? '',
+            discountPct: (row['discount_pct'] as num?)?.toDouble() ?? 0.0,
+            source: 'same_party',
+            // voucher_items has no part_code; pull it from the catalog cache.
+            partCode: StockItemsCache.instance.partCodeFor(name),
+          ));
+        }
+      }
       if (!mounted) return;
       setState(() {
         _allItems = items;
-        _filtered = items;
+        _applyFilter();
         _loading = false;
       });
     } catch (_) {
       if (!mounted) return;
       setState(() {
         _allItems = StockItemsCache.instance.items;
-        _filtered = _allItems;
+        _applyFilter();
         _loading = false;
       });
+    }
+  }
+
+  // Tier-2 fallback for one item: the most recent sale rate from a DIFFERENT
+  // party. Returns a StockItem tagged 'different_party', or null if no other
+  // party ever sold it (or on error). Mirrors the Apps Script's
+  // fetchFallbackRateForItem, but sale-filtered so we borrow a sell price.
+  Future<StockItem?> _fetchFallbackItem(String name) async {
+    try {
+      final page = await Supabase.instance.client
+          .from('voucher_items')
+          .select(
+              'stock_item_name, rate, unit, discount_pct, vouchers!inner(party_name, voucher_type)')
+          .eq('stock_item_name', name)
+          .neq('vouchers.party_name', widget.partyName!)
+          .ilike('vouchers.voucher_type', '%sale%')
+          .order('created_at', ascending: false)
+          .limit(1);
+      final rows = (page as List).cast<Map<String, dynamic>>();
+      if (rows.isEmpty || rows.first['rate'] == null) return null;
+      final row = rows.first;
+      return StockItem(
+        name: name,
+        groupName: '',
+        rate: (row['rate'] as num?)?.toDouble() ?? 0.0,
+        unit: (row['unit'] as String?)?.trim().isNotEmpty == true
+            ? row['unit'] as String
+            : StockItemsCache.instance.unitFor(name),
+        discountPct: (row['discount_pct'] as num?)?.toDouble() ?? 0.0,
+        source: 'different_party',
+        partCode: StockItemsCache.instance.partCodeFor(name),
+      );
+    } catch (_) {
+      return null;
     }
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
-  void _onSearch() {
+  void _onSearch() => setState(_applyFilter);
+
+  // Filters _allItems by the current search text into _filtered. Call in setState.
+  void _applyFilter() {
     final query = _controller.text.toLowerCase();
+    _filtered = query.isEmpty
+        ? _allItems
+        : _allItems
+            .where((s) =>
+                s.name.toLowerCase().contains(query) ||
+                s.partCode.toLowerCase().contains(query))
+            .toList();
+    // A new result set invalidates the old highlight position.
+    _highlighted = 0;
+  }
+
+  GlobalKey _keyFor(int i) => _itemKeys.putIfAbsent(i, () => GlobalKey());
+
+  // Moves the highlight by [delta] (clamped) and scrolls it into view. The
+  // search field keeps focus so the user can keep typing.
+  void _moveHighlight(int delta) {
+    if (_filtered.isEmpty) return;
     setState(() {
-      _filtered = query.isEmpty
-          ? _allItems
-          : _allItems.where((s) => s.name.toLowerCase().contains(query)).toList();
+      _highlighted = (_highlighted + delta).clamp(0, _filtered.length - 1);
     });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final ctx = _itemKeys[_highlighted]?.currentContext;
+      if (ctx != null) {
+        Scrollable.ensureVisible(ctx,
+            alignment: 0.5, duration: const Duration(milliseconds: 120));
+      }
+    });
+  }
+
+  // Down/Up move the highlight, Enter selects it. Returns handled so these keys
+  // don't reach the text field (cursor moves / submit).
+  KeyEventResult _onSearchKey(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+      return KeyEventResult.ignored;
+    }
+    final key = event.logicalKey;
+    if (key == LogicalKeyboardKey.arrowDown) {
+      _moveHighlight(1);
+      return KeyEventResult.handled;
+    }
+    if (key == LogicalKeyboardKey.arrowUp) {
+      _moveHighlight(-1);
+      return KeyEventResult.handled;
+    }
+    if (key == LogicalKeyboardKey.enter || key == LogicalKeyboardKey.numpadEnter) {
+      if (_filtered.isNotEmpty) {
+        Navigator.of(context).pop(_filtered[_highlighted]);
+      }
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       height: MediaQuery.of(context).size.height * 0.72,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppPalette.sheet,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
         children: [
@@ -1736,12 +3229,12 @@ class _StockItemPickerSheetState extends State<_StockItemPickerSheet> {
             height: 4,
             decoration: BoxDecoration(color: AppPalette.line, borderRadius: BorderRadius.circular(99)),
           ),
-          if (widget.changingFrom != null) ...[
-            const SizedBox(height: 14),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
+          const SizedBox(height: 10),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 8, 0),
+            child: Row(
+              children: [
+                if (widget.changingFrom != null) ...[
                   Text(
                     'Changing From : ',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -1759,30 +3252,59 @@ class _StockItemPickerSheetState extends State<_StockItemPickerSheet> {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                ],
-              ),
+                ] else
+                  const Spacer(),
+                const SizedBox(width: 8),
+                Text(
+                  'count : ${_filtered.length}',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppPalette.muted,
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'All items',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: _showAll ? AppPalette.ink : AppPalette.muted,
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+                Switch(
+                  value: _showAll,
+                  onChanged: (v) {
+                    setState(() => _showAll = v);
+                    _load();
+                  },
+                ),
+              ],
             ),
-          ],
+          ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
-            child: TextField(
-              controller: _controller,
-              autofocus: true,
-              decoration: InputDecoration(
-                hintText: 'Search stock items…',
-                hintStyle: const TextStyle(fontSize: 13),
-                prefixIcon: const Icon(Icons.search_rounded, size: 20),
-                suffixIcon: _controller.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear_rounded, size: 18),
-                        onPressed: _controller.clear,
-                      )
-                    : null,
-                filled: true,
-                fillColor: AppPalette.gridHeader,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                isDense: true,
+            // Intercepts Down/Up/Enter before the text field handles them, so
+            // the user can navigate the list without leaving the search box.
+            child: Focus(
+              onKeyEvent: _onSearchKey,
+              child: TextField(
+                controller: _controller,
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: 'Search stock items…',
+                  hintStyle: const TextStyle(fontSize: 13),
+                  prefixIcon: const Icon(Icons.search_rounded, size: 20),
+                  suffixIcon: _controller.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear_rounded, size: 18),
+                          onPressed: _controller.clear,
+                        )
+                      : null,
+                  filled: true,
+                  fillColor: AppPalette.gridHeader,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                  isDense: true,
+                ),
               ),
             ),
           ),
@@ -1790,14 +3312,19 @@ class _StockItemPickerSheetState extends State<_StockItemPickerSheet> {
             child: _loading
                 ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
                 : ListView.separated(
+                    controller: _scrollController,
                     padding: const EdgeInsets.only(bottom: 24),
                     itemCount: _filtered.length,
                     separatorBuilder: (_, i2) => Divider(height: 1, color: AppPalette.line.withValues(alpha: 0.5)),
                     itemBuilder: (ctx, i) {
                       final s = _filtered[i];
                       return InkWell(
+                        key: _keyFor(i),
                         onTap: () => Navigator.of(context).pop(s),
-                        child: Padding(
+                        child: Container(
+                          color: i == _highlighted
+                              ? AppPalette.ink.withValues(alpha: 0.06)
+                              : null,
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                           child: Row(
                             children: [
@@ -1806,8 +3333,15 @@ class _StockItemPickerSheetState extends State<_StockItemPickerSheet> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(s.name, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                                    if (s.partCode.isNotEmpty)
+                                      Text(s.partCode, style: TextStyle(fontSize: 11, color: AppPalette.muted, fontWeight: FontWeight.w600)),
                                     if (s.groupName.isNotEmpty)
-                                      Text(s.groupName, style: const TextStyle(fontSize: 11, color: AppPalette.muted)),
+                                      Text(s.groupName, style: TextStyle(fontSize: 11, color: AppPalette.muted)),
+                                    // Tier-2: rate borrowed from another party —
+                                    // this customer has never bought this item.
+                                    if (s.source == 'different_party')
+                                      const Text('New to this party · rate from another party',
+                                          style: TextStyle(fontSize: 11, color: Color(0xFFDC2626), fontWeight: FontWeight.w700)),
                                   ],
                                 ),
                               ),
@@ -1830,20 +3364,161 @@ class _StockItemPickerSheetState extends State<_StockItemPickerSheet> {
 
 // ── Push-to-Tally confirmation dialog ─────────────────────────────────────────
 
-class _PushConfirmDialog extends StatelessWidget {
-  const _PushConfirmDialog();
+// ── Stock-item validation (runs after "Yes", before the actual push) ──────────
+// Shows a "Stock Items Validation Check" spinner, then verifies every invoice
+// line exists in the cached stock catalog. Pops `true` when all items exist
+// (caller proceeds to push); on any miss it lists the offending names and pops
+// `false` on OK (caller does not push).
+class _StockValidationDialog extends StatefulWidget {
+  const _StockValidationDialog({required this.itemNames});
+
+  final List<String> itemNames;
+
+  @override
+  State<_StockValidationDialog> createState() => _StockValidationDialogState();
+}
+
+class _StockValidationDialogState extends State<_StockValidationDialog> {
+  bool _checking = true;
+  List<String> _missing = const [];
+
+  @override
+  void initState() {
+    super.initState();
+    _runCheck();
+  }
+
+  Future<void> _runCheck() async {
+    // Brief delay so the "checking" state is actually visible for this
+    // otherwise-instant in-memory lookup.
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+    if (!mounted) return;
+
+    final cache = StockItemsCache.instance;
+    // Fail-open: an empty catalog means the fetch never succeeded, so we can't
+    // validate. Don't strand the user — proceed to push (same as before).
+    if (cache.items.isEmpty) {
+      Navigator.of(context).pop(true);
+      return;
+    }
+
+    final missing = <String>[];
+    final seen = <String>{};
+    for (final raw in widget.itemNames) {
+      if (!cache.exists(raw) && seen.add(raw.trim().toLowerCase())) {
+        missing.add(raw);
+      }
+    }
+
+    if (missing.isEmpty) {
+      Navigator.of(context).pop(true);
+    } else {
+      setState(() {
+        _checking = false;
+        _missing = missing;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+    return _DialogFrame(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
+        child: _checking ? _buildChecking(context) : _buildMissing(context),
+      ),
+    );
+  }
+
+  Widget _buildChecking(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const SizedBox(
+          width: 40,
+          height: 40,
+          child: CircularProgressIndicator(
+            strokeWidth: 3,
+            valueColor: AlwaysStoppedAnimation<Color>(AppPalette.accent),
+          ),
+        ),
+        const SizedBox(height: 20),
+        Text(
+          'Stock Items Validation Check',
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                height: 1.4,
+              ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMissing(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Icon(Icons.error_outline_rounded, size: 44, color: AppPalette.accent),
+        const SizedBox(height: 16),
+        Flexible(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (final name in _missing) ...[
+                  Text(
+                    'This Item \'$name\' does not Exist, Please edit',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: AppPalette.accent,
+                          height: 1.4,
+                        ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          style: FilledButton.styleFrom(
+            backgroundColor: AppPalette.accent,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            textStyle: const TextStyle(fontWeight: FontWeight.w700),
+          ),
+          child: const Text('OK'),
+        ),
+      ],
+    );
+  }
+}
+
+// Yes/Cancel confirm shown before opening or pushing a duplicate voucher. The
+// full prompt (e.g. "This Invoice Is Already Pushed, Are you sure you want to
+// open it") is passed in; returns true on Yes, false/null on Cancel. Styled to
+// match _PushConfirmDialog.
+class DuplicateActionDialog extends StatelessWidget {
+  const DuplicateActionDialog({super.key, required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return _DialogFrame(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Are You Sure You Want To Push This invoice to Tally Prime',
+              message,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w700,
@@ -1858,7 +3533,7 @@ class _PushConfirmDialog extends StatelessWidget {
                     onPressed: () => Navigator.of(context).pop(false),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppPalette.inkSoft,
-                      side: const BorderSide(color: AppPalette.line, width: 1.4),
+                      side: BorderSide(color: AppPalette.line, width: 1.4),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       textStyle: const TextStyle(fontWeight: FontWeight.w700),
@@ -1889,22 +3564,19 @@ class _PushConfirmDialog extends StatelessWidget {
   }
 }
 
-// ── Discard confirmation dialog ───────────────────────────────────────────────
-
-class _DiscardConfirmDialog extends StatelessWidget {
-  const _DiscardConfirmDialog();
+class _PushConfirmDialog extends StatelessWidget {
+  const _PushConfirmDialog();
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+    return _DialogFrame(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Are you sure you want to discard this invoice?',
+              'Are You Sure You Want To Push This invoice to Tally Prime',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w700,
@@ -1919,7 +3591,7 @@ class _DiscardConfirmDialog extends StatelessWidget {
                     onPressed: () => Navigator.of(context).pop(false),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppPalette.inkSoft,
-                      side: const BorderSide(color: AppPalette.line, width: 1.4),
+                      side: BorderSide(color: AppPalette.line, width: 1.4),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       textStyle: const TextStyle(fontWeight: FontWeight.w700),
@@ -1938,7 +3610,268 @@ class _DiscardConfirmDialog extends StatelessWidget {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       textStyle: const TextStyle(fontWeight: FontWeight.w700),
                     ),
-                    child: const Text('Discard'),
+                    child: const Text('Yes'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Save-before-push notice (shown when pushing with edit mode still on) ───────
+
+class _SaveBeforePushDialog extends StatelessWidget {
+  const _SaveBeforePushDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    return _DialogFrame(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Kindly Save the invoice before pushing to tally',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    height: 1.4,
+                  ),
+            ),
+            const SizedBox(height: 28),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: () => Navigator.of(context).pop(),
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppPalette.accent,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  textStyle: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+                child: const Text('OK'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Sale-pushed confirmation modal ────────────────────────────────────────────
+// Shown after a sale voucher is successfully pushed to Tally: customer, amount
+// and the push date/time.
+
+class _SalePushedDialog extends StatelessWidget {
+  const _SalePushedDialog({
+    required this.customerName,
+    required this.amount,
+    required this.pushedAt,
+  });
+
+  final String customerName;
+  final double amount;
+  final DateTime pushedAt;
+
+  String get _dateTime {
+    final d = pushedAt;
+    final dd = d.day.toString().padLeft(2, '0');
+    final mm = d.month.toString().padLeft(2, '0');
+    final hour12 = d.hour % 12 == 0 ? 12 : d.hour % 12;
+    final hh = hour12.toString().padLeft(2, '0');
+    final min = d.minute.toString().padLeft(2, '0');
+    final ampm = d.hour < 12 ? 'AM' : 'PM';
+    return '$dd/$mm/${d.year}, $hh:$min $ampm';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _DialogFrame(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Icon(Icons.check_circle_rounded, size: 48, color: Color(0xFF16A34A)),
+            const SizedBox(height: 16),
+            Text(
+              'Pushed to Tally',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            const SizedBox(height: 20),
+            _SalePushedRow(label: 'Customer Name', value: customerName),
+            const SizedBox(height: 12),
+            _SalePushedRow(label: 'Amount', value: formatCurrency(amount)),
+            const SizedBox(height: 12),
+            _SalePushedRow(label: 'Date and Time', value: _dateTime),
+            const SizedBox(height: 28),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppPalette.accent,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                textStyle: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SalePushedRow extends StatelessWidget {
+  const _SalePushedRow({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 120,
+          child: Text(
+            label,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppPalette.inkSoft,
+                ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Sale push-failed modal ────────────────────────────────────────────────────
+// Shown when a sale push comes back with created:0 / errors (or status failed):
+// a cross sign, the customer, and the Tally error message.
+
+class _SalePushFailedDialog extends StatelessWidget {
+  const _SalePushFailedDialog({
+    required this.customerName,
+    required this.errorMessage,
+  });
+
+  final String customerName;
+  final String errorMessage;
+
+  @override
+  Widget build(BuildContext context) {
+    return _DialogFrame(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Icon(Icons.cancel_rounded, size: 48, color: AppPalette.accent),
+            const SizedBox(height: 16),
+            Text(
+              'Not Pushed to Tally',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            const SizedBox(height: 20),
+            _SalePushedRow(label: 'Customer Name', value: customerName),
+            const SizedBox(height: 12),
+            _SalePushedRow(label: 'Error', value: errorMessage),
+            const SizedBox(height: 28),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppPalette.accent,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                textStyle: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Discard confirmation dialog ───────────────────────────────────────────────
+
+class _DiscardConfirmDialog extends StatelessWidget {
+  const _DiscardConfirmDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    return _DialogFrame(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Are you sure You want to delete this Invoice',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    height: 1.4,
+                  ),
+            ),
+            const SizedBox(height: 28),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppPalette.inkSoft,
+                      side: BorderSide(color: AppPalette.line, width: 1.4),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      textStyle: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    child: const Text('Cancel'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: FilledButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppPalette.accent,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      textStyle: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    child: const Text('Yes'),
                   ),
                 ),
               ],
@@ -1957,8 +3890,7 @@ class _DuplicatePurchaseDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+    return _DialogFrame(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 36),
         child: Column(
@@ -1999,6 +3931,137 @@ class _DuplicatePurchaseDialog extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+// Caps dialog width so confirmation dialogs read as a centered card on web
+// instead of stretching into a full-width band. On phones the inset padding
+// keeps them narrower than 420, so this only kicks in on wide screens.
+class _DialogFrame extends StatelessWidget {
+  const _DialogFrame({required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 420),
+        child: child,
+      ),
+    );
+  }
+}
+
+// Document-style viewer for the scanned invoice pages stored in GCS: every page
+// is stacked top-to-bottom in one scroll, so a multi-page invoice is read by
+// scrolling (no slider). Each page is fetched lazily from the backend
+// (`/api/sync/push-queue/{rowId}/image/{n}`) with the app's Firebase auth and
+// cached so scrolling back doesn't re-download.
+class _StoredInvoiceImages extends StatefulWidget {
+  const _StoredInvoiceImages({
+    required this.rowId,
+    required this.pageCount,
+    this.scale = 1.0,
+  });
+
+  final String rowId;
+  final int pageCount;
+  // Zoom factor from the image pane's zoom buttons; 1.0 fits the pane width,
+  // larger widens each page and reveals a horizontal scroll.
+  final double scale;
+
+  @override
+  State<_StoredInvoiceImages> createState() => _StoredInvoiceImagesState();
+}
+
+class _StoredInvoiceImagesState extends State<_StoredInvoiceImages> {
+  final Map<int, Future<Uint8List>> _pageFutures = {};
+
+  Future<Uint8List> _loadPage(int page) {
+    return _pageFutures.putIfAbsent(
+      page,
+      () => ApiClient.getBytes('/api/sync/push-queue/${widget.rowId}/image/$page'),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final multiPage = widget.pageCount > 1;
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      itemCount: widget.pageCount,
+      itemBuilder: (context, page) {
+        return Padding(
+          padding: EdgeInsets.only(bottom: page == widget.pageCount - 1 ? 0 : 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (multiPage)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Text(
+                    'Page ${page + 1} of ${widget.pageCount}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppPalette.muted,
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                ),
+              FutureBuilder<Uint8List>(
+                future: _loadPage(page),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState != ConnectionState.done) {
+                    return Container(
+                      height: 360,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: AppPalette.gridHeader,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppPalette.line, width: 1),
+                      ),
+                      child: const SizedBox(
+                        width: 30,
+                        height: 30,
+                        child: CircularProgressIndicator(strokeWidth: 2.5),
+                      ),
+                    );
+                  }
+                  if (snapshot.hasError || snapshot.data == null) {
+                    return Container(
+                      height: 120,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: AppPalette.gridHeader,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppPalette.line, width: 1),
+                      ),
+                      child: Text(
+                        'Couldn\'t load this page.',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppPalette.muted),
+                      ),
+                    );
+                  }
+                  return LayoutBuilder(
+                    builder: (context, c) => SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.memory(
+                          snapshot.data!,
+                          fit: BoxFit.fitWidth,
+                          width: c.maxWidth * widget.scale,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

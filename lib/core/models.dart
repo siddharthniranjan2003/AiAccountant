@@ -10,6 +10,32 @@ extension TransactionTypeLabel on TransactionType {
 
 enum QueueStatus { pending, processing, done }
 
+// Lifecycle marker for a row whose voucher was touched in the detail sheet.
+// `underEdit`  → sheet closed while still mid-edit (changes not saved).
+// `edited`     → edits were saved back to the row.
+// Persisted in push_queue.edit_state so the tag survives a cold start and shows
+// on every client; rowToEntry reads it back. The queue also keeps a short-lived
+// local overlay, only so the tag appears instantly before the realtime echo lands.
+enum QueueEditState {
+  none,
+  underEdit,
+  edited;
+
+  // Serialized form stored in the push_queue.edit_state column. `none` ⇒ NULL
+  // (the column is cleared, e.g. on a Revert).
+  String? get dbValue => switch (this) {
+        QueueEditState.none => null,
+        QueueEditState.underEdit => 'under_edit',
+        QueueEditState.edited => 'edited',
+      };
+
+  static QueueEditState fromDb(String? raw) => switch (raw) {
+        'under_edit' => QueueEditState.underEdit,
+        'edited' => QueueEditState.edited,
+        _ => QueueEditState.none,
+      };
+}
+
 enum ToastKind { processing, success, info }
 
 @immutable
@@ -21,10 +47,11 @@ class QueueEntry {
     required this.amount,
     required this.dayLabel,
     required this.timeLabel,
+    this.sortKey = 0,
     this.checked = false,
     this.status = QueueStatus.pending,
     this.scanResult,
-    this.isBeingEdited = false,
+    this.editState = QueueEditState.none,
     this.imageBytes,
   });
 
@@ -34,16 +61,36 @@ class QueueEntry {
   final double amount;
   final String dayLabel;
   final String timeLabel;
+  // Epoch millis of created_at; used to sort the queue newest-first. 0 = unknown.
+  final int sortKey;
   final bool checked;
   final QueueStatus status;
   final Map<String, dynamic>? scanResult;
-  final bool isBeingEdited;
+  final QueueEditState editState;
   final Uint8List? imageBytes;
+
+  // True when the backend has flagged this voucher as already present in
+  // TallyPrime (voucher_payload.invoice_exists). Tolerant of bool or string.
+  bool get invoiceExists {
+    final v = scanResult?['invoice_exists'];
+    return v == true || v == 'true';
+  }
+
+  // Invoice number to surface under the party name. Prefer `reference` (the
+  // reliable supplier invoice number on live data); `voucher_number` is a
+  // blank/unreliable fallback. Null when neither is present.
+  String? get invoiceNumber {
+    final ref = (scanResult?['reference'] as String?)?.trim();
+    if (ref != null && ref.isNotEmpty) return ref;
+    final vno = (scanResult?['voucher_number'] as String?)?.trim();
+    if (vno != null && vno.isNotEmpty) return vno;
+    return null;
+  }
 
   QueueEntry copyWith({
     bool? checked,
     QueueStatus? status,
-    bool? isBeingEdited,
+    QueueEditState? editState,
   }) {
     return QueueEntry(
       id: id,
@@ -52,10 +99,11 @@ class QueueEntry {
       amount: amount,
       dayLabel: dayLabel,
       timeLabel: timeLabel,
+      sortKey: sortKey,
       checked: checked ?? this.checked,
       status: status ?? this.status,
       scanResult: scanResult,
-      isBeingEdited: isBeingEdited ?? this.isBeingEdited,
+      editState: editState ?? this.editState,
       imageBytes: imageBytes,
     );
   }

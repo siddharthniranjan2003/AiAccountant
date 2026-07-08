@@ -47,10 +47,20 @@ app.*.map.json
 # Firebase credentials — never commit these
 /firebase_cred/
 android/app/google-services.json
+android/app/src/*/google-services.json
 lib/firebase_options.dart
+.firebase/
 
 # Secrets & env
 .env
+.env.testing
+.env_clinet
+env/
+.mcp.json
+
+# Editor / tooling caches
+.obsidian/
+android/.kotlin/
 
 # Claude session files
 .claude/

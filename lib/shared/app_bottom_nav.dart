@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import '../core/palette.dart';
 import '../core/constants.dart';
@@ -25,6 +26,9 @@ class AppBottomNav extends StatelessWidget {
       child: Row(
         children: [
           for (int index = 0; index < bottomNavItems.length; index++)
+            // The Camera entry (document scanner) is Android-only; hide it on
+            // web while keeping the index mapping intact for the other tabs.
+            if (!(kIsWeb && index == 2))
             Expanded(
               child: InkWell(
                 onTap: () => onSelected(index),

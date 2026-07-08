@@ -25,6 +25,7 @@ class QueueScreen extends StatefulWidget {
     this.loadingCount = 0,
     this.oldestLoadingStart,
     this.garbageRows = const [],
+    this.pushedReferences = const <String>{},
   });
 
   final int currentIndex;
@@ -43,6 +44,10 @@ class QueueScreen extends StatefulWidget {
   // to the active tab and pinned above the day groups; tapping one opens an
   // image-only sheet with a delete action.
   final List<QueueEntry> garbageRows;
+  // Supplier invoice references of already-pushed purchase vouchers (now in
+  // History). A queue purchase row whose reference is in here is flagged
+  // "Duplicate: Already Pushed" — see [_alreadyPushedIds].
+  final Set<String> pushedReferences;
 
   @override
   State<QueueScreen> createState() => _QueueScreenState();
@@ -58,7 +63,7 @@ class _QueueScreenState extends State<QueueScreen> {
   final Map<String, QueueEditState> _editMarkers = {};
 
   TransactionType get _activeType =>
-      widget.tabIndex == 0 ? TransactionType.sale : TransactionType.purchase;
+      widget.tabIndex == 0 ? TransactionType.purchase : TransactionType.sale;
 
   // Filtered to the active tab, tagged with any local edit marker, and sorted
   // newest-first by created_at. Sorting the flat list before grouping/serials
@@ -79,7 +84,7 @@ class _QueueScreenState extends State<QueueScreen> {
     );
   }
 
-  void _openVoucherDetailSheet(QueueEntry entry) {
+  void _openVoucherDetailSheet(QueueEntry entry, DuplicateKind duplicateKind) {
     // entry.editState already reflects the persisted tag (and any optimistic
     // overlay applied in _visibleRows), so seed the session trackers from it —
     // simply viewing and closing a tagged row then leaves it untouched.
@@ -119,6 +124,7 @@ class _QueueScreenState extends State<QueueScreen> {
         // After a push, re-fetch from Supabase so the row reflects its new
         // push_now status (instead of vanishing until a manual reload).
         onPushed: widget.onRefresh,
+        duplicateKind: duplicateKind,
       ),
     ).then((_) async {
       if (!mounted) return;
@@ -214,19 +220,21 @@ class _QueueScreenState extends State<QueueScreen> {
     );
   }
 
-  void _openChallanSheet(QueueEntry entry) {
+  Future<void> _openChallanSheet(QueueEntry entry, DuplicateKind duplicateKind) async {
     if (entry.scanResult?['__garbage'] == true) {
       _openGarbageSheet(entry);
       return;
     }
-    if (entry.invoiceExists) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('This Invoice Is Already In TallyPrime'),
-          duration: Duration(seconds: 3),
+    // Duplicate rows are openable, but confirm first with a kind-specific prompt
+    // so the user knows they're opening a flagged invoice.
+    if (duplicateKind != DuplicateKind.none) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (_) => DuplicateActionDialog(
+          message: '${duplicateKind.baseMessage}, Are you sure you want to open it',
         ),
       );
-      return;
+      if (confirmed != true || !mounted) return;
     }
     final r = entry.scanResult;
     if (r == null) return;
@@ -235,10 +243,23 @@ class _QueueScreenState extends State<QueueScreen> {
         r.containsKey('sale_voucher_payload') ||
         r.containsKey('parsed') ||
         r.containsKey('ocr')) {
-      _openVoucherDetailSheet(entry);
+      _openVoucherDetailSheet(entry, duplicateKind);
     } else {
       _openScanResultSheet(r);
     }
+  }
+
+  // Why this row is flagged a duplicate, in label precedence order (matches
+  // queue_row_tile): already-pushed > already-in-queue > backend invoice_exists.
+  DuplicateKind _duplicateKindFor(
+    QueueEntry entry,
+    Set<String> alreadyPushedIds,
+    Set<String> queueDuplicateIds,
+  ) {
+    if (alreadyPushedIds.contains(entry.id)) return DuplicateKind.alreadyPushed;
+    if (queueDuplicateIds.contains(entry.id)) return DuplicateKind.alreadyExistsInQueue;
+    if (entry.invoiceExists) return DuplicateKind.alreadyExistsInTally;
+    return DuplicateKind.none;
   }
 
   Map<String, List<QueueEntry>> _groupRows(List<QueueEntry> rows) {
@@ -268,11 +289,30 @@ class _QueueScreenState extends State<QueueScreen> {
     return duplicates;
   }
 
+  // Ids of purchase rows whose invoice reference already exists among pushed
+  // vouchers (History) — the original has reached Tally, so every queue copy is a
+  // duplicate (not just the newer ones). Blank references never match. Purchase-
+  // only, matching the in-queue dedupe.
+  Set<String> _alreadyPushedIds(List<QueueEntry> rows) {
+    if (_activeType != TransactionType.purchase || widget.pushedReferences.isEmpty) {
+      return const {};
+    }
+    final pushed = <String>{};
+    for (final entry in rows) {
+      final reference =
+          (entry.scanResult?['reference'] as String?)?.trim() ?? '';
+      if (reference.isEmpty) continue;
+      if (widget.pushedReferences.contains(reference)) pushed.add(entry.id);
+    }
+    return pushed;
+  }
+
   @override
   Widget build(BuildContext context) {
     final visibleRows = _visibleRows;
     final groupedRows = _groupRows(visibleRows);
     final queueDuplicateIds = _queueDuplicateIds(visibleRows);
+    final alreadyPushedIds = _alreadyPushedIds(visibleRows);
     final serialLookup = <String, int>{
       for (int index = 0; index < visibleRows.length; index++)
         visibleRows[index].id: index + 1,
@@ -290,7 +330,7 @@ class _QueueScreenState extends State<QueueScreen> {
       body: Column(
         children: [
           AppTopTabs(
-            labels: const ['Sale', 'Purchase'],
+            labels: const ['Purchase', 'Sale'],
             selectedIndex: widget.tabIndex,
             onSelected: widget.onTabChanged,
           ),
@@ -337,7 +377,8 @@ class _QueueScreenState extends State<QueueScreen> {
                                     entry: garbageRows[index],
                                     isFirst: index == 0,
                                     serialNumber: index + 1,
-                                    onPartyTap: () => _openChallanSheet(garbageRows[index]),
+                                    onPartyTap: () => _openChallanSheet(
+                                        garbageRows[index], DuplicateKind.none),
                                   ),
                               ],
                             ),
@@ -370,7 +411,13 @@ class _QueueScreenState extends State<QueueScreen> {
                                     serialNumber: serialLookup[group.value[index].id]!,
                                     isQueueDuplicate:
                                         queueDuplicateIds.contains(group.value[index].id),
-                                    onPartyTap: () => _openChallanSheet(group.value[index]),
+                                    isAlreadyPushed:
+                                        alreadyPushedIds.contains(group.value[index].id),
+                                    onPartyTap: () => _openChallanSheet(
+                                      group.value[index],
+                                      _duplicateKindFor(group.value[index],
+                                          alreadyPushedIds, queueDuplicateIds),
+                                    ),
                                   ),
                               ],
                             ),

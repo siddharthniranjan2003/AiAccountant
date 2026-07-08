@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../core/error_reporter.dart';
 import '../core/models.dart';
 
 class PushQueueService {
@@ -11,6 +12,23 @@ class PushQueueService {
 
   RealtimeChannel? _channel;
   List<QueueEntry> _entries = [];
+
+  // Trimmed, non-blank supplier invoice references of already-pushed PURCHASE
+  // rows (i.e. vouchers that moved to History). The queue's duplicate check reads
+  // this to flag a re-uploaded invoice whose original has already been pushed —
+  // those rows are no longer in _entries, so this is the only way the queue can
+  // see them. Purchase-only, mirroring the queue-side dedupe.
+  final Set<String> _pushedPurchaseReferences = {};
+  Set<String> get pushedPurchaseReferences => _pushedPurchaseReferences;
+
+  // The purchase reference on a raw push_queue row, or '' when blank/absent or
+  // the row is a sale. Classification matches rowToEntry (SALE vs purchase).
+  static String _purchaseReferenceOf(Map<String, dynamic> row) {
+    final payload = parsePayload(row['voucher_payload']);
+    final voucherType = (payload['voucher_type'] as String? ?? '').toUpperCase();
+    if (voucherType.contains('SALE')) return '';
+    return (payload['reference'] as String?)?.trim() ?? '';
+  }
 
   static bool isActiveStatus(String? status) =>
       status == 'pending' || status == 'push_now' || status == 'failed';
@@ -60,6 +78,12 @@ class PushQueueService {
             // reappear on the next refresh.
             if (newStatus == 'pushed') {
               _entries = _entries.where((e) => e.id != entryId).toList();
+              // The row is leaving the queue for History — remember its purchase
+              // reference so a later re-upload is flagged "Already Pushed".
+              // Best-effort: a realtime echo may drop the TOASTed voucher_payload,
+              // in which case the next refresh() recomputes the set authoritatively.
+              final ref = _purchaseReferenceOf(row);
+              if (ref.isNotEmpty) _pushedPurchaseReferences.add(ref);
             } else {
               var updated = rowToEntry(row);
               final exists = _entries.any((e) => e.id == entryId);
@@ -97,8 +121,27 @@ class PushQueueService {
           .cast<Map<String, dynamic>>()
           .map(rowToEntry)
           .toList();
+
+      // Rebuild the pushed-purchase-reference set for the queue duplicate check.
+      // Only voucher_payload is needed; parse + classify in Dart via the shared
+      // helpers so the SALE/purchase rule stays in one place.
+      final pushed = await Supabase.instance.client
+          .from('push_queue')
+          .select('voucher_payload')
+          .eq('status', 'pushed');
+      _pushedPurchaseReferences
+        ..clear()
+        ..addAll((pushed as List)
+            .cast<Map<String, dynamic>>()
+            .map(_purchaseReferenceOf)
+            .where((ref) => ref.isNotEmpty));
+
       onEntriesChanged(List.of(_entries));
-    } catch (_) {}
+    } catch (e, st) {
+      // A failure here leaves the visible queue empty/stale — surface it instead
+      // of swallowing (cf. the push_queue column-drift incident).
+      reportHandledError('supabase.push_queue.refresh', e, stackTrace: st);
+    }
   }
 
   void unsubscribe() => _channel?.unsubscribe();

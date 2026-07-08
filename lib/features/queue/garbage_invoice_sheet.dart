@@ -48,9 +48,9 @@ class _GarbageInvoiceSheetState extends State<GarbageInvoiceSheet> {
     final hasImages = widget.pageCount > 0;
     return Container(
       height: height * 0.9,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppPalette.sheet,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: SafeArea(
         top: false,
@@ -84,13 +84,32 @@ class _GarbageInvoiceSheetState extends State<GarbageInvoiceSheet> {
             const SizedBox(height: 12),
             Expanded(
               child: hasImages
-                  ? ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: widget.pageCount,
-                      itemBuilder: (context, page) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: _GarbagePage(future: _loadPage(page)),
-                      ),
+                  ? LayoutBuilder(
+                      builder: (context, constraints) {
+                        // Cap the page image to 45% of the sheet width, centered.
+                        final imageWidth = constraints.maxWidth * 0.45;
+                        return ListView(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          children: [
+                            for (var page = 0; page < widget.pageCount; page++)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: Center(
+                                  child: SizedBox(
+                                    width: imageWidth,
+                                    child: _GarbagePage(future: _loadPage(page)),
+                                  ),
+                                ),
+                              ),
+                            Center(
+                              child: SizedBox(
+                                width: imageWidth,
+                                child: const _ScanTips(),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     )
                   : Center(
                       child: Text(
@@ -149,6 +168,78 @@ class _GarbagePage extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+// Scanning guidance shown below the failed scan image.
+class _ScanTips extends StatelessWidget {
+  const _ScanTips();
+
+  static const _tips = [
+    'Place the invoice on a flat, well-lit surface.',
+    'Fit the whole invoice in the frame, including all edges.',
+    'Hold the camera steady to avoid blur, glare, and shadows.',
+    'Keep the paper flat and straight — no folds or tilt.',
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Tips',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+              const SizedBox(width: 6),
+              const Icon(Icons.lightbulb_rounded, size: 18, color: Color(0xFFF59E0B)),
+              const SizedBox(width: 6),
+              Text(
+                'for better scan',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          for (final tip in _tips)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(top: 6, right: 8),
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: AppPalette.muted,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      tip,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: AppPalette.muted,
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

@@ -60,9 +60,10 @@ class _CameraScreenState extends State<CameraScreen> {
         return FractionallySizedBox(
           heightFactor: 0.44,
           child: Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: AppPalette.sheet,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(28)),
             ),
             child: Column(
               children: [
