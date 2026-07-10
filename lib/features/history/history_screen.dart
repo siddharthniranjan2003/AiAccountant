@@ -59,6 +59,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
       setState(() {
         _pushedRowsById.clear();
         for (final row in (response as List).cast<Map<String, dynamic>>()) {
+          // Stock-item create jobs share push_queue but aren't vouchers —
+          // keep them out of History (they'd render as "Unknown").
+          if (_parsePayload(row['voucher_payload'])['kind'] == 'stock_item') {
+            continue;
+          }
           final id = row['id']?.toString() ?? '';
           if (id.isNotEmpty) _pushedRowsById[id] = row;
         }
@@ -127,6 +132,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
       } catch (_) {}
     }
     if (!mounted) return;
+    // Skip stock-item create jobs (checked on the full row, after the TOAST
+    // re-fetch above, so a payload-less echo can't slip one through).
+    if (_parsePayload(full['voucher_payload'])['kind'] == 'stock_item') return;
     setState(() => _pushedRowsById[id] = full);
   }
 

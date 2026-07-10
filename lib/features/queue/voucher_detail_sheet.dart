@@ -15,6 +15,7 @@ import '../../data/vendors_cache.dart';
 import '../../data/stock_items_cache.dart';
 import '../../services/api_client.dart';
 import '../../shared/responsive.dart';
+import '../stock/stock_item_create_sheet.dart';
 
 // ── View mode enum ────────────────────────────────────────────────────────────
 
@@ -579,9 +580,11 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
   }
 
   // Adds a new line to the voucher. Opens the stock picker (sale → party-aware
-  // history; purchase → catalog) and appends the chosen item to _editableItems
+  // history; purchase → catalog) and inserts the chosen item into _editableItems
   // (qty defaults to 1), then rescales the Charges block. Persists on Save.
-  Future<void> _addItem() async {
+  // `at` places the line at that index (used by the between-rows insert dividers
+  // to match the paper invoice order); null appends to the end (toolbar "Add").
+  Future<void> _addItem({int? at}) async {
     // Adding a line is an edit, so enter edit mode first if we aren't already.
     // _toggleEdit captures the originals snapshot and seeds the editable copies,
     // and enforces the pending/loading guards (it stays in view mode if blocked).
@@ -617,7 +620,7 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
       final unit = selected.unit.isNotEmpty
           ? selected.unit
           : StockItemsCache.instance.unitFor(selected.name);
-      _editableItems.add({
+      final newItem = {
         'stock_item_name': selected.name,
         'quantity': qty,
         'rate': selected.rate,
@@ -625,11 +628,28 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
         'amount': gross - discount,
         'unit': unit.isNotEmpty ? unit : 'NOS',
         'godown_name': 'Main Location',
-      });
+        // Carry the same nullable keys every parsed item has, so the persisted
+        // items array stays homogeneous and the Tally push can't hit a missing
+        // key on an added/inserted line.
+        'batch_name': null,
+        'destination_godown_name': null,
+      };
+      // Clamp the insert index defensively; null (toolbar Add) appends.
+      if (at != null && at >= 0 && at <= _editableItems.length) {
+        _editableItems.insert(at, newItem);
+      } else {
+        _editableItems.add(newItem);
+      }
     });
     _recomputeChargesFromItems();
     _notifyEditState();
   }
+
+  // Header "Create New Item": creates a stock master in TallyPrime only. It does
+  // not add a line to this voucher (that is what Add does, which can create from
+  // inside its picker and then append the result). The created item lands in
+  // StockItemsCache, so a later Add finds it without waiting for the next sync.
+  Future<void> _createStockItem() => showStockItemCreateSheet(context);
 
   // Opens a calendar for the Date field and stores the pick as ISO yyyy-MM-dd.
   Future<void> _pickDate(BuildContext context, String? rawDate) async {
@@ -1405,6 +1425,25 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
                                 child: const Text('Revert'),
                               ),
                             ],
+                            const SizedBox(width: 8),
+                            // Creates a stock master in TallyPrime without
+                            // touching this voucher (unlike Add, which appends a
+                            // line). Same sheet the picker's "Create new stock
+                            // item" row opens, so it needs no edit mode.
+                            FilledButton.icon(
+                              onPressed: _createStockItem,
+                              icon: const Icon(Icons.add_circle_outline_rounded, size: 16),
+                              label: const Text('Create New Item'),
+                              style: FilledButton.styleFrom(
+                                backgroundColor: const Color(0xFFDCFCE7),
+                                foregroundColor: const Color(0xFF15803D),
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+                              ),
+                            ),
                           ],
                         ),
                         ], // pendingPayload == null
@@ -1811,7 +1850,13 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
         borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
       ),
       child: Column(children: [
-        for (var i = 0; i < displayItems.length; i++)
+        for (var i = 0; i < displayItems.length; i++) ...[
+          // Insert-between affordance: hovering the gap above a row reveals an
+          // "Insert item here" bar that opens the picker and slots the choice at
+          // this index, so a line the parse missed can be placed to match the
+          // paper order instead of only appending via the toolbar "Add".
+          if (_isEditing && !widget.readOnly)
+            _InsertItemDivider(wide: wide, onTap: () => _addItem(at: i)),
           _SheetItemRow(
             item: displayItems[i],
             serialNumber: i + 1,
@@ -1879,6 +1924,7 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
               _notifyEditState();
             },
           ),
+        ],
       ]),
     );
 
@@ -2408,6 +2454,84 @@ class _SheetColHeader extends StatelessWidget {
     return SizedBox(
       width: width,
       child: Text(label, textAlign: TextAlign.right, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
+    );
+  }
+}
+
+// Thin insert-between affordance rendered above each item row in edit mode.
+// On desktop the bar stays invisible until the pointer hovers the gap, then a
+// blue line + "Insert item here" pill fades in (mirrors the queue "Add" accent).
+// On phones there is no hover, so the pill shows faintly to stay discoverable.
+// Tapping opens the stock picker and inserts the choice at this row's index.
+class _InsertItemDivider extends StatefulWidget {
+  const _InsertItemDivider({required this.wide, required this.onTap});
+  final bool wide;
+  final VoidCallback onTap;
+
+  @override
+  State<_InsertItemDivider> createState() => _InsertItemDividerState();
+}
+
+class _InsertItemDividerState extends State<_InsertItemDivider> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    const accent = Color(0xFF1D4ED8);
+    // Phones can't hover: keep the pill faintly visible so the gap is findable.
+    final restingOpacity = widget.wide ? 0.0 : 0.5;
+    final active = _hover || !widget.wide;
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: widget.onTap,
+        child: SizedBox(
+          height: 20,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 120),
+                  height: 1.5,
+                  color: _hover ? accent.withValues(alpha: 0.5) : Colors.transparent,
+                ),
+              ),
+              AnimatedOpacity(
+                duration: const Duration(milliseconds: 120),
+                opacity: _hover ? 1.0 : restingOpacity,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: active ? accent : accent.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(99),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.add_rounded,
+                          size: 13, color: active ? Colors.white : accent),
+                      const SizedBox(width: 3),
+                      Text(
+                        'Insert item here',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: active ? Colors.white : accent,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -3308,6 +3432,42 @@ class _StockItemPickerSheetState extends State<_StockItemPickerSheet> {
               ),
             ),
           ),
+          // Create a brand-new stock item in TallyPrime when the catalog doesn't
+          // have it (prefills the current search text). The created item is
+          // returned as this picker's result so the line uses it immediately.
+          InkWell(
+            onTap: () async {
+              final created = await showStockItemCreateSheet(
+                context,
+                initialName: _controller.text.trim(),
+              );
+              if (created != null && context.mounted) {
+                Navigator.of(context).pop(created);
+              }
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: [
+                  const Icon(Icons.add_circle_outline_rounded,
+                      size: 18, color: AppPalette.accent),
+                  const SizedBox(width: 8),
+                  Text(
+                    _controller.text.trim().isEmpty
+                        ? 'Create new stock item'
+                        : 'Create "${_controller.text.trim()}" as new item',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: AppPalette.accent,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Divider(height: 1, color: AppPalette.line.withValues(alpha: 0.5)),
           Expanded(
             child: _loading
                 ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
@@ -3476,6 +3636,28 @@ class _StockValidationDialogState extends State<_StockValidationDialog> {
                           color: AppPalette.accent,
                           height: 1.4,
                         ),
+                  ),
+                  const SizedBox(height: 8),
+                  // Create the missing item in TallyPrime right here, then
+                  // re-run the check — once every name exists the dialog pops
+                  // true and the push proceeds.
+                  OutlinedButton.icon(
+                    onPressed: () async {
+                      final created =
+                          await showStockItemCreateSheet(context, initialName: name);
+                      if (created != null && mounted) {
+                        setState(() => _checking = true);
+                        _runCheck();
+                      }
+                    },
+                    icon: const Icon(Icons.add_circle_outline_rounded, size: 16),
+                    label: const Text('Create in Tally'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppPalette.accent,
+                      textStyle: const TextStyle(
+                          fontSize: 12, fontWeight: FontWeight.w700),
+                      visualDensity: VisualDensity.compact,
+                    ),
                   ),
                   const SizedBox(height: 12),
                 ],

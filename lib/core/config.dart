@@ -47,6 +47,20 @@ class Config {
     defaultValue: 'sb_publishable_c2Cov2CT8hxOd1FFEo_yaA_6nEt8_Nl',
   );
 
+  // Enqueue endpoint (same service as activate) — used by the create-stock-item
+  // flow, which enqueues its own push_queue job before activating it.
+  static String get pushQueueUrl => activateUrl.endsWith('/activate')
+      ? activateUrl.substring(0, activateUrl.length - '/activate'.length)
+      : activateUrl;
+
+  // Tally company the create-stock-item enqueue targets. The backend resolves
+  // the push_queue company from this name (mirrors the parsing service's
+  // ?company_name= default for scanned invoices).
+  static const String tallyCompanyName = String.fromEnvironment(
+    'TALLY_COMPANY_NAME',
+    defaultValue: 'K V ENTERPRISES',
+  );
+
   // ── Crash reporting (Sentry) ──────────────────────────────────────────────
   // Empty by default => Sentry is a no-op and the app behaves exactly as before.
   // Fill SENTRY_DSN per env (env/<flavor>.json) from your Sentry "flutter"

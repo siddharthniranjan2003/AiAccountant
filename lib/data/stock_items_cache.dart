@@ -82,6 +82,36 @@ class StockItemsCache {
     return '';
   }
 
+  // Distinct, sorted stock-group names from the catalog. Tally errors on an
+  // unknown PARENT group, so the create-item picker only offers these.
+  List<String> groupNames() {
+    final names = <String>{};
+    for (final item in items) {
+      final g = item.groupName.trim();
+      if (g.isNotEmpty) names.add(g);
+    }
+    return names.toList()..sort();
+  }
+
+  // Distinct, sorted base units from the catalog (Tally errors on an unknown
+  // BASEUNITS, so only existing units are offered).
+  List<String> unitNames() {
+    final names = <String>{};
+    for (final item in items) {
+      final u = item.unit.trim();
+      if (u.isNotEmpty) names.add(u);
+    }
+    return names.toList()..sort();
+  }
+
+  // Optimistically append a just-created item so pickers and the pre-push
+  // validation see it immediately, before the next Tally→cloud sync echoes it
+  // into stock_items.
+  void addLocal(StockItem item) {
+    if (item.name.trim().isEmpty || exists(item.name)) return;
+    items = [...items, item];
+  }
+
   Future<void> fetch() async {
     isLoading = true;
     try {

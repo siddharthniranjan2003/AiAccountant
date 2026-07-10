@@ -33,6 +33,13 @@ class PushQueueService {
   static bool isActiveStatus(String? status) =>
       status == 'pending' || status == 'push_now' || status == 'failed';
 
+  // Stock-item create jobs (voucher_payload.kind == 'stock_item') ride the same
+  // push_queue table but are not vouchers — they have no party/items/amount and
+  // would misrender as queue cards. The create-item sheet tracks its own row via
+  // a per-row realtime channel, so the queue (and History) skip them entirely.
+  static bool isStockItemRow(Map<String, dynamic> row) =>
+      parsePayload(row['voucher_payload'])['kind'] == 'stock_item';
+
   Future<void> subscribe() async {
     await refresh();
 
@@ -45,6 +52,7 @@ class PushQueueService {
           callback: (payload) {
             final row = payload.newRecord;
             if (!isActiveStatus(row['status'] as String?)) return;
+            if (isStockItemRow(row)) return;
             final entry = rowToEntry(row);
             _entries = [entry, ..._entries];
             onEntriesChanged(List.of(_entries));
@@ -69,6 +77,7 @@ class PushQueueService {
           table: 'push_queue',
           callback: (payload) {
             final row = payload.newRecord;
+            if (isStockItemRow(row)) return;
             final newStatus = row['status'] as String?;
             final entryId = 'supabase_${row['id']}';
             // A row only leaves the live queue once it's actually pushed (it
@@ -119,6 +128,7 @@ class PushQueueService {
 
       _entries = (response as List)
           .cast<Map<String, dynamic>>()
+          .where((row) => !isStockItemRow(row))
           .map(rowToEntry)
           .toList();
 
