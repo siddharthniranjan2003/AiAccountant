@@ -3496,9 +3496,10 @@ class _StockItemPickerSheetState extends State<_StockItemPickerSheet> {
                 ),
                 Switch(
                   value: _showAll,
-                  // No party → there is no other list to switch to, so the toggle
-                  // is inert rather than pretending it can filter.
-                  onChanged: _party == null
+                  // Inert while a fetch is in flight (the list can't match the
+                  // toggle mid-flight), and when there is no party to filter by
+                  // — switching would have no other list to show.
+                  onChanged: (_loading || _party == null)
                       ? null
                       : (v) {
                           setState(() => _showAll = v);
