@@ -40,6 +40,44 @@ class PushQueueService {
   static bool isStockItemRow(Map<String, dynamic> row) =>
       parsePayload(row['voucher_payload'])['kind'] == 'stock_item';
 
+  // Realtime UPDATE echoes are not always whole rows, so patch the gaps from the
+  // copy we already hold before anything reads the row.
+  //
+  // Postgres omits unchanged TOASTed values from the WAL, and TOAST kicks in once
+  // a tuple tops ~2KB — which about a third of live rows do, since voucher_payload
+  // shares the tuple with source_payload and tally_response. The queue's edit flow
+  // writes only edit_state + created_at, so its echo carries no voucher_payload at
+  // all. rowToEntry would then read an empty payload, blank the party/amount and
+  // fall through to its purchase branch, dropping the row out of the Sale tab
+  // until the next refresh. (History hits the same thing and re-fetches — see
+  // _ingestPushedRow; the queue already has the row, so a merge is enough.)
+  //
+  // Realtime's column cache can also lag a freshly-added column, so an echo may
+  // omit edit_state entirely and wipe the "under edit"/"invoice edited" tag.
+  //
+  // Returns null when the payload is gone and there's no prior copy to restore it
+  // from: the row can't be classified at all, so drop the echo and let refresh()
+  // reconcile it.
+  Map<String, dynamic>? _restoreDroppedColumns(
+    Map<String, dynamic> row,
+    String entryId,
+  ) {
+    final exists = _entries.any((e) => e.id == entryId);
+    final prior = exists ? _entries.firstWhere((e) => e.id == entryId) : null;
+    final patched = Map<String, dynamic>.from(row);
+    if (parsePayload(row['voucher_payload']).isEmpty) {
+      final priorResult = prior?.scanResult;
+      if (priorResult == null) return null;
+      patched['voucher_payload'] = Map<String, dynamic>.from(priorResult)
+        ..removeWhere((k, _) => k.startsWith('__'));
+      patched['source_payload'] ??= priorResult['__source_payload'];
+    }
+    if (prior != null && !row.containsKey('edit_state')) {
+      patched['edit_state'] = prior.editState.dbValue;
+    }
+    return patched;
+  }
+
   Future<void> subscribe() async {
     await refresh();
 
@@ -76,10 +114,11 @@ class PushQueueService {
           schema: 'public',
           table: 'push_queue',
           callback: (payload) {
-            final row = payload.newRecord;
+            final entryId = 'supabase_${payload.newRecord['id']}';
+            final row = _restoreDroppedColumns(payload.newRecord, entryId);
+            if (row == null) return;
             if (isStockItemRow(row)) return;
             final newStatus = row['status'] as String?;
-            final entryId = 'supabase_${row['id']}';
             // A row only leaves the live queue once it's actually pushed (it
             // moves to History). Every other status — pending/push_now/failed
             // AND any transient status the backend sets in between — keeps the
@@ -89,23 +128,11 @@ class PushQueueService {
               _entries = _entries.where((e) => e.id != entryId).toList();
               // The row is leaving the queue for History — remember its purchase
               // reference so a later re-upload is flagged "Already Pushed".
-              // Best-effort: a realtime echo may drop the TOASTed voucher_payload,
-              // in which case the next refresh() recomputes the set authoritatively.
               final ref = _purchaseReferenceOf(row);
               if (ref.isNotEmpty) _pushedPurchaseReferences.add(ref);
             } else {
-              var updated = rowToEntry(row);
+              final updated = rowToEntry(row);
               final exists = _entries.any((e) => e.id == entryId);
-              // Supabase Realtime's column cache can lag a freshly-added column,
-              // so an UPDATE echo may omit edit_state and rowToEntry would read
-              // it as none — wiping the "under edit"/"invoice edited" tag. Keep
-              // the editState we already have when the payload doesn't carry the
-              // column; it's seeded authoritatively by refresh()/PostgREST and
-              // the local edit flow, not by these echoes.
-              if (exists && !row.containsKey('edit_state')) {
-                final prior = _entries.firstWhere((e) => e.id == entryId);
-                updated = updated.copyWith(editState: prior.editState);
-              }
               _entries = exists
                   ? _entries.map((e) => e.id == entryId ? updated : e).toList()
                   : [updated, ..._entries];
