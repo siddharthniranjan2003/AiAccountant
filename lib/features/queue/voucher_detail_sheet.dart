@@ -348,6 +348,7 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
   // those without (e.g. pre-feature rows) get [Summary].
   void _applyPayload(Map<String, dynamic> p, {bool preserveViewMode = false}) {
     _payload = p;
+    _hydrateRawOcr();
     final rowId = p['__row_id'] as String? ?? '';
     if (rowId.isNotEmpty) _subscribeToStatus(rowId);
 
@@ -361,6 +362,29 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
       _VdsViewMode.summary,
     ];
     _viewMode = (keep != null && _availableModes.contains(keep)) ? keep : _availableModes.first;
+  }
+
+  // Copies each line's OCR text from source_payload onto the voucher item itself.
+  // The two lists are index-aligned exactly as the parser wrote them, but the editor
+  // can insert and delete lines, so pairing by index is only sound before any edit.
+  // Once copied, raw_ocr rides the item through renames/inserts/deletes, and saving
+  // persists it (the app writes voucher_payload to push_queue directly, so nothing
+  // strips it) — which is why a re-opened, already-edited row must not be re-paired.
+  // Bail out entirely on any length mismatch rather than risk learning a wrong pair.
+  void _hydrateRawOcr() {
+    final items = _payloadItems;
+    if (items.isEmpty) return;
+    if (items.any((it) => ((it['raw_ocr'] as String?) ?? '').isNotEmpty)) return;
+
+    final sourcePayload = _p['source_payload'] ?? _p['__source_payload'];
+    final sourceItems = (sourcePayload is Map ? sourcePayload['items'] : null) as List?;
+    if (sourceItems == null || sourceItems.length != items.length) return;
+
+    for (var i = 0; i < items.length; i++) {
+      final source = sourceItems[i];
+      final rawOcr = source is Map ? (source['raw_ocr'] as String?) ?? '' : '';
+      if (rawOcr.isNotEmpty) items[i]['raw_ocr'] = rawOcr;
+    }
   }
 
   void _onPendingResolved(Map<String, dynamic> p) {
@@ -974,6 +998,9 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
       if (response.statusCode >= 200 && response.statusCode < 300) {
         _isEditing = false;
         _notifyEditState();
+        // Teach the audit trail from the voucher the user just committed. Purchase
+        // only, and fire-and-forget: a failure to learn must never fail the push.
+        if (!_isSale) _recordPurchaseAuditTrail(clean);
         // The POST only queues the push; the actual TallyPrime result (created /
         // errors in tally_response, or status pushed/failed) arrives later over
         // realtime. Stay open in a "pushing…" state until _subscribeToStatus
@@ -1013,6 +1040,38 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
       setState(() => _isSubmitting = false);
+    }
+  }
+
+  // Appends one (raw_ocr -> actual_item) row per line of the voucher just pushed, so
+  // the next scan of the same OCR text resolves straight to the item the user chose —
+  // ahead of the curated Purchase_Matching table and the vendor rules. Every line is
+  // recorded, not just corrected ones: what was pushed to Tally is what is true.
+  // Lines the user added by hand carry no raw_ocr and so teach nothing.
+  //
+  // The OCR text is stored verbatim so the trail stays human-readable; the parser
+  // canonicalizes (collapse whitespace, lowercase) when it reads the trail, so
+  // matching is case-insensitive regardless of how a vendor path cased this line.
+  Future<void> _recordPurchaseAuditTrail(Map<String, dynamic> pushedPayload) async {
+    final items = (pushedPayload['items'] as List?)?.cast<Map<String, dynamic>>() ??
+        ((pushedPayload['voucher_payload'] as Map?)?['items'] as List?)
+            ?.cast<Map<String, dynamic>>() ??
+        const <Map<String, dynamic>>[];
+
+    final rows = <Map<String, String>>[];
+    for (final item in items) {
+      final rawOcr = ((item['raw_ocr'] as String?) ?? '').trim();
+      final actualItem = ((item['stock_item_name'] as String?) ?? '').trim();
+      if (rawOcr.isEmpty || actualItem.isEmpty) continue;
+      rows.add({'raw_ocr': rawOcr, 'actual_item': actualItem});
+    }
+    if (rows.isEmpty) return;
+
+    try {
+      await Supabase.instance.client.from('Audit_Trail_Purchase').insert(rows);
+    } catch (e, st) {
+      reportHandledError('supabase.audit_trail_purchase.insert', e,
+          stackTrace: st, context: {'row_count': rows.length});
     }
   }
 
@@ -2629,6 +2688,9 @@ class _SheetItemRow extends StatelessWidget {
             : (gross > 0 ? ((1 - amount / gross) * 100).clamp(0.0, 100.0) : 0.0));
     final disc = double.parse(discValue.toStringAsFixed(2));
 
+    // A user's own committed correction, replayed from Audit_Trail_Purchase — the
+    // strongest signal, so it takes precedence over the curated table and the matcher.
+    final isAuditTrail = source == 'Audit_Trail';
     final isPurchaseMatching = source == 'Purchase_Matching';
     final isAlgorithm = source == 'Matching_Algorithem';
     final scoreVal = _parseScore(score);
@@ -2636,7 +2698,10 @@ class _SheetItemRow extends StatelessWidget {
     Color nameColor;
     String? statusLabel;
 
-    if (isPurchaseMatching) {
+    if (isAuditTrail) {
+      nameColor = const Color(0xFF16A34A);
+      statusLabel = 'Taken from Audit Trail';
+    } else if (isPurchaseMatching) {
       nameColor = const Color(0xFF16A34A);
       statusLabel = 'No need to edit, Historical Data';
     } else if (isAlgorithm && scoreVal != null) {
@@ -2662,7 +2727,9 @@ class _SheetItemRow extends StatelessWidget {
     // arrow while the item field is focused via Enter-to-move.
     Future<void> openPicker() async {
       String? warnMessage;
-      if (isPurchaseMatching) {
+      if (isAuditTrail) {
+        warnMessage = 'Are you sure you want to edit this item? It was taken from the Audit Trail.';
+      } else if (isPurchaseMatching) {
         warnMessage = 'Are you sure you want to edit this item, Its taken from historical Data';
       } else if (isAlgorithm && scoreVal != null && scoreVal >= 90) {
         warnMessage = 'Are you sure you want to edit this item, I have high confidence on this item';

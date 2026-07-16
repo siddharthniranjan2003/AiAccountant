@@ -24,14 +24,24 @@ class VendorsCache {
   Future<void> fetch() async {
     isLoading = true;
     try {
-      final response = await Supabase.instance.client
-          .from('ledgers')
-          .select('name, group_name, state')
-          .eq('group_name', 'Sundry Creditors');
-      items = (response as List)
-          .cast<Map<String, dynamic>>()
-          .map(Customer.fromRow)
-          .toList();
+      // PostgREST caps a single select at 1000 rows; page through with range()
+      // so large creditor lists load fully (mirrors CustomersCache).
+      const pageSize = 1000;
+      final rows = <Map<String, dynamic>>[];
+      var from = 0;
+      while (true) {
+        final page = await Supabase.instance.client
+            .from('ledgers')
+            .select('name, group_name, state')
+            .eq('group_name', 'Sundry Creditors')
+            .order('name')
+            .range(from, from + pageSize - 1);
+        final batch = (page as List).cast<Map<String, dynamic>>();
+        rows.addAll(batch);
+        if (batch.length < pageSize) break;
+        from += pageSize;
+      }
+      items = rows.map(Customer.fromRow).toList();
     } catch (e, st) {
       reportHandledError('supabase.vendors.fetch', e, stackTrace: st);
       scaffoldKey?.currentState?.showSnackBar(
