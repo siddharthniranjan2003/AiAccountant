@@ -205,12 +205,6 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
   String? _originalPartyName;
   List<String>? _originalItemNames;
   Map<String, dynamic>? _originalPayload;
-  // Rows the user explicitly dealt with this session, by index: re-picked from
-  // the item dropdown, or had qty/rate/disc/amount edited. Counts as editing the
-  // line even when the name is untouched — on a line the matcher already got
-  // right there is nothing to change it TO, so a name diff alone can never
-  // register it. Kept in step with inserts/deletes below; cleared by Revert.
-  final Set<int> _touchedRows = {};
   List<Map<String, dynamic>> _editableItems = [];
   // Editable copies of the Charges block (ledger rows + discount + total).
   // Populated when edit mode is entered; mutated in place while typing.
@@ -290,18 +284,15 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
     return current != _originalPartyName;
   }
 
-  // True when every item in the current view was dealt with since the sheet was
-  // first opened: renamed away from its original, or explicitly touched
-  // (_touchedRows — a same-item re-pick or a numeric edit, which a name diff
-  // can't see). Checks _editableItems during edit mode and _payloadItems in
-  // view mode so it stays correct across save cycles.
+  // True when every item in the current view differs from the name it had when
+  // the sheet was first opened. Checks _editableItems during edit mode and
+  // _payloadItems in view mode so it stays correct across save cycles.
   bool get _allItemsDifferentFromOriginal {
     final origNames = _originalItemNames;
     if (origNames == null || origNames.isEmpty) return true;
     final currentItems = _isEditing ? _editableItems : _payloadItems;
     for (var i = 0; i < origNames.length; i++) {
       if (i >= currentItems.length) continue; // item deleted — counts as changed
-      if (_touchedRows.contains(i)) continue; // explicitly dealt with this session
       final currentName = currentItems[i]['stock_item_name'] as String? ?? '';
       if (currentName == origNames[i]) return false;
     }
@@ -589,7 +580,6 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
       _editableTotal = null;
       _taxRatios = {};
       _inventoryLedgerName = null;
-      _touchedRows.clear();
       if (_originalPayload != null) {
         _payload = Map<String, dynamic>.from(_originalPayload!);
       }
@@ -611,27 +601,6 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
         ),
       );
     }
-  }
-
-  // _touchedRows is index-keyed, so inserting or deleting a line shifts every
-  // following row's index; slide the marks along or they land on neighbouring
-  // rows — which could unblock a push on lines nobody reviewed.
-  void _touchedAfterInsert(int at) {
-    final shifted = <int>{for (final j in _touchedRows) j >= at ? j + 1 : j};
-    _touchedRows
-      ..clear()
-      ..addAll(shifted)
-      ..add(at); // the inserted line is a deliberate pick
-  }
-
-  void _touchedAfterDelete(int at) {
-    final shifted = <int>{
-      for (final j in _touchedRows)
-        if (j != at) j > at ? j - 1 : j,
-    };
-    _touchedRows
-      ..clear()
-      ..addAll(shifted);
   }
 
   // Adds a new line to the voucher. Opens the stock picker (sale → party-aware
@@ -692,10 +661,8 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
       // Clamp the insert index defensively; null (toolbar Add) appends.
       if (at != null && at >= 0 && at <= _editableItems.length) {
         _editableItems.insert(at, newItem);
-        _touchedAfterInsert(at);
       } else {
         _editableItems.add(newItem);
-        _touchedRows.add(_editableItems.length - 1);
       }
     });
     _recomputeChargesFromItems();
@@ -1970,16 +1937,12 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
               // Rows added during this edit session sit beyond the captured
               // originals — treat them as edited (new).
               if (i >= orig.length) return true;
-              // An explicit touch (same-item re-pick, numeric edit) counts even
-              // though the name comparison below can't see it.
-              if (_touchedRows.contains(i)) return true;
               final currentName = displayItems[i]['stock_item_name'] as String? ?? '';
               return currentName != orig[i];
             }(),
             onStockItemSelected: (selected) {
               setState(() {
                 if (i < _editableItems.length) {
-                  _touchedRows.add(i);
                   _editableItems[i]['stock_item_name'] = selected.name;
                   // Switch the unit to the NEW item's unit — keeping the old
                   // item's unit (e.g. KIT) makes Tally reject the line, since the
@@ -2011,17 +1974,11 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
               _notifyEditState();
             },
             onItemChanged: () {
-              // A qty/rate/disc/amount edit deals with the line as much as a
-              // re-pick does (the row mutates the item in place before calling).
-              setState(() => _touchedRows.add(i));
               _recomputeChargesFromItems();
               _notifyEditState();
             },
             onDelete: () {
-              setState(() {
-                _editableItems.removeAt(i);
-                _touchedAfterDelete(i);
-              });
+              setState(() => _editableItems.removeAt(i));
               _recomputeChargesFromItems();
               _notifyEditState();
             },
