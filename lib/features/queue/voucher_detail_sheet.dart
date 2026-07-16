@@ -3178,8 +3178,25 @@ class _StockItemPickerSheetState extends State<_StockItemPickerSheet> {
   // false → party-specific items (this party's history + sale tier-2 fallback);
   // true ("All items") → the full stock catalog from cache.
   // Sale opens party-first (toggle off); purchase / party-less pickers still
-  // default to the full catalog.
-  late bool _showAll = !widget.isSale;
+  // default to the full catalog. Invariant: this always describes what _allItems
+  // holds — every path that loads the catalog sets it true.
+  late bool _showAll = !widget.isSale || _party == null;
+  // Bumped by every _load(). A party fetch carries the value it started with and
+  // drops its result if it no longer matches, so a slow response can't overwrite
+  // the list the toggle has since switched to.
+  int _loadGen = 0;
+  // Set when the party fetch failed and the catalog was shown instead, so the
+  // sheet can say why the list isn't party-filtered. Shown inline rather than as
+  // a snackbar, which would be hidden behind this modal sheet.
+  bool _partyLoadFailed = false;
+
+  // The party to query, or null when there is none. The edit path passes the
+  // sheet's '—' display placeholder rather than null (see _buildSummaryView),
+  // which would otherwise reach the query and match no voucher.
+  String? get _party {
+    final p = widget.partyName?.trim();
+    return (p == null || p.isEmpty || p == '—') ? null : p;
+  }
 
   @override
   void initState() {
@@ -3195,8 +3212,13 @@ class _StockItemPickerSheetState extends State<_StockItemPickerSheet> {
   }
 
   void _load() {
-    if (_showAll || widget.partyName == null) {
+    final gen = ++_loadGen; // invalidates any party fetch still in flight
+    if (_showAll || _party == null) {
       setState(() {
+        // Showing the catalog, so the toggle must read "All items" — otherwise a
+        // party-less voucher shows 13k items under a toggle that claims to be
+        // filtered by party.
+        _showAll = true;
         _allItems = StockItemsCache.instance.items;
         _applyFilter();
         _loading = false;
@@ -3204,12 +3226,15 @@ class _StockItemPickerSheetState extends State<_StockItemPickerSheet> {
     } else {
       // Sale → items sold to this customer; purchase → items bought from this
       // vendor (party-specific RPCs).
-      _fetchPartyItems();
+      _fetchPartyItems(gen);
     }
   }
 
-  Future<void> _fetchPartyItems() async {
-    setState(() => _loading = true);
+  Future<void> _fetchPartyItems(int gen) async {
+    setState(() {
+      _loading = true;
+      _partyLoadFailed = false; // a retry starts clean
+    });
     // The get_{sale,purchase}_items_for_party RPCs match on
     // voucher_items.party_name, which the sync leaves null — so they return
     // nothing for every party. Query the line items directly instead and resolve
@@ -3222,6 +3247,8 @@ class _StockItemPickerSheetState extends State<_StockItemPickerSheet> {
       // PostgREST caps a single response at 1000 rows, so page through every
       // matching line item with .range(). A high-volume party can have several
       // thousand lines; without paging the picker would silently stop at 1000.
+      // Ordered by id (unique → total order) so the pages are stable and don't
+      // overlap or skip rows; display order is the date sort applied below.
       const pageSize = 1000;
       final rows = <Map<String, dynamic>>[];
       var from = 0;
@@ -3230,8 +3257,9 @@ class _StockItemPickerSheetState extends State<_StockItemPickerSheet> {
             .from('voucher_items')
             .select(
                 'stock_item_name, rate, unit, discount_pct, vouchers!inner(date, party_name, voucher_type)')
-            .eq('vouchers.party_name', widget.partyName!)
+            .eq('vouchers.party_name', _party!)
             .ilike('vouchers.voucher_type', typeMatch)
+            .order('id', ascending: true)
             .range(from, from + pageSize - 1);
         final batch = (page as List).cast<Map<String, dynamic>>();
         rows.addAll(batch);
@@ -3289,15 +3317,20 @@ class _StockItemPickerSheetState extends State<_StockItemPickerSheet> {
           ));
         }
       }
-      if (!mounted) return;
+      if (!mounted || gen != _loadGen) return;
       setState(() {
         _allItems = items;
         _applyFilter();
         _loading = false;
       });
-    } catch (_) {
-      if (!mounted) return;
+    } catch (e, st) {
+      reportHandledError('supabase.picker.party_items', e, stackTrace: st);
+      if (!mounted || gen != _loadGen) return;
       setState(() {
+        // Falling back to the catalog, so flip the toggle to match it. Leaving it
+        // off would silently show all 13k items as if they were this party's.
+        _showAll = true;
+        _partyLoadFailed = true;
         _allItems = StockItemsCache.instance.items;
         _applyFilter();
         _loading = false;
@@ -3316,7 +3349,7 @@ class _StockItemPickerSheetState extends State<_StockItemPickerSheet> {
           .select(
               'stock_item_name, rate, unit, discount_pct, vouchers!inner(party_name, voucher_type)')
           .eq('stock_item_name', name)
-          .neq('vouchers.party_name', widget.partyName!)
+          .neq('vouchers.party_name', _party!)
           .ilike('vouchers.voucher_type', '%sale%')
           .order('created_at', ascending: false)
           .limit(1);
@@ -3463,14 +3496,32 @@ class _StockItemPickerSheetState extends State<_StockItemPickerSheet> {
                 ),
                 Switch(
                   value: _showAll,
-                  onChanged: (v) {
-                    setState(() => _showAll = v);
-                    _load();
-                  },
+                  // No party → there is no other list to switch to, so the toggle
+                  // is inert rather than pretending it can filter.
+                  onChanged: _party == null
+                      ? null
+                      : (v) {
+                          setState(() => _showAll = v);
+                          _load();
+                        },
                 ),
               ],
             ),
           ),
+          if (_partyLoadFailed)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "Couldn't load this party's items — showing all items",
+                  style: TextStyle(
+                      fontSize: 11,
+                      color: const Color(0xFFDC2626),
+                      fontWeight: FontWeight.w700),
+                ),
+              ),
+            ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
             // Intercepts Down/Up/Enter before the text field handles them, so
