@@ -6,6 +6,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
 import 'features/auth/auth_gate.dart';
+import 'features/stock/stock_info_screen.dart';
 import 'core/theme.dart';
 import 'core/config.dart';
 import 'data/stock_items_cache.dart';
@@ -90,6 +91,17 @@ class AccountantApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     StockItemsCache.scaffoldKey = _scaffoldKey;
+    // The app uses hash-based web URLs, so a deep-linked route lives in the
+    // fragment. When a new tab is opened at `#/stock-info?item=…` (from the ⓘ
+    // on a voucher item row), render the standalone Stock Info page instead of
+    // the auth gate — it's self-contained UI and needs no signed-in session.
+    final route = Uri.parse(Uri.base.fragment);
+    final Widget home = route.path == '/stock-info'
+        ? StockInfoScreen(
+            itemName: route.queryParameters['item'] ?? '',
+            partyName: route.queryParameters['party'],
+          )
+        : const AuthGate();
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'AI Accountant',
@@ -109,7 +121,7 @@ class AccountantApp extends StatelessWidget {
       // paints text to canvas, so it isn't selectable by default).
       // AuthGate reacts to sign-in/sign-out and, on cold start with no restored
       // Firebase session, silently re-authenticates from the saved number.
-      home: const SelectionArea(child: AuthGate()),
+      home: SelectionArea(child: home),
     );
   }
 }

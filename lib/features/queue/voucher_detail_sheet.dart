@@ -14,6 +14,7 @@ import '../../data/customers_cache.dart';
 import '../../data/vendors_cache.dart';
 import '../../data/stock_items_cache.dart';
 import '../../services/api_client.dart';
+import '../../services/stock_info_launcher.dart';
 import '../../shared/responsive.dart';
 import '../stock/stock_item_create_sheet.dart';
 
@@ -104,6 +105,28 @@ const double _kItemsTableW =
 // the table horizontally.
 Widget _itemCell(bool wide, Widget child) =>
     wide ? Expanded(child: child) : SizedBox(width: _kItemColW, child: child);
+
+// Small ⓘ button shown inline just right of an item's name. Opens the item's
+// Stock Info (Purchase/Sale history) in a new browser tab. Always available,
+// including the read-only History view.
+Widget _infoIconButton(BuildContext context, String itemName,
+        {String? partyName, bool isSale = false}) =>
+    MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        // Party is only meaningful for a sale (the customer) — pass it so the
+        // Stock Info window can scope its Sale panel to this customer + item.
+        onTap: () => StockInfoLauncher.open(
+          itemName: itemName,
+          partyName: isSale ? partyName : null,
+        ),
+        child: const Padding(
+          padding: EdgeInsets.only(left: 4, right: 2),
+          child: Icon(Icons.info_outline_rounded, size: 16, color: AppPalette.pen),
+        ),
+      ),
+    );
 
 // On web the sheet is as wide as the browser, so the summary body is capped and
 // centered instead of stretching edge-to-edge; phones get full width.
@@ -2784,6 +2807,7 @@ class _SheetItemRow extends StatelessWidget {
                                               ),
                                             ),
                                             Icon(Icons.arrow_drop_down, size: 18, color: AppPalette.muted),
+                                            _infoIconButton(context, name, partyName: partyName, isSale: isSale),
                                           ],
                                         ),
                                         if (statusLabel != null) ...[
@@ -2808,12 +2832,20 @@ class _SheetItemRow extends StatelessWidget {
                       : Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              name,
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: nameColor,
-                                    fontWeight: FontWeight.w600,
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    name,
+                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                          color: nameColor,
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                   ),
+                                ),
+                                _infoIconButton(context, name, partyName: partyName, isSale: isSale),
+                              ],
                             ),
                             if (statusLabel != null) ...[
                               const SizedBox(height: 2),

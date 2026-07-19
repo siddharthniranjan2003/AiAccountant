@@ -47,6 +47,26 @@ String formatDate(String? raw) {
   return '$dd/$mm/${parsed.year}';
 }
 
+/// Indian-grouped decimal with exactly two places and no currency symbol
+/// (e.g. 2011 -> "2,011.00"). Used for the RATE column and ₹-prefixed amounts
+/// in the Stock Info history tables.
+String formatDecimal(num n) => _groupIndian(n.toStringAsFixed(2));
+
+/// Renders an ISO date (yyyy-mm-dd) as "29 May 26" (dd MMM yy). Returns '—'
+/// when empty and the raw string when unparseable. No intl dependency.
+String formatShortDate(String? raw) {
+  if (raw == null || raw.isEmpty) return '—';
+  final parsed = DateTime.tryParse(raw);
+  if (parsed == null) return raw;
+  const months = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', //
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  ];
+  final dd = parsed.day.toString().padLeft(2, '0');
+  final yy = (parsed.year % 100).toString().padLeft(2, '0');
+  return '$dd ${months[parsed.month - 1]} $yy';
+}
+
 Color captureColorForType(TransactionType type, {int seedOffset = 0}) {
   final colors = type == TransactionType.sale
       ? const [
