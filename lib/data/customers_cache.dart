@@ -38,14 +38,24 @@ class CustomersCache {
   Future<void> fetch() async {
     isLoading = true;
     try {
-      final response = await Supabase.instance.client
-          .from('ledgers')
-          .select('name, group_name, state')
-          .eq('group_name', 'Sundry Debtors');
-      items = (response as List)
-          .cast<Map<String, dynamic>>()
-          .map(Customer.fromRow)
-          .toList();
+      // PostgREST caps a single select at 1000 rows; Sundry Debtors can exceed
+      // that, so page through with range() until a short page comes back.
+      const pageSize = 1000;
+      final rows = <Map<String, dynamic>>[];
+      var from = 0;
+      while (true) {
+        final page = await Supabase.instance.client
+            .from('ledgers')
+            .select('name, group_name, state')
+            .eq('group_name', 'Sundry Debtors')
+            .order('name')
+            .range(from, from + pageSize - 1);
+        final batch = (page as List).cast<Map<String, dynamic>>();
+        rows.addAll(batch);
+        if (batch.length < pageSize) break;
+        from += pageSize;
+      }
+      items = rows.map(Customer.fromRow).toList();
     } catch (e, st) {
       reportHandledError('supabase.customers.fetch', e, stackTrace: st);
       scaffoldKey?.currentState?.showSnackBar(

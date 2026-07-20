@@ -228,6 +228,12 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
   String? _originalPartyName;
   List<String>? _originalItemNames;
   Map<String, dynamic>? _originalPayload;
+  // Rows the user explicitly dealt with this session, by index: re-picked from
+  // the item dropdown, or had qty/rate/disc/amount edited. Counts as editing the
+  // line even when the name is untouched — on a line the matcher already got
+  // right there is nothing to change it TO, so a name diff alone can never
+  // register it. Kept in step with inserts/deletes below; cleared by Revert.
+  final Set<int> _touchedRows = {};
   List<Map<String, dynamic>> _editableItems = [];
   // Editable copies of the Charges block (ledger rows + discount + total).
   // Populated when edit mode is entered; mutated in place while typing.
@@ -307,15 +313,18 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
     return current != _originalPartyName;
   }
 
-  // True when every item in the current view differs from the name it had when
-  // the sheet was first opened. Checks _editableItems during edit mode and
-  // _payloadItems in view mode so it stays correct across save cycles.
+  // True when every item in the current view was dealt with since the sheet was
+  // first opened: renamed away from its original, or explicitly touched
+  // (_touchedRows — a same-item re-pick or a numeric edit, which a name diff
+  // can't see). Checks _editableItems during edit mode and _payloadItems in
+  // view mode so it stays correct across save cycles.
   bool get _allItemsDifferentFromOriginal {
     final origNames = _originalItemNames;
     if (origNames == null || origNames.isEmpty) return true;
     final currentItems = _isEditing ? _editableItems : _payloadItems;
     for (var i = 0; i < origNames.length; i++) {
       if (i >= currentItems.length) continue; // item deleted — counts as changed
+      if (_touchedRows.contains(i)) continue; // explicitly dealt with this session
       final currentName = currentItems[i]['stock_item_name'] as String? ?? '';
       if (currentName == origNames[i]) return false;
     }
@@ -371,6 +380,7 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
   // those without (e.g. pre-feature rows) get [Summary].
   void _applyPayload(Map<String, dynamic> p, {bool preserveViewMode = false}) {
     _payload = p;
+    _hydrateRawOcr();
     final rowId = p['__row_id'] as String? ?? '';
     if (rowId.isNotEmpty) _subscribeToStatus(rowId);
 
@@ -384,6 +394,29 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
       _VdsViewMode.summary,
     ];
     _viewMode = (keep != null && _availableModes.contains(keep)) ? keep : _availableModes.first;
+  }
+
+  // Copies each line's OCR text from source_payload onto the voucher item itself.
+  // The two lists are index-aligned exactly as the parser wrote them, but the editor
+  // can insert and delete lines, so pairing by index is only sound before any edit.
+  // Once copied, raw_ocr rides the item through renames/inserts/deletes, and saving
+  // persists it (the app writes voucher_payload to push_queue directly, so nothing
+  // strips it) — which is why a re-opened, already-edited row must not be re-paired.
+  // Bail out entirely on any length mismatch rather than risk learning a wrong pair.
+  void _hydrateRawOcr() {
+    final items = _payloadItems;
+    if (items.isEmpty) return;
+    if (items.any((it) => ((it['raw_ocr'] as String?) ?? '').isNotEmpty)) return;
+
+    final sourcePayload = _p['source_payload'] ?? _p['__source_payload'];
+    final sourceItems = (sourcePayload is Map ? sourcePayload['items'] : null) as List?;
+    if (sourceItems == null || sourceItems.length != items.length) return;
+
+    for (var i = 0; i < items.length; i++) {
+      final source = sourceItems[i];
+      final rawOcr = source is Map ? (source['raw_ocr'] as String?) ?? '' : '';
+      if (rawOcr.isNotEmpty) items[i]['raw_ocr'] = rawOcr;
+    }
   }
 
   void _onPendingResolved(Map<String, dynamic> p) {
@@ -579,6 +612,7 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
       _editableTotal = null;
       _taxRatios = {};
       _inventoryLedgerName = null;
+      _touchedRows.clear();
       if (_originalPayload != null) {
         _payload = Map<String, dynamic>.from(_originalPayload!);
       }
@@ -600,6 +634,27 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
         ),
       );
     }
+  }
+
+  // _touchedRows is index-keyed, so inserting or deleting a line shifts every
+  // following row's index; slide the marks along or they land on neighbouring
+  // rows — which could unblock a push on lines nobody reviewed.
+  void _touchedAfterInsert(int at) {
+    final shifted = <int>{for (final j in _touchedRows) j >= at ? j + 1 : j};
+    _touchedRows
+      ..clear()
+      ..addAll(shifted)
+      ..add(at); // the inserted line is a deliberate pick
+  }
+
+  void _touchedAfterDelete(int at) {
+    final shifted = <int>{
+      for (final j in _touchedRows)
+        if (j != at) j > at ? j - 1 : j,
+    };
+    _touchedRows
+      ..clear()
+      ..addAll(shifted);
   }
 
   // Adds a new line to the voucher. Opens the stock picker (sale → party-aware
@@ -660,8 +715,10 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
       // Clamp the insert index defensively; null (toolbar Add) appends.
       if (at != null && at >= 0 && at <= _editableItems.length) {
         _editableItems.insert(at, newItem);
+        _touchedAfterInsert(at);
       } else {
         _editableItems.add(newItem);
+        _touchedRows.add(_editableItems.length - 1);
       }
     });
     _recomputeChargesFromItems();
@@ -997,6 +1054,9 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
       if (response.statusCode >= 200 && response.statusCode < 300) {
         _isEditing = false;
         _notifyEditState();
+        // Teach the audit trail from the voucher the user just committed. Purchase
+        // only, and fire-and-forget: a failure to learn must never fail the push.
+        if (!_isSale) _recordPurchaseAuditTrail(clean);
         // The POST only queues the push; the actual TallyPrime result (created /
         // errors in tally_response, or status pushed/failed) arrives later over
         // realtime. Stay open in a "pushing…" state until _subscribeToStatus
@@ -1036,6 +1096,38 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
       setState(() => _isSubmitting = false);
+    }
+  }
+
+  // Appends one (raw_ocr -> actual_item) row per line of the voucher just pushed, so
+  // the next scan of the same OCR text resolves straight to the item the user chose —
+  // ahead of the curated Purchase_Matching table and the vendor rules. Every line is
+  // recorded, not just corrected ones: what was pushed to Tally is what is true.
+  // Lines the user added by hand carry no raw_ocr and so teach nothing.
+  //
+  // The OCR text is stored verbatim so the trail stays human-readable; the parser
+  // canonicalizes (collapse whitespace, lowercase) when it reads the trail, so
+  // matching is case-insensitive regardless of how a vendor path cased this line.
+  Future<void> _recordPurchaseAuditTrail(Map<String, dynamic> pushedPayload) async {
+    final items = (pushedPayload['items'] as List?)?.cast<Map<String, dynamic>>() ??
+        ((pushedPayload['voucher_payload'] as Map?)?['items'] as List?)
+            ?.cast<Map<String, dynamic>>() ??
+        const <Map<String, dynamic>>[];
+
+    final rows = <Map<String, String>>[];
+    for (final item in items) {
+      final rawOcr = ((item['raw_ocr'] as String?) ?? '').trim();
+      final actualItem = ((item['stock_item_name'] as String?) ?? '').trim();
+      if (rawOcr.isEmpty || actualItem.isEmpty) continue;
+      rows.add({'raw_ocr': rawOcr, 'actual_item': actualItem});
+    }
+    if (rows.isEmpty) return;
+
+    try {
+      await Supabase.instance.client.from('Audit_Trail_Purchase').insert(rows);
+    } catch (e, st) {
+      reportHandledError('supabase.audit_trail_purchase.insert', e,
+          stackTrace: st, context: {'row_count': rows.length});
     }
   }
 
@@ -1901,12 +1993,16 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
               // Rows added during this edit session sit beyond the captured
               // originals — treat them as edited (new).
               if (i >= orig.length) return true;
+              // An explicit touch (same-item re-pick, numeric edit) counts even
+              // though the name comparison below can't see it.
+              if (_touchedRows.contains(i)) return true;
               final currentName = displayItems[i]['stock_item_name'] as String? ?? '';
               return currentName != orig[i];
             }(),
             onStockItemSelected: (selected) {
               setState(() {
                 if (i < _editableItems.length) {
+                  _touchedRows.add(i);
                   _editableItems[i]['stock_item_name'] = selected.name;
                   // Switch the unit to the NEW item's unit — keeping the old
                   // item's unit (e.g. KIT) makes Tally reject the line, since the
@@ -1938,11 +2034,17 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
               _notifyEditState();
             },
             onItemChanged: () {
+              // A qty/rate/disc/amount edit deals with the line as much as a
+              // re-pick does (the row mutates the item in place before calling).
+              setState(() => _touchedRows.add(i));
               _recomputeChargesFromItems();
               _notifyEditState();
             },
             onDelete: () {
-              setState(() => _editableItems.removeAt(i));
+              setState(() {
+                _editableItems.removeAt(i);
+                _touchedAfterDelete(i);
+              });
               _recomputeChargesFromItems();
               _notifyEditState();
             },
@@ -2652,6 +2754,9 @@ class _SheetItemRow extends StatelessWidget {
             : (gross > 0 ? ((1 - amount / gross) * 100).clamp(0.0, 100.0) : 0.0));
     final disc = double.parse(discValue.toStringAsFixed(2));
 
+    // A user's own committed correction, replayed from Audit_Trail_Purchase — the
+    // strongest signal, so it takes precedence over the curated table and the matcher.
+    final isAuditTrail = source == 'Audit_Trail';
     final isPurchaseMatching = source == 'Purchase_Matching';
     final isAlgorithm = source == 'Matching_Algorithem';
     final scoreVal = _parseScore(score);
@@ -2659,7 +2764,10 @@ class _SheetItemRow extends StatelessWidget {
     Color nameColor;
     String? statusLabel;
 
-    if (isPurchaseMatching) {
+    if (isAuditTrail) {
+      nameColor = const Color(0xFF16A34A);
+      statusLabel = 'Taken from Audit Trail';
+    } else if (isPurchaseMatching) {
       nameColor = const Color(0xFF16A34A);
       statusLabel = 'No need to edit, Historical Data';
     } else if (isAlgorithm && scoreVal != null) {
@@ -2685,7 +2793,9 @@ class _SheetItemRow extends StatelessWidget {
     // arrow while the item field is focused via Enter-to-move.
     Future<void> openPicker() async {
       String? warnMessage;
-      if (isPurchaseMatching) {
+      if (isAuditTrail) {
+        warnMessage = 'Are you sure you want to edit this item? It was taken from the Audit Trail.';
+      } else if (isPurchaseMatching) {
         warnMessage = 'Are you sure you want to edit this item, Its taken from historical Data';
       } else if (isAlgorithm && scoreVal != null && scoreVal >= 90) {
         warnMessage = 'Are you sure you want to edit this item, I have high confidence on this item';
@@ -3143,8 +3253,25 @@ class _StockItemPickerSheetState extends State<_StockItemPickerSheet> {
   // false → party-specific items (this party's history + sale tier-2 fallback);
   // true ("All items") → the full stock catalog from cache.
   // Sale opens party-first (toggle off); purchase / party-less pickers still
-  // default to the full catalog.
-  late bool _showAll = !widget.isSale;
+  // default to the full catalog. Invariant: this always describes what _allItems
+  // holds — every path that loads the catalog sets it true.
+  late bool _showAll = !widget.isSale || _party == null;
+  // Bumped by every _load(). A party fetch carries the value it started with and
+  // drops its result if it no longer matches, so a slow response can't overwrite
+  // the list the toggle has since switched to.
+  int _loadGen = 0;
+  // Set when the party fetch failed and the catalog was shown instead, so the
+  // sheet can say why the list isn't party-filtered. Shown inline rather than as
+  // a snackbar, which would be hidden behind this modal sheet.
+  bool _partyLoadFailed = false;
+
+  // The party to query, or null when there is none. The edit path passes the
+  // sheet's '—' display placeholder rather than null (see _buildSummaryView),
+  // which would otherwise reach the query and match no voucher.
+  String? get _party {
+    final p = widget.partyName?.trim();
+    return (p == null || p.isEmpty || p == '—') ? null : p;
+  }
 
   @override
   void initState() {
@@ -3160,8 +3287,13 @@ class _StockItemPickerSheetState extends State<_StockItemPickerSheet> {
   }
 
   void _load() {
-    if (_showAll || widget.partyName == null) {
+    final gen = ++_loadGen; // invalidates any party fetch still in flight
+    if (_showAll || _party == null) {
       setState(() {
+        // Showing the catalog, so the toggle must read "All items" — otherwise a
+        // party-less voucher shows 13k items under a toggle that claims to be
+        // filtered by party.
+        _showAll = true;
         _allItems = StockItemsCache.instance.items;
         _applyFilter();
         _loading = false;
@@ -3169,12 +3301,15 @@ class _StockItemPickerSheetState extends State<_StockItemPickerSheet> {
     } else {
       // Sale → items sold to this customer; purchase → items bought from this
       // vendor (party-specific RPCs).
-      _fetchPartyItems();
+      _fetchPartyItems(gen);
     }
   }
 
-  Future<void> _fetchPartyItems() async {
-    setState(() => _loading = true);
+  Future<void> _fetchPartyItems(int gen) async {
+    setState(() {
+      _loading = true;
+      _partyLoadFailed = false; // a retry starts clean
+    });
     // The get_{sale,purchase}_items_for_party RPCs match on
     // voucher_items.party_name, which the sync leaves null — so they return
     // nothing for every party. Query the line items directly instead and resolve
@@ -3187,6 +3322,8 @@ class _StockItemPickerSheetState extends State<_StockItemPickerSheet> {
       // PostgREST caps a single response at 1000 rows, so page through every
       // matching line item with .range(). A high-volume party can have several
       // thousand lines; without paging the picker would silently stop at 1000.
+      // Ordered by id (unique → total order) so the pages are stable and don't
+      // overlap or skip rows; display order is the date sort applied below.
       const pageSize = 1000;
       final rows = <Map<String, dynamic>>[];
       var from = 0;
@@ -3195,8 +3332,9 @@ class _StockItemPickerSheetState extends State<_StockItemPickerSheet> {
             .from('voucher_items')
             .select(
                 'stock_item_name, rate, unit, discount_pct, vouchers!inner(date, party_name, voucher_type)')
-            .eq('vouchers.party_name', widget.partyName!)
+            .eq('vouchers.party_name', _party!)
             .ilike('vouchers.voucher_type', typeMatch)
+            .order('id', ascending: true)
             .range(from, from + pageSize - 1);
         final batch = (page as List).cast<Map<String, dynamic>>();
         rows.addAll(batch);
@@ -3254,15 +3392,20 @@ class _StockItemPickerSheetState extends State<_StockItemPickerSheet> {
           ));
         }
       }
-      if (!mounted) return;
+      if (!mounted || gen != _loadGen) return;
       setState(() {
         _allItems = items;
         _applyFilter();
         _loading = false;
       });
-    } catch (_) {
-      if (!mounted) return;
+    } catch (e, st) {
+      reportHandledError('supabase.picker.party_items', e, stackTrace: st);
+      if (!mounted || gen != _loadGen) return;
       setState(() {
+        // Falling back to the catalog, so flip the toggle to match it. Leaving it
+        // off would silently show all 13k items as if they were this party's.
+        _showAll = true;
+        _partyLoadFailed = true;
         _allItems = StockItemsCache.instance.items;
         _applyFilter();
         _loading = false;
@@ -3281,7 +3424,7 @@ class _StockItemPickerSheetState extends State<_StockItemPickerSheet> {
           .select(
               'stock_item_name, rate, unit, discount_pct, vouchers!inner(party_name, voucher_type)')
           .eq('stock_item_name', name)
-          .neq('vouchers.party_name', widget.partyName!)
+          .neq('vouchers.party_name', _party!)
           .ilike('vouchers.voucher_type', '%sale%')
           .order('created_at', ascending: false)
           .limit(1);
@@ -3428,14 +3571,33 @@ class _StockItemPickerSheetState extends State<_StockItemPickerSheet> {
                 ),
                 Switch(
                   value: _showAll,
-                  onChanged: (v) {
-                    setState(() => _showAll = v);
-                    _load();
-                  },
+                  // Inert while a fetch is in flight (the list can't match the
+                  // toggle mid-flight), and when there is no party to filter by
+                  // — switching would have no other list to show.
+                  onChanged: (_loading || _party == null)
+                      ? null
+                      : (v) {
+                          setState(() => _showAll = v);
+                          _load();
+                        },
                 ),
               ],
             ),
           ),
+          if (_partyLoadFailed)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "Couldn't load this party's items — showing all items",
+                  style: TextStyle(
+                      fontSize: 11,
+                      color: const Color(0xFFDC2626),
+                      fontWeight: FontWeight.w700),
+                ),
+              ),
+            ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
             // Intercepts Down/Up/Enter before the text field handles them, so
