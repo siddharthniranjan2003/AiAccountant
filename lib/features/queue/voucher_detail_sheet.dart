@@ -74,11 +74,6 @@ const double _kRateColW = kIsWeb ? 88 * 1.4 : 88;
 const double _kListPriceColW = kIsWeb ? 96 * 1.4 : 96;
 const double _kAmountColW = kIsWeb ? 96 * 1.4 : 96;
 const double _kDeleteColW = 40;
-// "New Item" flag column (sale only): shows "Y" when a line's rate came from a
-// different party (source_payload rate_source == 'different_party') — i.e. the
-// customer never bought this item before, so the suggested rate is borrowed.
-// Placed left of Qty. Not rendered for purchase (rate_source is sale-only).
-const double _kNewItemColW = kIsWeb ? 56 * 1.4 : 56;
 // Insets for the borderless Charges block so its amounts line up directly
 // beneath the items table's "Taxable value" column. Item rows have, to the
 // right of that column, the delete column plus the row's 12px horizontal
@@ -1944,7 +1939,6 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
             const SizedBox(
                 width: _kItemColW,
                 child: Text('Items', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12))),
-          if (_isSale) const _SheetColHeader('New Item', width: _kNewItemColW),
           const _SheetColHeader('Qty', width: _kQtyColW),
           const _SheetColHeader('Rate', width: _kRateColW),
           const _SheetColHeader('Disc', width: _kDiscColW),
@@ -2179,7 +2173,7 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
                           : SingleChildScrollView(
                               scrollDirection: Axis.horizontal,
                               child: SizedBox(
-                                width: _kItemsTableW + (_isSale ? _kNewItemColW : 0),
+                                width: _kItemsTableW,
                                 child: Column(children: [itemsHeader, itemsBody]),
                               ),
                             ),
@@ -2971,20 +2965,6 @@ class _SheetItemRow extends StatelessWidget {
                           ],
                         ),
           ),
-          // "New Item" flag (sale only): "Y" when the rate was borrowed from a
-          // different party (this customer never bought the item before).
-          if (isSale)
-            SizedBox(
-              width: _kNewItemColW,
-              child: Text(
-                rateSource == 'different_party' ? 'Y' : '',
-                textAlign: TextAlign.right,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFFDC2626),
-                    ),
-              ),
-            ),
           isEditing
               ? FocusTraversalOrder(
                   order: NumericFocusOrder((orderBase + 1).toDouble()),
@@ -3252,10 +3232,13 @@ class _StockItemPickerSheetState extends State<_StockItemPickerSheet> {
   bool _loading = true;
   // false → party-specific items (this party's history + sale tier-2 fallback);
   // true ("All items") → the full stock catalog from cache.
-  // Sale opens party-first (toggle off); purchase / party-less pickers still
-  // default to the full catalog. Invariant: this always describes what _allItems
-  // holds — every path that loads the catalog sets it true.
-  late bool _showAll = !widget.isSale || _party == null;
+  // Defaults to All items everywhere. For a sale, the rate/discount is resolved
+  // from sale history when an item is picked (see _selectItem), not from the
+  // catalog, so the catalog is the right place to start browsing. With a party
+  // present the toggle can still be flipped off to see that party's list.
+  // Invariant: this always describes what _allItems holds — every path that
+  // loads the catalog sets it true.
+  late bool _showAll = true;
   // Bumped by every _load(). A party fetch carries the value it started with and
   // drops its result if it no longer matches, so a slow response can't overwrite
   // the list the toggle has since switched to.
@@ -3264,6 +3247,11 @@ class _StockItemPickerSheetState extends State<_StockItemPickerSheet> {
   // sheet can say why the list isn't party-filtered. Shown inline rather than as
   // a snackbar, which would be hidden behind this modal sheet.
   bool _partyLoadFailed = false;
+
+  // True while a catalog pick's historical rate is being resolved (see
+  // _selectItem). Shows the list's loading spinner during the async gap so the
+  // rows are replaced and can't be re-tapped mid-lookup.
+  bool _selecting = false;
 
   // The party to query, or null when there is none. The edit path passes the
   // sheet's '—' display placeholder rather than null (see _buildSummaryView),
@@ -3447,6 +3435,76 @@ class _StockItemPickerSheetState extends State<_StockItemPickerSheet> {
     }
   }
 
+  // A sale pick from the catalog ("All items") adopts its rate/discount from
+  // sale history, not the catalog price. Party-scoped picks (source already
+  // 'same_party'/'different_party') and purchase picks carry the right rate, so
+  // they pop straight through. Resolves, then closes the sheet with the result.
+  Future<void> _selectItem(StockItem s) async {
+    if (_selecting) return;
+    if (!widget.isSale || s.source.isNotEmpty) {
+      Navigator.of(context).pop(s);
+      return;
+    }
+    setState(() => _selecting = true);
+    final resolved = await _resolveSaleRate(s);
+    if (!mounted) return;
+    Navigator.of(context).pop(resolved);
+  }
+
+  // Mirrors the Stock Info tiering: the latest sale rate+discount to THIS party,
+  // else to ANY party, else 0. A missing or failed lookup collapses to 0 — never
+  // the catalog rate the user is moving away from.
+  Future<StockItem> _resolveSaleRate(StockItem s) async {
+    if (_party != null) {
+      final row = await _fetchLatestSaleRow(s.name, party: _party);
+      if (row != null) return _stockItemWithRate(s, row, 'same_party');
+    }
+    final any = await _fetchLatestSaleRow(s.name);
+    if (any != null) return _stockItemWithRate(s, any, 'different_party');
+    return _stockItemWithRate(s, null, ''); // never sold OR lookup error → 0
+  }
+
+  // The most recent SALE line for this item (optionally scoped to one party),
+  // resolved through the parent voucher. Null on no-match or error → the caller
+  // treats it as no history (rate 0). Ordered by created_at like the tier-2
+  // fallback above, since the voucher date is partly null on some projects.
+  Future<Map<String, dynamic>?> _fetchLatestSaleRow(String name,
+      {String? party}) async {
+    try {
+      var query = Supabase.instance.client
+          .from('voucher_items')
+          .select(
+              'rate, unit, discount_pct, vouchers!inner(party_name, voucher_type)')
+          .eq('stock_item_name', name)
+          .ilike('vouchers.voucher_type', '%sale%');
+      if (party != null) query = query.eq('vouchers.party_name', party);
+      final page = await query.order('created_at', ascending: false).limit(1);
+      final rows = (page as List).cast<Map<String, dynamic>>();
+      if (rows.isEmpty || rows.first['rate'] == null) return null;
+      return rows.first;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  // StockItem is a const model with no copyWith — build the enriched copy with
+  // the resolved rate/discount/source, keeping the row's identity fields.
+  StockItem _stockItemWithRate(
+      StockItem s, Map<String, dynamic>? row, String source) {
+    final unit = (row?['unit'] as String?)?.trim().isNotEmpty == true
+        ? row!['unit'] as String
+        : s.unit;
+    return StockItem(
+      name: s.name,
+      groupName: s.groupName,
+      rate: (row?['rate'] as num?)?.toDouble() ?? 0.0,
+      unit: unit,
+      discountPct: (row?['discount_pct'] as num?)?.toDouble() ?? 0.0,
+      source: source,
+      partCode: s.partCode,
+    );
+  }
+
   @override
   void dispose() {
     _controller.dispose();
@@ -3505,7 +3563,7 @@ class _StockItemPickerSheetState extends State<_StockItemPickerSheet> {
     }
     if (key == LogicalKeyboardKey.enter || key == LogicalKeyboardKey.numpadEnter) {
       if (_filtered.isNotEmpty) {
-        Navigator.of(context).pop(_filtered[_highlighted]);
+        _selectItem(_filtered[_highlighted]);
       }
       return KeyEventResult.handled;
     }
@@ -3663,7 +3721,7 @@ class _StockItemPickerSheetState extends State<_StockItemPickerSheet> {
           ),
           Divider(height: 1, color: AppPalette.line.withValues(alpha: 0.5)),
           Expanded(
-            child: _loading
+            child: _loading || _selecting
                 ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
                 : ListView.separated(
                     controller: _scrollController,
@@ -3674,7 +3732,7 @@ class _StockItemPickerSheetState extends State<_StockItemPickerSheet> {
                       final s = _filtered[i];
                       return InkWell(
                         key: _keyFor(i),
-                        onTap: () => Navigator.of(context).pop(s),
+                        onTap: () => _selectItem(s),
                         child: Container(
                           color: i == _highlighted
                               ? AppPalette.ink.withValues(alpha: 0.06)
@@ -3699,10 +3757,15 @@ class _StockItemPickerSheetState extends State<_StockItemPickerSheet> {
                                   ],
                                 ),
                               ),
-                              Text(
-                                formatCurrency(s.rate),
-                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppPalette.inkSoft),
-                              ),
+                              // Only party-scoped rows carry a real historical
+                              // rate. Catalog rows (source == '', the "All items"
+                              // view) would show the misleading catalog price; the
+                              // true rate is resolved on selection instead.
+                              if (s.source.isNotEmpty)
+                                Text(
+                                  formatCurrency(s.rate),
+                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppPalette.inkSoft),
+                                ),
                             ],
                           ),
                         ),
