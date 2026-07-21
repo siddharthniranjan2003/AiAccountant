@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../core/palette.dart';
 import '../core/utils.dart';
@@ -22,6 +23,10 @@ class CustomerPickerSheet extends StatefulWidget {
 class _CustomerPickerSheetState extends State<CustomerPickerSheet> {
   final _controller = TextEditingController();
   late List<Customer> _filtered;
+  // Keyboard navigation: index of the highlighted row. Down/Up move it, Enter
+  // selects it. Reset to 0 whenever the filtered list changes.
+  int _highlighted = 0;
+  final Map<int, GlobalKey> _itemKeys = {};
 
   @override
   void initState() {
@@ -45,7 +50,54 @@ class _CustomerPickerSheetState extends State<CustomerPickerSheet> {
           : widget.items
               .where((c) => searchKey(c.name).contains(query))
               .toList();
+      // A new result set invalidates the old highlight position.
+      _highlighted = 0;
     });
+  }
+
+  void _select(Customer c) => Navigator.of(context).pop(c);
+
+  GlobalKey _keyFor(int i) => _itemKeys.putIfAbsent(i, () => GlobalKey());
+
+  // Moves the highlight by [delta] (clamped) and scrolls it into view. The
+  // search field keeps focus so the user can keep typing.
+  void _moveHighlight(int delta) {
+    if (_filtered.isEmpty) return;
+    setState(() {
+      _highlighted = (_highlighted + delta).clamp(0, _filtered.length - 1);
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final ctx = _itemKeys[_highlighted]?.currentContext;
+      if (ctx != null) {
+        Scrollable.ensureVisible(ctx,
+            alignment: 0.5, duration: const Duration(milliseconds: 120));
+      }
+    });
+  }
+
+  // Down/Up move the highlight, Enter selects it. Returns handled so these keys
+  // don't reach the text field (cursor moves / submit).
+  KeyEventResult _onSearchKey(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+      return KeyEventResult.ignored;
+    }
+    final key = event.logicalKey;
+    if (key == LogicalKeyboardKey.arrowDown) {
+      _moveHighlight(1);
+      return KeyEventResult.handled;
+    }
+    if (key == LogicalKeyboardKey.arrowUp) {
+      _moveHighlight(-1);
+      return KeyEventResult.handled;
+    }
+    if (key == LogicalKeyboardKey.enter ||
+        key == LogicalKeyboardKey.numpadEnter) {
+      if (_filtered.isNotEmpty) {
+        _select(_filtered[_highlighted]);
+      }
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
   }
 
   @override
@@ -66,24 +118,29 @@ class _CustomerPickerSheetState extends State<CustomerPickerSheet> {
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
-            child: TextField(
-              controller: _controller,
-              autofocus: true,
-              decoration: InputDecoration(
-                hintText: widget.searchHint,
-                hintStyle: const TextStyle(fontSize: 13),
-                prefixIcon: const Icon(Icons.search_rounded, size: 20),
-                suffixIcon: _controller.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear_rounded, size: 18),
-                        onPressed: _controller.clear,
-                      )
-                    : null,
-                filled: true,
-                fillColor: AppPalette.gridHeader,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                isDense: true,
+            // Intercepts Down/Up/Enter before the text field handles them, so
+            // the user can navigate the list without leaving the search box.
+            child: Focus(
+              onKeyEvent: _onSearchKey,
+              child: TextField(
+                controller: _controller,
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: widget.searchHint,
+                  hintStyle: const TextStyle(fontSize: 13),
+                  prefixIcon: const Icon(Icons.search_rounded, size: 20),
+                  suffixIcon: _controller.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear_rounded, size: 18),
+                          onPressed: _controller.clear,
+                        )
+                      : null,
+                  filled: true,
+                  fillColor: AppPalette.gridHeader,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                  isDense: true,
+                ),
               ),
             ),
           ),
@@ -95,8 +152,12 @@ class _CustomerPickerSheetState extends State<CustomerPickerSheet> {
               itemBuilder: (ctx, i) {
                 final c = _filtered[i];
                 return InkWell(
-                  onTap: () => Navigator.of(context).pop(c),
-                  child: Padding(
+                  key: _keyFor(i),
+                  onTap: () => _select(c),
+                  child: Container(
+                    color: i == _highlighted
+                        ? AppPalette.ink.withValues(alpha: 0.06)
+                        : null,
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     child: Text(c.name, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
                   ),
