@@ -1,9 +1,11 @@
-import 'package:url_launcher/url_launcher.dart';
+import 'popup_window_stub.dart'
+    if (dart.library.js_interop) 'popup_window_web.dart';
 
-/// Opens the standalone Stock Info screen in a new browser tab.
+/// Opens the standalone Stock Info screen in a new browser window (popup, not
+/// a tab; falls back to the default browser on non-web platforms).
 ///
 /// The app uses Flutter web's default *hash* URL strategy, so the route lives
-/// in the URL fragment. We point a new tab at
+/// in the URL fragment. We point the window at
 /// `<app>#/stock-info?item=<name>&party=<name>` (party is added only when the ⓘ
 /// was clicked on a sale invoice); [main.dart] reads that fragment on boot and
 /// renders `StockInfoScreen` instead of the auth gate. Item + party are passed
@@ -22,6 +24,6 @@ class StockInfoLauncher {
         : '';
     final url =
         '${base.origin}${base.path}#/stock-info?item=${Uri.encodeComponent(itemName)}$partyQuery';
-    await launchUrl(Uri.parse(url), webOnlyWindowName: '_blank');
+    await openPopupWindow(url);
   }
 }
