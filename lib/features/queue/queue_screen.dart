@@ -3,6 +3,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/models.dart';
 import '../../core/palette.dart';
+import '../../services/stock_info_launcher.dart';
+import '../../shared/stock_cube_icon.dart';
 import '../../shared/screen_frame.dart';
 import '../../shared/app_top_tabs.dart';
 import 'queue_table_header.dart';
@@ -333,6 +335,7 @@ class _QueueScreenState extends State<QueueScreen> {
             labels: const ['Purchase', 'Sale'],
             selectedIndex: widget.tabIndex,
             onSelected: widget.onTabChanged,
+            trailing: const _StockInfoButton(),
           ),
           Expanded(
             child: Padding(
@@ -433,6 +436,35 @@ class _QueueScreenState extends State<QueueScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Top-right tab-bar action: opens the standalone Stock Info window in a new
+/// browser tab with no item preselected (its search bar covers the catalog).
+class _StockInfoButton extends StatelessWidget {
+  const _StockInfoButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: 'Stock Info',
+      child: InkWell(
+        borderRadius: BorderRadius.circular(9),
+        onTap: () => StockInfoLauncher.open(itemName: ''),
+        child: Container(
+          width: 34,
+          height: 34,
+          decoration: BoxDecoration(
+            color: AppPalette.sheet,
+            border: Border.all(color: AppPalette.line),
+            borderRadius: BorderRadius.circular(9),
+          ),
+          child: const Center(
+            child: StockCubeIcon(size: 17, color: AppPalette.inkSoft),
+          ),
+        ),
       ),
     );
   }

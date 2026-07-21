@@ -7,11 +7,16 @@ class AppTopTabs extends StatelessWidget {
     required this.labels,
     required this.selectedIndex,
     required this.onSelected,
+    this.trailing,
   });
 
   final List<String> labels;
   final int selectedIndex;
   final ValueChanged<int> onSelected;
+
+  /// Optional action shown at the right edge of the tab bar (e.g. the Stock
+  /// Info launcher on the Queue screen), separated by a hairline divider.
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -68,6 +73,16 @@ class AppTopTabs extends StatelessWidget {
                   ),
                 ),
               ),
+            ),
+          if (trailing != null)
+            Container(
+              decoration: BoxDecoration(
+                border: Border(
+                  left: BorderSide(color: AppPalette.line, width: 1),
+                ),
+              ),
+              padding: const EdgeInsets.only(left: 14, right: 12),
+              child: trailing,
             ),
         ],
       ),

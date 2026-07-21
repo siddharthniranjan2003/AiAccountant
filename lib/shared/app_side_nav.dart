@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import '../core/palette.dart';
 import '../core/constants.dart';
+import '../services/stock_info_launcher.dart';
+import 'stock_cube_icon.dart';
 
 /// Vertical navigation rail used on wide (desktop) layouts. Mirrors the visual
 /// language of [AppBottomNav] — circular ink-bordered icons, the camera entry
@@ -41,7 +43,50 @@ class AppSideNav extends StatelessWidget {
                   selected: index == currentIndex,
                   onTap: () => onSelected(index),
                 ),
+            const _StockInfoNavAction(),
             const Spacer(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Rail action below the nav destinations: opens the standalone Stock Info
+/// window in a new browser tab (same job as the tab-bar cube on the Queue
+/// screen). An action, not a destination — so it never shows a selected state.
+class _StockInfoNavAction extends StatelessWidget {
+  const _StockInfoNavAction();
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () => StockInfoLauncher.open(itemName: ''),
+      child: SizedBox(
+        height: 72,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppPalette.sheet,
+                border: Border.all(color: AppPalette.ink, width: 1.4),
+              ),
+              child: const Center(
+                child: StockCubeIcon(size: 20, color: AppPalette.ink),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Stock',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: AppPalette.inkSoft,
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
           ],
         ),
       ),
