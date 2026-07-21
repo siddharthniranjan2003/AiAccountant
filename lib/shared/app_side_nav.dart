@@ -19,6 +19,12 @@ class AppSideNav extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onSelected;
 
+  Widget _item(int index) => _SideNavItem(
+        index: index,
+        selected: index == currentIndex,
+        onTap: () => onSelected(index),
+      );
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -34,16 +40,16 @@ class AppSideNav extends StatelessWidget {
         child: Column(
           children: [
             const SizedBox(height: 12),
-            for (int index = 0; index < bottomNavItems.length; index++)
-              // The Camera entry (document scanner) is Android-only; hide it on
-              // web while keeping the index mapping intact for the other tabs.
-              if (!(kIsWeb && index == 2))
-                _SideNavItem(
-                  index: index,
-                  selected: index == currentIndex,
-                  onTap: () => onSelected(index),
-                ),
+            // Rail order: Queue, Rate, (Camera), Report, Profile, History —
+            // decoupled from bottomNavItems' index order, which still drives
+            // selection and the bottom nav. The Camera entry (document
+            // scanner) is Android-only; hidden on web.
+            _item(0),
             const _StockInfoNavAction(),
+            if (!kIsWeb) _item(2),
+            _item(3),
+            _item(4),
+            _item(1),
             const Spacer(),
           ],
         ),
@@ -52,9 +58,9 @@ class AppSideNav extends StatelessWidget {
   }
 }
 
-/// Rail action below the nav destinations: opens the standalone Stock Info
-/// window in a new browser tab (same job as the tab-bar cube on the Queue
-/// screen). An action, not a destination — so it never shows a selected state.
+/// "Rate" rail action: opens the standalone Stock Info window (same job as the
+/// tab-bar cube on the Queue screen). An action, not a destination — so it
+/// never shows a selected state.
 class _StockInfoNavAction extends StatelessWidget {
   const _StockInfoNavAction();
 
@@ -81,7 +87,7 @@ class _StockInfoNavAction extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'Stock',
+              'Rate',
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
                     color: AppPalette.inkSoft,
                     fontWeight: FontWeight.w700,
