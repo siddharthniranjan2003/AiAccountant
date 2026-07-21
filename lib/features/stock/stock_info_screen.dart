@@ -4,6 +4,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/constants.dart';
 import '../../core/palette.dart';
 import '../../core/utils.dart';
+import '../../data/customers_cache.dart';
+import '../../shared/customer_picker_sheet.dart';
 
 /// A single Purchase/Sale history line, formatted for display.
 class _Txn {
@@ -91,10 +93,11 @@ class _StockInfoScreenState extends State<StockInfoScreen> {
   // The stock item currently shown; changes when the user picks one via search.
   late String _item;
 
-  String get _party => (widget.partyName ?? '').trim();
-  // The invoice's customer — unless the user removed the chip (× on it).
-  bool _partyRemoved = false;
-  bool get _hasParty => !_partyRemoved && _party.isNotEmpty && _party != '—';
+  // The customer the Sale panel can be scoped to. Starts as the invoice's
+  // customer (URL param); replaced by picks from the customer sheet, cleared
+  // by the chip's ×.
+  String _party = '';
+  bool get _hasParty => _party.isNotEmpty && _party != '—';
   // True while the Sale panel is filtered to the customer; the user can toggle
   // it off (tap the chip) or remove it entirely (× on the chip).
   late bool _partyActive;
@@ -104,6 +107,7 @@ class _StockInfoScreenState extends State<StockInfoScreen> {
   void initState() {
     super.initState();
     _item = widget.itemName.trim();
+    _party = (widget.partyName ?? '').trim();
     _partyActive = _hasParty;
     if (_item.isEmpty) {
       _purchases = const [];
@@ -166,7 +170,52 @@ class _StockInfoScreenState extends State<StockInfoScreen> {
   // chip disappears (stays gone across item picks).
   void _removeParty() {
     setState(() {
-      _partyRemoved = true;
+      _party = '';
+      _sales = null;
+      _saleError = null;
+    });
+    _loadSales();
+  }
+
+  // Guards _pickParty against re-entry while the customer list downloads.
+  bool _pickingParty = false;
+
+  // Open the customer picker sheet; the pick REPLACES the current filter and
+  // applies it immediately.
+  Future<void> _pickParty() async {
+    if (_pickingParty) return;
+    // This standalone tab skips AuthGate, so the auth-driven cache fetch may
+    // never have run here — download the customer list on first use.
+    final cache = CustomersCache.instance;
+    if (cache.items.isEmpty) {
+      if (cache.isLoading) return;
+      _pickingParty = true;
+      try {
+        await cache.fetch();
+      } finally {
+        _pickingParty = false;
+      }
+      if (!mounted) return;
+      if (cache.items.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Couldn't load the customer list.")),
+        );
+        return;
+      }
+    }
+    final selected = await showModalBottomSheet<Customer>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => CustomerPickerSheet(
+        items: cache.items,
+        searchHint: 'Search customers…',
+      ),
+    );
+    if (selected == null || !mounted) return;
+    setState(() {
+      _party = selected.name;
+      _partyActive = true;
       _sales = null;
       _saleError = null;
     });
@@ -235,6 +284,7 @@ class _StockInfoScreenState extends State<StockInfoScreen> {
       partyActive: _partyScoped,
       onToggleParty: _toggleParty,
       onRemoveParty: _removeParty,
+      onPickParty: _item.isNotEmpty ? _pickParty : null,
     );
 
     return Scaffold(
@@ -525,6 +575,7 @@ class _HistoryPanel extends StatelessWidget {
     this.partyActive = false,
     this.onToggleParty,
     this.onRemoveParty,
+    this.onPickParty,
   });
 
   final String title;
@@ -542,6 +593,9 @@ class _HistoryPanel extends StatelessWidget {
   final bool partyActive;
   final VoidCallback? onToggleParty;
   final VoidCallback? onRemoveParty;
+  // Opens the customer picker sheet — the pick replaces the filter. Shown as a
+  // button beside the chip, or alone when no filter is set.
+  final VoidCallback? onPickParty;
 
   @override
   Widget build(BuildContext context) {
@@ -599,13 +653,29 @@ class _HistoryPanel extends StatelessWidget {
               ],
               // Customer filter toggle — active by default (scopes the Sale
               // panel to this customer); tap to show all sales of the item.
-              if (partyToggleName != null) ...[
+              // The add button beside it opens the customer picker; a pick
+              // replaces the filter (or adds one when none is set).
+              if (partyToggleName != null || onPickParty != null) ...[
                 const SizedBox(height: 10),
-                _PartyToggle(
-                  name: partyToggleName!,
-                  active: partyActive,
-                  onToggle: onToggleParty,
-                  onRemove: onRemoveParty,
+                Row(
+                  children: [
+                    if (partyToggleName != null)
+                      Flexible(
+                        child: _PartyToggle(
+                          name: partyToggleName!,
+                          active: partyActive,
+                          onToggle: onToggleParty,
+                          onRemove: onRemoveParty,
+                        ),
+                      ),
+                    if (partyToggleName != null && onPickParty != null)
+                      const SizedBox(width: 8),
+                    if (onPickParty != null)
+                      _PartyPickButton(
+                        onTap: onPickParty!,
+                        hasParty: partyToggleName != null,
+                      ),
+                  ],
                 ),
               ],
             ],
@@ -717,6 +787,54 @@ class _PartyToggle extends StatelessWidget {
                 ),
               ],
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Opens the customer picker sheet. Icon-only beside the chip (replace); with
+/// an "Add customer" label when no filter is set.
+class _PartyPickButton extends StatelessWidget {
+  const _PartyPickButton({required this.onTap, required this.hasParty});
+  final VoidCallback onTap;
+  final bool hasParty;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: hasParty ? 'Replace customer filter' : 'Filter by customer',
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+            decoration: BoxDecoration(
+              color: AppPalette.card,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppPalette.line),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.person_add_alt_1,
+                    size: 15, color: AppPalette.inkSoft),
+                if (!hasParty) ...[
+                  const SizedBox(width: 6),
+                  Text(
+                    'Add customer',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppPalette.inkSoft,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.2,
+                        ),
+                  ),
+                ],
+              ],
+            ),
           ),
         ),
       ),

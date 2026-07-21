@@ -15,6 +15,7 @@ import '../../data/vendors_cache.dart';
 import '../../data/stock_items_cache.dart';
 import '../../services/api_client.dart';
 import '../../services/stock_info_launcher.dart';
+import '../../shared/customer_picker_sheet.dart';
 import '../../shared/responsive.dart';
 import '../stock/stock_item_create_sheet.dart';
 
@@ -1398,7 +1399,7 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
                               context: context,
                               isScrollControlled: true,
                               backgroundColor: Colors.transparent,
-                              builder: (_) => _CustomerPickerSheet(
+                              builder: (_) => CustomerPickerSheet(
                                 items: _isSale
                                     ? CustomersCache.instance.items
                                     : VendorsCache.instance.items,
@@ -3089,107 +3090,6 @@ class _SheetItemRow extends StatelessWidget {
                   child: const Icon(Icons.delete_outline_rounded, size: 18, color: AppPalette.accent),
                 ),
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Party picker sheet (sale customers / purchase vendors) ────────────────────
-
-class _CustomerPickerSheet extends StatefulWidget {
-  const _CustomerPickerSheet({required this.items, required this.searchHint});
-  final List<Customer> items;
-  final String searchHint;
-
-  @override
-  State<_CustomerPickerSheet> createState() => _CustomerPickerSheetState();
-}
-
-class _CustomerPickerSheetState extends State<_CustomerPickerSheet> {
-  final _controller = TextEditingController();
-  late List<Customer> _filtered;
-
-  @override
-  void initState() {
-    super.initState();
-    _filtered = widget.items;
-    _controller.addListener(_onSearch);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _onSearch() {
-    final query = _controller.text.toLowerCase();
-    setState(() {
-      _filtered = query.isEmpty
-          ? widget.items
-          : widget.items
-              .where((c) => c.name.toLowerCase().contains(query))
-              .toList();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.72,
-      decoration: BoxDecoration(
-        color: AppPalette.sheet,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      child: Column(
-        children: [
-          const SizedBox(height: 12),
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(color: AppPalette.line, borderRadius: BorderRadius.circular(99)),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
-            child: TextField(
-              controller: _controller,
-              autofocus: true,
-              decoration: InputDecoration(
-                hintText: widget.searchHint,
-                hintStyle: const TextStyle(fontSize: 13),
-                prefixIcon: const Icon(Icons.search_rounded, size: 20),
-                suffixIcon: _controller.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear_rounded, size: 18),
-                        onPressed: _controller.clear,
-                      )
-                    : null,
-                filled: true,
-                fillColor: AppPalette.gridHeader,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                isDense: true,
-              ),
-            ),
-          ),
-          Expanded(
-            child: ListView.separated(
-              padding: const EdgeInsets.only(bottom: 24),
-              itemCount: _filtered.length,
-              separatorBuilder: (_, idx) => Divider(height: 1, color: AppPalette.line.withValues(alpha: 0.5)),
-              itemBuilder: (ctx, i) {
-                final c = _filtered[i];
-                return InkWell(
-                  onTap: () => Navigator.of(context).pop(c),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    child: Text(c.name, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                  ),
-                );
-              },
             ),
           ),
         ],
