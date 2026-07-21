@@ -405,9 +405,18 @@ class _SearchBarState extends State<_SearchBar> {
   // Debounce: each keystroke bumps the token; only the latest one runs a query.
   int _token = 0;
   List<String> _lastOptions = const [];
+  // True while a search is genuinely waiting (catalog download or server
+  // fallback); shows a spinner in the field. Not set for instant cache hits.
+  bool _searching = false;
   // Global position of a pointer-down on an option row — lets us tell a tap
   // from a scroll drag in optionsViewBuilder (web arena swallows InkWell taps).
   Offset? _downPos;
+  // Keyboard navigation: GlobalKeys per option row, used to scroll the
+  // highlighted row into view. RawAutocomplete tracks the highlighted index
+  // itself (see AutocompleteHighlightedOption.of below); this just remembers
+  // the last value seen so a real change can be detected and scrolled to.
+  final Map<int, GlobalKey> _optionKeys = {};
+  int _lastHighlighted = 0;
 
   @override
   void dispose() {
@@ -425,32 +434,56 @@ class _SearchBarState extends State<_SearchBar> {
     // Space-insensitive match over the catalog cache ("hsstap" finds
     // "HSS TAP …"), which ilike can't do. The cache is name-sorted, so taking
     // the first 20 mirrors the server query's order('name').limit(20).
-    final catalog = StockItemsCache.instance.items;
-    if (catalog.isNotEmpty) {
-      final key = searchKey(q);
-      _lastOptions = [
-        for (final item in catalog)
-          if (searchKey(item.name).contains(key)) item.name,
-      ].take(20).toList();
-      return _lastOptions;
-    }
-    // Cache still downloading (or its fetch failed): fall back to the server
-    // query so search works immediately — exact-substring matches only.
+    // Right after the window opens the catalog may still be downloading; wait
+    // for it here (RawAutocomplete won't re-run this builder on its own, so
+    // falling back would leave a no-space query empty forever). The token
+    // guard drops this wait when a newer keystroke supersedes it.
     try {
-      final res = await Supabase.instance.client
-          .from('stock_items')
-          .select('name')
-          .ilike('name', '%$q%')
-          .order('name')
-          .limit(20);
-      if (token != _token) return _lastOptions;
-      _lastOptions = [
-        for (final r in (res as List)) (r as Map)['name'] as String,
-      ];
-      return _lastOptions;
-    } catch (_) {
-      return _lastOptions;
+      var catalog = StockItemsCache.instance.items;
+      if (catalog.isEmpty && StockItemsCache.instance.isLoading) {
+        _setSearching(true);
+        while (catalog.isEmpty && StockItemsCache.instance.isLoading) {
+          await Future<void>.delayed(const Duration(milliseconds: 200));
+          if (token != _token) return _lastOptions;
+          catalog = StockItemsCache.instance.items;
+        }
+      }
+      if (catalog.isNotEmpty) {
+        final key = searchKey(q);
+        _lastOptions = [
+          for (final item in catalog)
+            if (searchKey(item.name).contains(key)) item.name,
+        ].take(20).toList();
+        return _lastOptions;
+      }
+      // Catalog fetch failed (done loading, still empty): fall back to the
+      // server query — exact-substring matches only.
+      _setSearching(true);
+      try {
+        final res = await Supabase.instance.client
+            .from('stock_items')
+            .select('name')
+            .ilike('name', '%$q%')
+            .order('name')
+            .limit(20);
+        if (token != _token) return _lastOptions;
+        _lastOptions = [
+          for (final r in (res as List)) (r as Map)['name'] as String,
+        ];
+        return _lastOptions;
+      } catch (_) {
+        return _lastOptions;
+      }
+    } finally {
+      // Only the latest search may clear the spinner — an older superseded one
+      // finishing late must not hide it while the new search is still waiting.
+      if (token == _token) _setSearching(false);
     }
+  }
+
+  void _setSearching(bool v) {
+    if (!mounted || _searching == v) return;
+    setState(() => _searching = v);
   }
 
   @override
@@ -480,20 +513,40 @@ class _SearchBarState extends State<_SearchBar> {
                   return TextField(
                     controller: controller,
                     focusNode: focusNode,
+                    // Opened without an item (Rate rail / tab-bar): the first
+                    // action is always a search, so be ready to type.
+                    autofocus: widget.initialItem.isEmpty,
                     onSubmitted: (_) => onFieldSubmitted(),
                     decoration: InputDecoration(
                       prefixIcon: const Icon(Icons.search_rounded, size: 20),
-                      suffixIcon: value.text.isEmpty
+                      suffixIcon: (value.text.isEmpty && !_searching)
                           ? null
-                          : IconButton(
-                              icon: const Icon(Icons.close_rounded, size: 18),
-                              splashRadius: 18,
-                              tooltip: 'Clear',
-                              onPressed: () {
-                                controller.clear();
-                                widget.onClear();
-                                focusNode.unfocus();
-                              },
+                          : Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (_searching)
+                                  const Padding(
+                                    padding: EdgeInsets.only(right: 4),
+                                    child: SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2),
+                                    ),
+                                  ),
+                                if (value.text.isNotEmpty)
+                                  IconButton(
+                                    icon: const Icon(Icons.close_rounded,
+                                        size: 18),
+                                    splashRadius: 18,
+                                    tooltip: 'Clear',
+                                    onPressed: () {
+                                      controller.clear();
+                                      widget.onClear();
+                                      focusNode.unfocus();
+                                    },
+                                  ),
+                              ],
                             ),
                       suffixIconConstraints:
                           const BoxConstraints(minWidth: 40, minHeight: 40),
@@ -518,6 +571,21 @@ class _SearchBarState extends State<_SearchBar> {
             },
             optionsViewBuilder: (context, onSelected, options) {
               final items = options.toList();
+              // RawAutocomplete already tracks Down/Up navigation on the field
+              // (installed via Shortcuts on the fieldView) — read the index it's
+              // highlighting so this view can show it and keep it in scroll view.
+              final highlighted = AutocompleteHighlightedOption.of(context);
+              if (highlighted != _lastHighlighted) {
+                _lastHighlighted = highlighted;
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  final ctx = _optionKeys[highlighted]?.currentContext;
+                  if (ctx != null) {
+                    Scrollable.ensureVisible(ctx,
+                        alignment: 0.5,
+                        duration: const Duration(milliseconds: 120));
+                  }
+                });
+              }
               return TextFieldTapRegion(
                 child: Align(
                   alignment: Alignment.topLeft,
@@ -550,7 +618,12 @@ class _SearchBarState extends State<_SearchBar> {
                             },
                             child: InkWell(
                               onTap: () => onSelected(name),
-                              child: Padding(
+                              child: Container(
+                                key: _optionKeys.putIfAbsent(
+                                    i, () => GlobalKey()),
+                                color: i == highlighted
+                                    ? AppPalette.ink.withValues(alpha: 0.06)
+                                    : null,
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 14, vertical: 11),
                                 child: Text(
