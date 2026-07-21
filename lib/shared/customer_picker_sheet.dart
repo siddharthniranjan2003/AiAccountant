@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/palette.dart';
+import '../core/utils.dart';
 import '../data/customers_cache.dart';
 
 /// Party picker bottom sheet (sale customers / purchase vendors). Shows a
@@ -36,12 +37,13 @@ class _CustomerPickerSheetState extends State<CustomerPickerSheet> {
   }
 
   void _onSearch() {
-    final query = _controller.text.toLowerCase();
+    // Space-insensitive: "haryanahw" matches "HARYANA H/W & MILL STORE".
+    final query = searchKey(_controller.text);
     setState(() {
       _filtered = query.isEmpty
           ? widget.items
           : widget.items
-              .where((c) => c.name.toLowerCase().contains(query))
+              .where((c) => searchKey(c.name).contains(query))
               .toList();
     });
   }

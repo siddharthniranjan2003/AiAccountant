@@ -5,6 +5,7 @@ import '../../core/constants.dart';
 import '../../core/palette.dart';
 import '../../core/utils.dart';
 import '../../data/customers_cache.dart';
+import '../../data/stock_items_cache.dart';
 import '../../shared/customer_picker_sheet.dart';
 
 /// A single Purchase/Sale history line, formatted for display.
@@ -109,6 +110,14 @@ class _StockInfoScreenState extends State<StockInfoScreen> {
     _item = widget.itemName.trim();
     _party = (widget.partyName ?? '').trim();
     _partyActive = _hasParty;
+    // Warm the catalog for the search bar's space-insensitive matching. This
+    // standalone tab skips AuthGate, so the auth-driven cache fetch may never
+    // have run here. Fire-and-forget: until it lands, search falls back to the
+    // server ilike query.
+    final stockCache = StockItemsCache.instance;
+    if (stockCache.items.isEmpty && !stockCache.isLoading) {
+      stockCache.fetch();
+    }
     if (_item.isEmpty) {
       _purchases = const [];
       _sales = const [];
@@ -413,6 +422,20 @@ class _SearchBarState extends State<_SearchBar> {
     final token = ++_token;
     await Future<void>.delayed(const Duration(milliseconds: 250));
     if (token != _token) return _lastOptions; // superseded — skip the query
+    // Space-insensitive match over the catalog cache ("hsstap" finds
+    // "HSS TAP …"), which ilike can't do. The cache is name-sorted, so taking
+    // the first 20 mirrors the server query's order('name').limit(20).
+    final catalog = StockItemsCache.instance.items;
+    if (catalog.isNotEmpty) {
+      final key = searchKey(q);
+      _lastOptions = [
+        for (final item in catalog)
+          if (searchKey(item.name).contains(key)) item.name,
+      ].take(20).toList();
+      return _lastOptions;
+    }
+    // Cache still downloading (or its fetch failed): fall back to the server
+    // query so search works immediately — exact-substring matches only.
     try {
       final res = await Supabase.instance.client
           .from('stock_items')

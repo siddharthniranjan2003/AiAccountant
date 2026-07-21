@@ -5,6 +5,10 @@ String sheetSlug(String value) {
   return value.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_');
 }
 
+/// Normalizes a string for loose search matching: lowercased with all
+/// whitespace removed, so "hsstap" matches "HSS TAP 12 X 1.75 SET TOTEM".
+String searchKey(String s) => s.toLowerCase().replaceAll(RegExp(r'\s+'), '');
+
 String formatCurrency(num amount) {
   final hasDecimals = amount != amount.roundToDouble();
   return '₹${_groupIndian(amount.toStringAsFixed(hasDecimals ? 2 : 0))}';
