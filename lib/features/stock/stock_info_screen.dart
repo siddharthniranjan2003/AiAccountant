@@ -143,10 +143,8 @@ class _StockInfoScreenState extends State<StockInfoScreen> {
           // Sort on the embedded column via the 'vouchers(date)' string form.
           // NOT .order('date', referencedTable: 'vouchers') — that emits
           // `vouchers.order=`, which sorts *inside* the embed and leaves the top
-          // level unsorted: HTTP 200, wrong five rows. id breaks date ties so
-          // the .limit(5) window (and the `latest` badge on row 0) is stable.
+          // level unsorted: HTTP 200, wrong five rows.
           .order('vouchers(date)', ascending: false)
-          .order('id', ascending: true)
           .limit(5);
       if (!mounted) return;
       setState(() => _purchases = _toTxns(res));
@@ -167,11 +165,8 @@ class _StockInfoScreenState extends State<StockInfoScreen> {
       if (_partyScoped) {
         query = query.eq('vouchers.party_name', _party);
       }
-      // Embedded-column sort + id tiebreak — see the note in _loadPurchases.
-      final res = await query
-          .order('vouchers(date)', ascending: false)
-          .order('id', ascending: true)
-          .limit(5);
+      // Embedded-column sort — see the note in _loadPurchases.
+      final res = await query.order('vouchers(date)', ascending: false).limit(5);
       if (!mounted) return;
       setState(() => _sales = _toTxns(res));
     } catch (_) {
