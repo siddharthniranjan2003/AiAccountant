@@ -29,9 +29,10 @@ class _Txn {
   final bool latest;
 
   /// Builds a display row from a raw `voucher_items` row. `date` and
-  /// `party_name` are read straight off the line — both are fully populated and
-  /// identical to the parent voucher. `amount` is stored signed (purchases
-  /// negative, sales positive), so we show its magnitude.
+  /// `party_name` come from the parent voucher — the `...vouchers!inner(…)`
+  /// spread in [_select] flattens them into top-level keys, so they read the
+  /// same as any line column. `amount` is stored signed (purchases negative,
+  /// sales positive), so we show its magnitude.
   factory _Txn.fromRow(Map<String, dynamic> row, {bool latest = false}) {
     final qty = (row['quantity'] as num?)?.toDouble() ?? 0;
     final rate = (row['rate'] as num?)?.toDouble() ?? 0;
@@ -76,13 +77,18 @@ class StockInfoScreen extends StatefulWidget {
 }
 
 class _StockInfoScreenState extends State<StockInfoScreen> {
-  // The line's own voucher_type is null, so resolve purchase-vs-sale through an
-  // inner-join embed on the parent voucher; the embed exists only for that
-  // filter. date and party_name are read (and filtered) off the line directly —
-  // both are fully populated and match the parent voucher.
+  // date, party_name and voucher_type all come from the parent voucher, never
+  // from the line. voucher_items carries unmaintained copies of the three: they
+  // are NULL on every row synced since 2026-07-20, so a line-sourced date sorts
+  // the newest invoices to the bottom and .limit(5) hides them entirely.
+  // The `...` spread flattens the embed into top-level keys, so rows keep
+  // deserializing exactly as before (see _Txn.fromRow).
+  // `!inner` is load-bearing — it applies both the voucher_type and the
+  // party_name filter. Drop it and PostgREST still returns 200, but silently
+  // stops filtering and the panel shows every party's lines.
   static const _select =
-      'stock_item_name, quantity, rate, unit, discount_pct, amount, date, '
-      'party_name, vouchers!inner(voucher_type)';
+      'stock_item_name, quantity, rate, unit, discount_pct, amount, '
+      '...vouchers!inner(date, party_name, voucher_type)';
 
   // null = still loading; non-null = loaded (may be empty). *Error holds a
   // message when the query threw, so each panel fails independently.
@@ -134,7 +140,13 @@ class _StockInfoScreenState extends State<StockInfoScreen> {
           .select(_select)
           .eq('stock_item_name', _item)
           .ilike('vouchers.voucher_type', '%purchase%')
-          .order('date', ascending: false)
+          // Sort on the embedded column via the 'vouchers(date)' string form.
+          // NOT .order('date', referencedTable: 'vouchers') — that emits
+          // `vouchers.order=`, which sorts *inside* the embed and leaves the top
+          // level unsorted: HTTP 200, wrong five rows. id breaks date ties so
+          // the .limit(5) window (and the `latest` badge on row 0) is stable.
+          .order('vouchers(date)', ascending: false)
+          .order('id', ascending: true)
           .limit(5);
       if (!mounted) return;
       setState(() => _purchases = _toTxns(res));
@@ -153,9 +165,13 @@ class _StockInfoScreenState extends State<StockInfoScreen> {
           .ilike('vouchers.voucher_type', '%sale%');
       // From a sale invoice: narrow to this customer's history for this item.
       if (_partyScoped) {
-        query = query.eq('party_name', _party);
+        query = query.eq('vouchers.party_name', _party);
       }
-      final res = await query.order('date', ascending: false).limit(5);
+      // Embedded-column sort + id tiebreak — see the note in _loadPurchases.
+      final res = await query
+          .order('vouchers(date)', ascending: false)
+          .order('id', ascending: true)
+          .limit(5);
       if (!mounted) return;
       setState(() => _sales = _toTxns(res));
     } catch (_) {
