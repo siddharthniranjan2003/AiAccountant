@@ -9,6 +9,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/palette.dart';
 import '../../core/config.dart';
 import '../../core/error_reporter.dart';
+import '../../core/indian_states.dart';
 import '../../core/utils.dart';
 import '../../data/customers_cache.dart';
 import '../../data/vendors_cache.dart';
@@ -16,6 +17,7 @@ import '../../data/stock_items_cache.dart';
 import '../../services/api_client.dart';
 import '../../services/stock_info_launcher.dart';
 import '../../shared/customer_picker_sheet.dart';
+import '../../shared/picker_sheet.dart';
 import '../../shared/responsive.dart';
 import '../stock/stock_item_create_sheet.dart';
 
@@ -240,6 +242,18 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
   // Used to scale CGST/SGST proportionally when item amounts change.
   Map<String, double> _taxRatios = {};
   String? _inventoryLedgerName;
+  // The sale party's state, read from ledgers.state — the same column the parsing
+  // service reads to pick CGST+SGST vs IGST. null while loading, '' when the ledger
+  // has none recorded (which books CGST+SGST, matching handler.py's fallback).
+  String? _partyState;
+  bool _partyStateLoading = false;
+  // The ledger's state for the current party as loaded — the baseline both for
+  // "did the user change it?" (gates the Save write) and for what Revert restores.
+  // Re-captured whenever the party changes, so it always tracks the row we'd write.
+  String? _originalPartyState;
+  // True only once a Save has actually written a changed state to ledgers. Revert
+  // reads it to know whether a rollback write is owed (mirrors _everSaved).
+  bool _ledgerStateWasWritten = false;
   RealtimeChannel? _channel;
   late _VdsViewMode _viewMode;
   late List<_VdsViewMode> _availableModes;
@@ -390,6 +404,10 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
       _VdsViewMode.summary,
     ];
     _viewMode = (keep != null && _availableModes.contains(keep)) ? keep : _availableModes.first;
+
+    // Resolve the sale party's state for the GST-head row. Async and fail-soft —
+    // the sheet renders immediately and the row fills in when it lands.
+    _loadPartyState();
   }
 
   // Copies each line's OCR text from source_payload onto the voucher item itself.
@@ -576,6 +594,14 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
           _payload = updated;
           _persistEditsToSupabase(updated);
           _everSaved = true;
+          // Save is the single commit point for the party's state too. Gated on a
+          // real change so re-saving never rewrites the ledger with its own value.
+          // _originalPartyState is deliberately NOT advanced here — Revert needs
+          // the pre-edit original to restore.
+          if (_partyState != null && _partyState != (_originalPartyState ?? '')) {
+            _persistPartyState(_partyState!);
+            _ledgerStateWasWritten = true;
+          }
         }
         _editablePartyName = null;
         _editableVoucherNumber = null;
@@ -609,11 +635,20 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
       _taxRatios = {};
       _inventoryLedgerName = null;
       _touchedRows.clear();
+      // Put the State row back to the value the ledger held before this session.
+      _partyState = _originalPartyState;
       if (_originalPayload != null) {
         _payload = Map<String, dynamic>.from(_originalPayload!);
       }
     });
     _notifyEditState();
+    // Undo the ledger write too, on the same principle as the payload write below:
+    // only when a Save actually changed it. A pick that was never saved wrote
+    // nothing, so there is nothing to restore.
+    if (_ledgerStateWasWritten && _originalPartyState != null) {
+      _persistPartyState(_originalPartyState!);
+      _ledgerStateWasWritten = false;
+    }
     // Only write to the server when a Save actually changed the payload this
     // session — that's the only thing a revert needs to undo. When nothing was
     // saved the DB row is already the original, so rewriting voucher_payload is a
@@ -743,6 +778,194 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
     setState(() => _editableDate = iso);
   }
 
+  // ── Party state → GST head ────────────────────────────────────────────────
+  // The sale tax head is chosen from the party's ledgers.state. The app reads
+  // that column directly rather than via CustomersCache: the cache holds only
+  // "Sundry Debtors", but the parser matches parties from vouchers.party_name in
+  // any group (TRADERS, MANUFACTURER_*, …), so the cache would miss them.
+  // ledgers.name is unique, so limit(1) is exact.
+
+  static const _gstLedgerNames = {'CGST', 'SGST', 'IGST'};
+
+  Future<void> _loadPartyState() async {
+    if (!_isSale) return;
+    final party = _currentPartyName;
+    if (party.isEmpty || party == '—') return;
+    setState(() => _partyStateLoading = true);
+    try {
+      final rows = await Supabase.instance.client
+          .from('ledgers')
+          .select('state')
+          .eq('name', party)
+          .limit(1);
+      final list = (rows as List).cast<Map<String, dynamic>>();
+      if (!mounted) return;
+      setState(() {
+        // '' (no state recorded) and "no ledger row" are the same thing here:
+        // unknown, which books CGST+SGST. Distinct from null = still loading.
+        _partyState = list.isEmpty ? '' : (list.first['state'] as String? ?? '');
+        // Whatever the ledger says right now is the baseline: Save writes only if
+        // the user moves away from it, and Revert restores back to it.
+        _originalPartyState = _partyState;
+        _partyStateLoading = false;
+      });
+    } catch (e, st) {
+      reportHandledError('supabase.ledgers.state.fetch', e, stackTrace: st);
+      if (!mounted) return;
+      setState(() {
+        _partyState = '';
+        _originalPartyState = '';
+        _partyStateLoading = false;
+      });
+    }
+  }
+
+  // Rebuilds the GST rows from [state]. Unlike _recomputeChargesFromItems (which
+  // scales existing rows by _taxRatios), this REPLACES them: switching between
+  // intra- and inter-state changes which ledgers exist, not just their amounts.
+  // Rates mirror handler.py's SALE_GST_RATE / SALE_IGST_RATE so the app and the
+  // parser agree to the paisa.
+  void _applyStateToTaxRows(String state) {
+    if (_editableLedgers.isEmpty || _inventoryLedgerName == null) return;
+    final taxable = _editableLedgers
+            .where((e) => e['ledger_name'] == _inventoryLedgerName)
+            .map((e) => (e['amount'] as num?)?.toDouble().abs() ?? 0)
+            .firstOrNull ??
+        0;
+
+    final rebuilt = <Map<String, dynamic>>[
+      // Everything that isn't a GST row survives untouched (the taxable row and
+      // any other charge line).
+      for (final e in _editableLedgers)
+        if (!_gstLedgerNames.contains(e['ledger_name'])) e,
+    ];
+    if (isIntraState(state)) {
+      final half = double.parse((taxable * 0.09).toStringAsFixed(2));
+      if (half > 0) {
+        rebuilt.add({'ledger_name': 'CGST', 'amount': half, 'is_deemed_positive': false});
+        rebuilt.add({'ledger_name': 'SGST', 'amount': half, 'is_deemed_positive': false});
+      }
+    } else {
+      final full = double.parse((taxable * 0.18).toStringAsFixed(2));
+      if (full > 0) {
+        rebuilt.add({'ledger_name': 'IGST', 'amount': full, 'is_deemed_positive': false});
+      }
+    }
+
+    setState(() {
+      _editableLedgers = rebuilt;
+      // Re-derive the ratios so a later qty/rate edit scales the NEW rows.
+      _taxRatios = {};
+      if (taxable > 0) {
+        for (final e in rebuilt) {
+          final name = e['ledger_name'] as String? ?? '';
+          if (name != _inventoryLedgerName) {
+            _taxRatios[name] = ((e['amount'] as num?)?.toDouble().abs() ?? 0) / taxable;
+          }
+        }
+      }
+      _editableTotal = rebuilt.fold<double>(
+          0, (sum, e) => sum + ((e['amount'] as num?)?.toDouble().abs() ?? 0));
+    });
+  }
+
+  // The customer's state, shown as a tappable value between the taxable subtotal
+  // and the tax rows. Reads "Select state" when the ledger has none recorded —
+  // that case still bills CGST+SGST, so the prompt is an invitation, not an error.
+  Widget _buildPartyStateRow() {
+    final state = _partyState ?? '';
+    final loading = _partyStateLoading && _partyState == null;
+    // Editable only in edit mode, like every other field. On an already-pushed
+    // voucher the tax rows can't change, so offering the picker there would be a
+    // half-action: it could move the ledger but never the voucher.
+    final canPick = _isEditing && !loading;
+    final label = loading
+        ? 'Loading…'
+        : (state.isEmpty ? (canPick ? 'Select state' : '—') : state);
+    final labelStyle = Theme.of(context).textTheme.bodySmall;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text('State',
+                style: labelStyle?.copyWith(color: AppPalette.muted)),
+          ),
+          InkWell(
+            onTap: canPick ? _pickPartyState : null,
+            borderRadius: BorderRadius.circular(6),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    label,
+                    style: labelStyle?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: state.isEmpty ? AppPalette.muted : AppPalette.inkSoft,
+                    ),
+                  ),
+                  if (canPick) ...[
+                    const SizedBox(width: 2),
+                    Icon(Icons.arrow_drop_down, size: 18, color: AppPalette.muted),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Opens the state picker and applies the pick to the tax rows on screen only.
+  // Nothing is written to Supabase here — Save persists both the voucher's GST and
+  // ledgers.state, so a pick followed by Revert leaves the database untouched.
+  Future<void> _pickPartyState() async {
+    final picked = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => PickerSheet<String>(
+        items: kIndianStates,
+        labelOf: (s) => s,
+        searchHint: 'Search states…',
+        selected: (_partyState ?? '').isEmpty ? null : _partyState,
+      ),
+    );
+    if (picked == null || !mounted) return;
+    // Re-picking the same state is a no-op: nothing to recompute, nothing to write.
+    if (picked == _partyState) return;
+    setState(() => _partyState = picked);
+    _applyStateToTaxRows(picked);
+  }
+
+  // Writes [state] onto the party's ledgers row. Called from Save (with the newly
+  // picked state) and from Revert (with the original, to undo it) — never on pick.
+  // Fail-soft: the voucher edit is the important part, so a rejected write only
+  // warns.
+  // NOTE: the Tally master sync upserts whole ledger rows (backend sync.ts), so
+  // this is overwritten on the next sync unless the state is fixed in Tally too.
+  Future<void> _persistPartyState(String state) async {
+    final party = _currentPartyName;
+    if (party.isEmpty || party == '—') return;
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await Supabase.instance.client
+          .from('ledgers')
+          .update({'state': state}).eq('name', party);
+    } catch (e, st) {
+      reportHandledError('supabase.ledgers.state.update', e, stackTrace: st);
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Couldn\'t save the state to $party: $e'),
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    }
+  }
+
   void _recomputeChargesFromItems() {
     if (_editableLedgers.isEmpty || _inventoryLedgerName == null) return;
     final newGstSale = _editableItems.fold<double>(
@@ -808,6 +1031,32 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
       }
       return updated;
     }).toList();
+
+    // A state change swaps which GST ledgers exist (CGST+SGST ↔ IGST), so the
+    // 1:1 map above isn't enough on its own: it would keep rows the new head
+    // doesn't have and miss ones it does. Drop any GST row no longer present in
+    // _editableLedgers, then append the ones that were added. Non-GST rows are
+    // left entirely to the mapping above.
+    final editedGstNames = {
+      for (final e in _editableLedgers)
+        if (_gstLedgerNames.contains(e['ledger_name'])) e['ledger_name'] as String,
+    };
+    rebuilt.removeWhere((e) =>
+        !identical(e, partyEntry) &&
+        _gstLedgerNames.contains(e['ledger_name']) &&
+        !editedGstNames.contains(e['ledger_name']));
+    final presentNames = rebuilt.map((e) => e['ledger_name']).toSet();
+    for (final e in _editableLedgers) {
+      final name = e['ledger_name'] as String? ?? '';
+      if (_gstLedgerNames.contains(name) && !presentNames.contains(name)) {
+        // Tax ledgers are credits on a sale, same sign convention handler.py uses.
+        rebuilt.add({
+          'ledger_name': name,
+          'amount': (e['amount'] as num?)?.toDouble().abs() ?? 0,
+          'is_deemed_positive': false,
+        });
+      }
+    }
 
     target['ledger_entries'] = rebuilt;
     if (_editableDiscount != null) {
@@ -1410,6 +1659,13 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
                             );
                             if (selected != null && mounted) {
                               setState(() => _editablePartyName = selected.name);
+                              // A different customer can mean a different state,
+                              // so re-resolve it and re-derive the GST head —
+                              // otherwise the voucher keeps the old party's split.
+                              await _loadPartyState();
+                              if (_isEditing && _partyState != null) {
+                                _applyStateToTaxRows(_partyState!);
+                              }
                             }
                           },
                           child: Row(
@@ -2076,7 +2332,7 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
       ),
       child: Column(
         children: [
-          for (final (ci, entry) in orderedCharges.indexed)
+          for (final (ci, entry) in orderedCharges.indexed) ...[
             if (_isEditing)
               FocusTraversalOrder(
                 order: NumericFocusOrder((chargesOrderBase + ci).toDouble()),
@@ -2103,6 +2359,10 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
                 valueRight: true,
                 labelExpands: true,
               ),
+            // The GST-head selector sits directly beneath the taxable subtotal and
+            // above the tax rows it decides, so the cause reads above the effect.
+            if (_isSale && identical(entry, taxableEntry)) _buildPartyStateRow(),
+          ],
           const Divider(height: 16),
           if (_isEditing)
             FocusTraversalOrder(
