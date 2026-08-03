@@ -11,6 +11,7 @@ class StockItem {
     this.unit = '',
     this.discountPct = 0.0,
     this.source = '',
+    this.discountSource = '',
     this.partCode = '',
   });
 
@@ -20,8 +21,15 @@ class StockItem {
   // Tally base unit (e.g. 'Kgs','Pcs','NOS') from stock_items.unit; '' if unknown.
   final String unit;
   final double discountPct;
-  // 'same_party' | 'different_party' | '' (catalog)
+  // Where the RATE came from: 'same_party' | 'different_party' | 'none' | ''
+  // (catalog, i.e. not yet resolved). Rate is party-agnostic, so 'same_party'
+  // here only means the latest sale of the item happened to be to this party.
   final String source;
+  // Where the DISCOUNT came from: 'same_party' | 'none' | '' (not yet resolved).
+  // Distinct from [source] because the two are independent lookups and normally
+  // resolve to different vouchers. Note discountPct 0.0 is ambiguous on its own —
+  // 'same_party' means a real 0%, 'none' means this party has no history.
+  final String discountSource;
   // Tally Part No. (== Mailing Name) from stock_items.part_code; '' if none.
   final String partCode;
 

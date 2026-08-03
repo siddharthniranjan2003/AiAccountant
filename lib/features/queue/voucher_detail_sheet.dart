@@ -13,6 +13,7 @@ import '../../core/indian_states.dart';
 import '../../core/utils.dart';
 import '../../data/customers_cache.dart';
 import '../../data/vendors_cache.dart';
+import '../../data/sale_pricing.dart';
 import '../../data/stock_items_cache.dart';
 import '../../services/api_client.dart';
 import '../../services/stock_info_launcher.dart';
@@ -742,6 +743,11 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
         // key on an added/inserted line.
         'batch_name': null,
         'destination_godown_name': null,
+        // Local-only provenance (stripped before the voucher_payload write, then
+        // written to source_payload) so a reviewed line records where its rate
+        // and discount actually came from.
+        if (_isSale) '__rate_source': selected.source,
+        if (_isSale) '__discount_source': selected.discountSource,
       };
       // Clamp the insert index defensively; null (toolbar Add) appends.
       if (at != null && at >= 0 && at <= _editableItems.length) {
@@ -1074,12 +1080,21 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
     final rowId = updated['__row_id'] as String? ?? '';
     if (rowId.isEmpty) return; // seed / fresh-scan rows have no Supabase row
     final messenger = ScaffoldMessenger.of(context);
+    // ORDER MATTERS. Map.from is a shallow copy, so cleanPayload shares its item
+    // maps with `updated` (and with _editableItems). _stripItemLocalKeys mutates
+    // those shared maps, deleting __rate_source/__discount_source — so the
+    // provenance has to be read out BEFORE the strip runs, or it is always gone
+    // and every line silently falls back to its previous rate_source.
+    final sourcePayload = _rebuiltSourcePayload(updated);
     final cleanPayload = Map<String, dynamic>.from(updated)
       ..removeWhere((k, _) => k.startsWith('__'));
+    _stripItemLocalKeys(cleanPayload);
+    final update = <String, dynamic>{'voucher_payload': cleanPayload};
+    if (sourcePayload != null) update['source_payload'] = sourcePayload;
     try {
       final rows = await Supabase.instance.client
           .from('push_queue')
-          .update({'voucher_payload': cleanPayload})
+          .update(update)
           .eq('id', rowId)
           .eq('status', 'pending')
           .select('id');
@@ -1101,6 +1116,110 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
         ),
       );
     }
+  }
+
+  // Drops the local-only `__rate_source` / `__discount_source` keys from every
+  // items array in the payload. They exist so a re-priced line can carry its
+  // provenance as far as the save; they belong in source_payload, not in the
+  // voucher the backend pushes to Tally (whose normalizer would drop them
+  // anyway, but storing them would still muddy the stored JSON).
+  void _stripItemLocalKeys(Map<String, dynamic> payload) {
+    void clean(Object? list) {
+      if (list is! List) return;
+      for (final item in list) {
+        if (item is Map) item.removeWhere((k, _) => k.toString().startsWith('__'));
+      }
+    }
+
+    clean(payload['items']);
+    clean(payload['matched_items']);
+    for (final key in ['voucher_payload', 'sale_voucher_payload']) {
+      final vp = payload[key];
+      if (vp is Map) clean(vp['items']);
+    }
+    final tp = payload['tally_payload'];
+    if (tp is Map && tp['voucher_payload'] is Map) {
+      clean((tp['voucher_payload'] as Map)['items']);
+    }
+  }
+
+  // The items array inside an arbitrary payload map, resolved in the same order
+  // as the _voucher / _payloadItems getters. Those read the live _p; this takes
+  // the map explicitly so it also works for the payload being persisted.
+  List<Map<String, dynamic>> _itemsOf(Map<String, dynamic> payload) {
+    final voucher = (payload['voucher_payload'] as Map?)?.cast<String, dynamic>() ??
+        (payload['sale_voucher_payload'] as Map?)?.cast<String, dynamic>() ??
+        (payload['tally_payload'] as Map?)?['voucher_payload'] as Map<String, dynamic>?;
+    return (voucher?['items'] as List?)?.cast<Map<String, dynamic>>() ??
+        (payload['matched_items'] as List?)?.cast<Map<String, dynamic>>() ??
+        (payload['items'] as List?)?.cast<Map<String, dynamic>>() ??
+        const [];
+  }
+
+  // Rebuilds source_payload so its per-item provenance matches the numbers now
+  // on the voucher. Returns null when there is nothing to write.
+  //
+  // Reads the items out of the payload being persisted rather than out of
+  // _editableItems: Revert clears _editableItems and then persists
+  // _originalPayload, so keying off widget state wrote an empty items array and
+  // wiped the whole voucher's provenance. Sourcing from the payload means Save
+  // sees the edits and Revert sees the original, which is what each one wants.
+  //
+  // Two things are deliberately preserved rather than regenerated:
+  //   * `source` / `score` for lines whose stock_item_name is unchanged — those
+  //     came from the OCR matcher and the app has no way to recompute them.
+  //   * every non-`items` key, notably `scan`, which carries the page count the
+  //     app needs to offer the Image button.
+  Map<String, dynamic>? _rebuiltSourcePayload(Map<String, dynamic> updated) {
+    if (!_isSale) return null;
+    final sourceItems = _itemsOf(updated);
+    // Nothing to describe — leave whatever provenance the row already has rather
+    // than replacing it with an empty array.
+    if (sourceItems.isEmpty) return null;
+    final existing = updated['__source_payload'] ?? updated['source_payload'];
+    final prior = <String, Map<String, dynamic>>{};
+    if (existing is Map && existing['items'] is List) {
+      for (final it in existing['items'] as List) {
+        if (it is Map) {
+          final name = (it['stock_item_name'] as String? ?? '').trim();
+          if (name.isNotEmpty) prior[name] = Map<String, dynamic>.from(it);
+        }
+      }
+    }
+
+    final items = <Map<String, dynamic>>[];
+    for (final item in sourceItems) {
+      final name = (item['stock_item_name'] as String? ?? '').trim();
+      final was = prior[name];
+      final qty = (item['quantity'] as num?)?.toDouble() ??
+          (item['qty'] as num?)?.toDouble() ??
+          0;
+      items.add({
+        'stock_item_name': name,
+        'quantity': qty,
+        'rate': (item['rate'] as num?)?.toDouble() ?? 0,
+        'amount': (item['amount'] as num?)?.toDouble() ?? 0,
+        'discount_pct': (item['discount_pct'] as num?)?.toDouble() ?? 0,
+        'unit': item['unit'],
+        'godown_name': item['godown_name'],
+        // Matcher provenance survives only while the item identity does.
+        'source': was?['source'] ?? 'User_Edited',
+        if (was?['score'] != null) 'score': was!['score'],
+        // A line the user never re-picked keeps whatever the backend stamped.
+        'rate_source':
+            item['__rate_source'] as String? ?? was?['rate_source'] ?? 'none',
+        'discount_source': item['__discount_source'] as String? ??
+            was?['discount_source'] ??
+            'none',
+      });
+    }
+
+    final out = <String, dynamic>{};
+    if (existing is Map) {
+      out.addAll(Map<String, dynamic>.from(existing)..remove('items'));
+    }
+    out['items'] = items;
+    return out;
   }
 
   // Derives the Charges block: the non-party ledger rows, the invoice total,
@@ -1278,6 +1397,7 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
       // the push_queue row before activating so tallybridge reads the new value.
       final clean = Map<String, dynamic>.from(_payload ?? {})
         ..removeWhere((k, _) => k.startsWith('__'));
+      _stripItemLocalKeys(clean);
       clean['narration'] = _pushNarration;
       await Supabase.instance.client
           .from('push_queue')
@@ -2271,6 +2391,10 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
                   if (_isSale) {
                     _editableItems[i]['rate'] = selected.rate;
                     _editableItems[i]['discount_pct'] = selected.discountPct;
+                    // Local-only; moves to source_payload on save.
+                    _editableItems[i]['__rate_source'] = selected.source;
+                    _editableItems[i]['__discount_source'] =
+                        selected.discountSource;
                     // Purchase items key quantity as `qty`, sales as `quantity`
                     // — read whichever exists (mirrors _SheetItemRow / recompute).
                     final qty = (_editableItems[i]['qty'] as num?)?.toDouble() ??
@@ -3462,9 +3586,12 @@ class _StockItemPickerSheetState extends State<_StockItemPickerSheet> {
     // voucher_items.party_name, which the sync leaves null — so they return
     // nothing for every party. Query the line items directly instead and resolve
     // the party (and sale/purchase) through the parent voucher via an inner-join
-    // embed. Sale dedups to the latest rate per item and adds a tier-2 fallback
-    // (voucher lines the party never sold, borrowed from another party); purchase
-    // lists every occurrence with its per-invoice rate (no dedup).
+    // embed. Purchase lists every occurrence with its per-invoice rate (no dedup).
+    //
+    // Sale uses this query ONLY to decide which items appear in the list — the
+    // shortlist of what this customer actually buys. The rate and discount shown
+    // against each come from resolveSalePricing (the same rule the backend uses),
+    // not from these rows, so the badge matches what picking the row produces.
     final typeMatch = widget.isSale ? '%sale%' : '%purchase%';
     try {
       // PostgREST caps a single response at 1000 rows, so page through every
@@ -3498,31 +3625,36 @@ class _StockItemPickerSheetState extends State<_StockItemPickerSheet> {
       });
       final items = <StockItem>[];
       if (widget.isSale) {
-        // Tier 1: dedup to the latest rate per item. Rows are date-desc, so the
-        // first time a name appears is its most recent sale — keep only that.
+        // List membership: everything this party has bought, in date-desc order,
+        // plus this voucher's own lines (which they may never have bought — those
+        // used to need a tier-2 fetch each; the global rate RPC now covers them).
+        final names = <String>[];
         final seen = <String>{};
         for (final row in rows) {
           final name = row['stock_item_name'] as String? ?? '';
           if (name.isEmpty || !seen.add(name)) continue;
+          names.add(name);
+        }
+        for (final n in widget.voucherItemNames.map((n) => n.trim())) {
+          if (n.isEmpty || n == 'NO MATCH' || !seen.add(n)) continue;
+          names.add(n);
+        }
+        // Two RPCs for the whole list, however long it is.
+        final priced = await resolveSalePricing(party: _party, itemNames: names);
+        for (final name in names) {
+          final p = priced[name] ?? SalePricing.none;
           items.add(StockItem(
             name: name,
             groupName: '',
-            rate: (row['rate'] as num?)?.toDouble() ?? 0.0,
-            unit: row['unit'] as String? ?? '',
-            discountPct: (row['discount_pct'] as num?)?.toDouble() ?? 0.0,
-            source: 'same_party',
+            rate: p.rate,
+            unit: StockItemsCache.instance.unitFor(name),
+            discountPct: p.discountPct,
+            source: p.rateSource,
+            discountSource: p.discountSource,
             // voucher_items has no part_code; pull it from the catalog cache.
             partCode: StockItemsCache.instance.partCodeFor(name),
           ));
         }
-        // Tier 2: voucher lines this party never sold — borrow the most recent
-        // rate from a different party and flag them (mirrors the Apps Script).
-        final missing = widget.voucherItemNames
-            .map((n) => n.trim())
-            .where((n) => n.isNotEmpty && n != 'NO MATCH' && !seen.contains(n))
-            .toSet();
-        final fallbacks = await Future.wait(missing.map(_fetchFallbackItem));
-        items.addAll(fallbacks.whereType<StockItem>());
       } else {
         // Purchase: unchanged — every occurrence, with its per-invoice rate.
         for (final row in rows) {
@@ -3561,39 +3693,10 @@ class _StockItemPickerSheetState extends State<_StockItemPickerSheet> {
     }
   }
 
-  // Tier-2 fallback for one item: the most recent sale rate from a DIFFERENT
-  // party. Returns a StockItem tagged 'different_party', or null if no other
-  // party ever sold it (or on error). Mirrors the Apps Script's
-  // fetchFallbackRateForItem, but sale-filtered so we borrow a sell price.
-  Future<StockItem?> _fetchFallbackItem(String name) async {
-    try {
-      final page = await Supabase.instance.client
-          .from('voucher_items')
-          .select(
-              'stock_item_name, rate, unit, discount_pct, vouchers!inner(party_name, voucher_type)')
-          .eq('stock_item_name', name)
-          .neq('vouchers.party_name', _party!)
-          .ilike('vouchers.voucher_type', '%sale%')
-          .order('created_at', ascending: false)
-          .limit(1);
-      final rows = (page as List).cast<Map<String, dynamic>>();
-      if (rows.isEmpty || rows.first['rate'] == null) return null;
-      final row = rows.first;
-      return StockItem(
-        name: name,
-        groupName: '',
-        rate: (row['rate'] as num?)?.toDouble() ?? 0.0,
-        unit: (row['unit'] as String?)?.trim().isNotEmpty == true
-            ? row['unit'] as String
-            : StockItemsCache.instance.unitFor(name),
-        discountPct: (row['discount_pct'] as num?)?.toDouble() ?? 0.0,
-        source: 'different_party',
-        partCode: StockItemsCache.instance.partCodeFor(name),
-      );
-    } catch (_) {
-      return null;
-    }
-  }
+  // (The tier-2 per-item fallback that used to live here is gone: the rate RPC
+  // is already party-agnostic, so an item this party never bought is covered by
+  // the same batch call as everything else. It also ordered by created_at, the
+  // sync-insertion time — the bug fixed backend-side in 53014c9.)
 
   // A sale pick from the catalog ("All items") adopts its rate/discount from
   // sale history, not the catalog price. Party-scoped picks (source already
@@ -3611,56 +3714,32 @@ class _StockItemPickerSheetState extends State<_StockItemPickerSheet> {
     Navigator.of(context).pop(resolved);
   }
 
-  // Mirrors the Stock Info tiering: the latest sale rate+discount to THIS party,
-  // else to ANY party, else 0. A missing or failed lookup collapses to 0 — never
-  // the catalog rate the user is moving away from.
+  // Resolves one item through the shared rule (see lib/data/sale_pricing.dart):
+  // rate = latest GST SALE to ANYONE, discount = latest GST SALE to THIS party.
+  // A missing or failed lookup collapses to 0 — never the catalog rate the user
+  // is moving away from.
   Future<StockItem> _resolveSaleRate(StockItem s) async {
-    if (_party != null) {
-      final row = await _fetchLatestSaleRow(s.name, party: _party);
-      if (row != null) return _stockItemWithRate(s, row, 'same_party');
-    }
-    final any = await _fetchLatestSaleRow(s.name);
-    if (any != null) return _stockItemWithRate(s, any, 'different_party');
-    return _stockItemWithRate(s, null, ''); // never sold OR lookup error → 0
-  }
-
-  // The most recent SALE line for this item (optionally scoped to one party),
-  // resolved through the parent voucher. Null on no-match or error → the caller
-  // treats it as no history (rate 0). Ordered by created_at like the tier-2
-  // fallback above, since the voucher date is partly null on some projects.
-  Future<Map<String, dynamic>?> _fetchLatestSaleRow(String name,
-      {String? party}) async {
-    try {
-      var query = Supabase.instance.client
-          .from('voucher_items')
-          .select(
-              'rate, unit, discount_pct, vouchers!inner(party_name, voucher_type)')
-          .eq('stock_item_name', name)
-          .ilike('vouchers.voucher_type', '%sale%');
-      if (party != null) query = query.eq('vouchers.party_name', party);
-      final page = await query.order('created_at', ascending: false).limit(1);
-      final rows = (page as List).cast<Map<String, dynamic>>();
-      if (rows.isEmpty || rows.first['rate'] == null) return null;
-      return rows.first;
-    } catch (_) {
-      return null;
-    }
+    final priced = await resolveSalePricing(party: _party, itemNames: [s.name]);
+    return _stockItemWithRate(s, priced[s.name] ?? SalePricing.none);
   }
 
   // StockItem is a const model with no copyWith — build the enriched copy with
-  // the resolved rate/discount/source, keeping the row's identity fields.
-  StockItem _stockItemWithRate(
-      StockItem s, Map<String, dynamic>? row, String source) {
-    final unit = (row?['unit'] as String?)?.trim().isNotEmpty == true
-        ? row!['unit'] as String
-        : s.unit;
+  // the resolved rate/discount/sources, keeping the row's identity fields.
+  //
+  // Unit comes from the stock master rather than the historical voucher line:
+  // the RPCs are pricing-only, and the master is the canonical unit anyway.
+  StockItem _stockItemWithRate(StockItem s, SalePricing p) {
+    final unit = s.unit.trim().isNotEmpty
+        ? s.unit
+        : StockItemsCache.instance.unitFor(s.name);
     return StockItem(
       name: s.name,
       groupName: s.groupName,
-      rate: (row?['rate'] as num?)?.toDouble() ?? 0.0,
+      rate: p.rate,
       unit: unit,
-      discountPct: (row?['discount_pct'] as num?)?.toDouble() ?? 0.0,
-      source: source,
+      discountPct: p.discountPct,
+      source: p.rateSource,
+      discountSource: p.discountSource,
       partCode: s.partCode,
     );
   }
@@ -3910,19 +3989,30 @@ class _StockItemPickerSheetState extends State<_StockItemPickerSheet> {
                                       Text(s.partCode, style: TextStyle(fontSize: 11, color: AppPalette.muted, fontWeight: FontWeight.w600)),
                                     if (s.groupName.isNotEmpty)
                                       Text(s.groupName, style: TextStyle(fontSize: 11, color: AppPalette.muted)),
-                                    // Tier-2: rate borrowed from another party —
-                                    // this customer has never bought this item.
-                                    if (s.source == 'different_party')
-                                      const Text('New to this party · rate from another party',
+                                    // "New to this party" is now about the
+                                    // DISCOUNT, not the rate. Rate is party-
+                                    // agnostic, so 'different_party' is the normal
+                                    // case even for items this customer buys
+                                    // weekly — it only means the newest sale
+                                    // anywhere happened to be to someone else.
+                                    // What the reviewer needs to know is that no
+                                    // discount applies, which is what drives the
+                                    // price up.
+                                    if (s.discountSource == 'none' && s.source != 'none')
+                                      const Text('New to this party · no discount',
+                                          style: TextStyle(fontSize: 11, color: Color(0xFFDC2626), fontWeight: FontWeight.w700)),
+                                    if (s.source == 'none')
+                                      const Text('Never sold · no rate on record',
                                           style: TextStyle(fontSize: 11, color: Color(0xFFDC2626), fontWeight: FontWeight.w700)),
                                   ],
                                 ),
                               ),
-                              // Only party-scoped rows carry a real historical
-                              // rate. Catalog rows (source == '', the "All items"
-                              // view) would show the misleading catalog price; the
-                              // true rate is resolved on selection instead.
-                              if (s.source.isNotEmpty)
+                              // Show a rate only when one was actually resolved.
+                              // Catalog rows (source == '', the "All items" view)
+                              // would show the misleading master price, and
+                              // 'none' rows have no price at all — printing 0.00
+                              // there reads as "this item is free".
+                              if (s.source == 'same_party' || s.source == 'different_party')
                                 Text(
                                   formatCurrency(s.rate),
                                   style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppPalette.inkSoft),
