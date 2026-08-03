@@ -12,6 +12,7 @@ import 'core/config.dart';
 import 'data/stock_items_cache.dart';
 import 'data/customers_cache.dart';
 import 'data/vendors_cache.dart';
+import 'services/stock_info_route.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -95,12 +96,9 @@ class AccountantApp extends StatelessWidget {
     // fragment. When a new tab is opened at `#/stock-info?item=…` (from the ⓘ
     // on a voucher item row), render the standalone Stock Info page instead of
     // the auth gate — it's self-contained UI and needs no signed-in session.
-    final route = Uri.parse(Uri.base.fragment);
-    final Widget home = route.path == '/stock-info'
-        ? StockInfoScreen(
-            itemName: route.queryParameters['item'] ?? '',
-            partyName: route.queryParameters['party'],
-          )
+    final route = StockInfoRoute.parse(Uri.base.fragment);
+    final Widget home = route != null
+        ? StockInfoScreen(itemName: route.item, partyName: route.party)
         : const AuthGate();
     return MaterialApp(
       debugShowCheckedModeBanner: false,

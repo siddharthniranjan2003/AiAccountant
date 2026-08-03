@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -6,6 +8,9 @@ import '../../core/palette.dart';
 import '../../core/utils.dart';
 import '../../data/customers_cache.dart';
 import '../../data/stock_items_cache.dart';
+import '../../services/stock_info_route.dart';
+import '../../services/stock_info_route_stub.dart'
+    if (dart.library.js_interop) '../../services/stock_info_route_web.dart';
 import '../../shared/customer_picker_sheet.dart';
 
 /// A single Purchase/Sale history line, formatted for display.
@@ -67,10 +72,20 @@ String _trimNum(num n) =>
 /// header. Otherwise both panels are item-scoped (e.g. opened from a purchase
 /// invoice, or a direct link).
 class StockInfoScreen extends StatefulWidget {
-  const StockInfoScreen({super.key, required this.itemName, this.partyName});
+  const StockInfoScreen({
+    super.key,
+    required this.itemName,
+    this.partyName,
+    this.routeChanges,
+  });
 
   final String itemName;
   final String? partyName;
+
+  /// Emits when the window is retargeted at a different item (the ⓘ clicked
+  /// again in the main app). Defaults to the platform stream — inert off web.
+  /// Injectable so tests can drive an update without a browser.
+  final Stream<StockInfoRoute>? routeChanges;
 
   @override
   State<StockInfoScreen> createState() => _StockInfoScreenState();
@@ -110,6 +125,8 @@ class _StockInfoScreenState extends State<StockInfoScreen> {
   late bool _partyActive;
   bool get _partyScoped => _partyActive && _hasParty;
 
+  StreamSubscription<void>? _routeSub;
+
   @override
   void initState() {
     super.initState();
@@ -124,11 +141,43 @@ class _StockInfoScreenState extends State<StockInfoScreen> {
     if (stockCache.items.isEmpty && !stockCache.isLoading) {
       stockCache.fetch();
     }
+    // The window is reused, not reopened: a later ⓘ click retargets this same
+    // instance instead of booting a new one, and arrives here as a fragment
+    // change rather than through the constructor.
+    _routeSub = (widget.routeChanges ?? routeChanges).listen(_applyRoute);
     if (_item.isEmpty) {
       _purchases = const [];
       _sales = const [];
       return;
     }
+    _loadPurchases();
+    _loadSales();
+  }
+
+  @override
+  void dispose() {
+    _routeSub?.cancel();
+    super.dispose();
+  }
+
+  // Show what the incoming click asked for. Deliberately NOT routed through
+  // _selectItem: that early-returns when the item is unchanged, which would skip
+  // a party-only override — the same item clicked from a different customer's
+  // invoice still has to re-scope the Sale panel.
+  void _applyRoute(StockInfoRoute route) {
+    setState(() {
+      // The incoming click always wins, including overriding to no customer at
+      // all (a purchase row, or the Rate nav).
+      _party = route.party ?? '';
+      _partyActive = _hasParty;
+      _item = route.item;
+      _purchaseError = null;
+      _saleError = null;
+      // Rate nav (no item): back to the blank-search state, nothing to query.
+      _purchases = _item.isEmpty ? const [] : null;
+      _sales = _item.isEmpty ? const [] : null;
+    });
+    if (_item.isEmpty) return;
     _loadPurchases();
     _loadSales();
   }
@@ -429,6 +478,27 @@ class _SearchBarState extends State<_SearchBar> {
   final Map<int, GlobalKey> _optionKeys = {};
   int _lastHighlighted = 0;
 
+  // True only while didUpdateWidget pushes an externally-chosen item into the
+  // field. Assigning to the controller notifies RawAutocomplete exactly as a
+  // keystroke does, which would run a search and drop the suggestions list open
+  // under a field the user never touched. The notification is synchronous, so
+  // _search sees this flag set and bails.
+  bool _syncingText = false;
+
+  // The field is seeded once from initialItem, so it would keep showing the old
+  // name when the window is retargeted at a different item (see _applyRoute).
+  // Only sync on an actual change, so this never clobbers text being typed.
+  @override
+  void didUpdateWidget(_SearchBar old) {
+    super.didUpdateWidget(old);
+    if (widget.initialItem != old.initialItem &&
+        _controller.text != widget.initialItem) {
+      _syncingText = true;
+      _controller.text = widget.initialItem;
+      _syncingText = false;
+    }
+  }
+
   @override
   void dispose() {
     _controller.dispose();
@@ -437,6 +507,8 @@ class _SearchBarState extends State<_SearchBar> {
   }
 
   Future<Iterable<String>> _search(TextEditingValue value) async {
+    // Not a user edit — the window was retargeted (see _syncingText).
+    if (_syncingText) return const <String>[];
     final q = value.text.trim();
     if (q.length < 2) return const <String>[];
     final token = ++_token;
