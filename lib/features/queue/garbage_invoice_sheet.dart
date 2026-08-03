@@ -15,10 +15,15 @@ class GarbageInvoiceSheet extends StatefulWidget {
     super.key,
     required this.scanJobId,
     required this.pageCount,
+    this.reason,
   });
 
   final String scanJobId;
   final int pageCount;
+
+  /// The parser's `scan_jobs.reason` for this failure, when it wrote one. Picks
+  /// the sheet's subtitle — see [_GarbageInvoiceSheetState._subtitle].
+  final String? reason;
 
   @override
   State<GarbageInvoiceSheet> createState() => _GarbageInvoiceSheetState();
@@ -27,6 +32,19 @@ class GarbageInvoiceSheet extends StatefulWidget {
 class _GarbageInvoiceSheetState extends State<GarbageInvoiceSheet> {
   // Memoize per-page fetches so a scroll back doesn't re-download.
   final Map<int, Future<Uint8List>> _pageFutures = {};
+
+  static const _runpodMessage =
+      'Server Side Error, Kindly Re Scan this image (RunPods)';
+  static const _defaultMessage = "Couldn't read this invoice — please re-scan.";
+
+  // A RunPod failure means the inference endpoint was down, not that the scan
+  // was unreadable — the default wording sends the user off re-photographing a
+  // perfectly good document. Matched on the host and not the full URL: the pod
+  // id changes whenever the endpoint is redeployed, and a 500 or a timeout from
+  // the same service is the same story as the 520.
+  String get _subtitle => (widget.reason ?? '').toLowerCase().contains('runpod')
+      ? _runpodMessage
+      : _defaultMessage;
 
   Future<Uint8List> _loadPage(int page) {
     return _pageFutures.putIfAbsent(
@@ -75,7 +93,7 @@ class _GarbageInvoiceSheetState extends State<GarbageInvoiceSheet> {
             ),
             const SizedBox(height: 4),
             Text(
-              "Couldn't read this invoice — please re-scan.",
+              _subtitle,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: AppPalette.muted,
                     fontWeight: FontWeight.w600,

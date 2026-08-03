@@ -210,6 +210,9 @@ class _QueueScreenState extends State<QueueScreen> {
     final scanJobId = entry.scanResult?['__scan_job_id'] as String?;
     if (scanJobId == null || scanJobId.isEmpty) return;
     final pageCount = (entry.scanResult?['__page_count'] as num?)?.toInt() ?? 0;
+    // scan_jobs.reason, carried through by garbageEntries(). Decides whether the
+    // sheet blames the scan or names the upstream outage.
+    final reason = entry.scanResult?['__reason'] as String?;
     final screenWidth = MediaQuery.of(context).size.width;
     showModalBottomSheet<void>(
       context: context,
@@ -221,6 +224,7 @@ class _QueueScreenState extends State<QueueScreen> {
       builder: (ctx) => GarbageInvoiceSheet(
         scanJobId: scanJobId,
         pageCount: pageCount,
+        reason: reason,
       ),
     );
   }
