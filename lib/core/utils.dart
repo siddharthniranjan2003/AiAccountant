@@ -9,6 +9,16 @@ String sheetSlug(String value) {
 /// whitespace removed, so "hsstap" matches "HSS TAP 12 X 1.75 SET TOTEM".
 String searchKey(String s) => s.toLowerCase().replaceAll(RegExp(r'\s+'), '');
 
+/// Normalizes a stock item name or query for loose matching: lowercased with
+/// every non-alphanumeric character removed, so "16er14wb" matches
+/// "16ER 14W -BAH 725" and "tpg5x8" matches "TPG 5 X .8 6H SIZE CONTROL".
+/// Item names punctuate the same attributes inconsistently (`-`, `.`, `/`, `"`,
+/// `()`), which [searchKey]'s whitespace-only strip leaves in the way. Parties
+/// keep [searchKey]. Note a punctuation-only input normalizes to '' — callers
+/// that treat an empty key as "match everything" must guard for it.
+String itemSearchKey(String s) =>
+    s.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '');
+
 String formatCurrency(num amount) {
   final hasDecimals = amount != amount.roundToDouble();
   return '₹${_groupIndian(amount.toStringAsFixed(hasDecimals ? 2 : 0))}';

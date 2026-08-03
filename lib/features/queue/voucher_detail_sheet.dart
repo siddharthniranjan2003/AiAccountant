@@ -3754,15 +3754,17 @@ class _StockItemPickerSheetState extends State<_StockItemPickerSheet> {
   void _onSearch() => setState(_applyFilter);
 
   // Filters _allItems by the current search text into _filtered. Call in setState.
-  // Space-insensitive: "hsstap" matches "HSS TAP 12 X 1.75 SET TOTEM".
+  // Punctuation-insensitive: "hsstap" matches "HSS TAP 12 X 1.75 SET TOTEM" and
+  // "16er14wb" matches "16ER 14W -BAH 725" (see itemSearchKey). A query of pure
+  // punctuation normalizes to empty and falls into the show-everything branch.
   void _applyFilter() {
-    final query = searchKey(_controller.text);
+    final query = itemSearchKey(_controller.text);
     _filtered = query.isEmpty
         ? _allItems
         : _allItems
             .where((s) =>
-                searchKey(s.name).contains(query) ||
-                searchKey(s.partCode).contains(query))
+                itemSearchKey(s.name).contains(query) ||
+                itemSearchKey(s.partCode).contains(query))
             .toList();
     // A new result set invalidates the old highlight position.
     _highlighted = 0;

@@ -442,8 +442,9 @@ class _SearchBarState extends State<_SearchBar> {
     final token = ++_token;
     await Future<void>.delayed(const Duration(milliseconds: 250));
     if (token != _token) return _lastOptions; // superseded — skip the query
-    // Space-insensitive match over the catalog cache ("hsstap" finds
-    // "HSS TAP …"), which ilike can't do. The cache is name-sorted, so taking
+    // Punctuation-insensitive match over the catalog cache ("hsstap" finds
+    // "HSS TAP …", "16er14wb" finds "16ER 14W -BAH 725"), which ilike can't do.
+    // The cache is name-sorted, so taking
     // the first 20 mirrors the server query's order('name').limit(20).
     // Right after the window opens the catalog may still be downloading; wait
     // for it here (RawAutocomplete won't re-run this builder on its own, so
@@ -460,10 +461,14 @@ class _SearchBarState extends State<_SearchBar> {
         }
       }
       if (catalog.isNotEmpty) {
-        final key = searchKey(q);
+        final key = itemSearchKey(q);
+        // The length guard above counts raw characters, so a query like ".."
+        // gets this far and normalizes to empty — and contains('') is true for
+        // every item, which would pop 20 unrelated suggestions.
+        if (key.isEmpty) return const <String>[];
         _lastOptions = [
           for (final item in catalog)
-            if (searchKey(item.name).contains(key)) item.name,
+            if (itemSearchKey(item.name).contains(key)) item.name,
         ].take(20).toList();
         return _lastOptions;
       }
