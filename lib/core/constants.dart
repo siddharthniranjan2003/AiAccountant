@@ -14,9 +14,9 @@ const double kSideNavWidth = 96;
 const double kFormMaxWidth = 440;
 
 const List<BottomNavItemData> bottomNavItems = [
+  BottomNavItemData(label: 'Camera', icon: Icons.camera_alt_rounded),
   BottomNavItemData(label: 'Queue', icon: Icons.view_agenda_rounded),
   BottomNavItemData(label: 'History', icon: Icons.history_rounded),
-  BottomNavItemData(label: 'Camera', icon: Icons.camera_alt_rounded),
   // Report temporarily hidden. This list is positionally aligned with the
   // IndexedStack children in app_shell.dart — uncommenting here REQUIRES
   // uncommenting ReportScreen there, or every index below it shifts.
@@ -24,6 +24,13 @@ const List<BottomNavItemData> bottomNavItems = [
   //     label: 'Report', icon: Icons.insert_chart_outlined_rounded),
   BottomNavItemData(label: 'Profile', icon: Icons.person_outline_rounded),
 ];
+
+// Camera is an ACTION, not a destination: tapping it opens the document scanner
+// and never becomes _currentIndex (see app_shell's _onNavSelected). It still
+// occupies a slot in bottomNavItems and in that IndexedStack, which are
+// positionally aligned — move one and you must move the other.
+const int kCameraNavIndex = 0;
+const int kQueueNavIndex = 1;
 
 const List<Color> capturePalette = [
   Color(0xFFD94F3A),

@@ -28,14 +28,14 @@ class AppBottomNav extends StatelessWidget {
           for (int index = 0; index < bottomNavItems.length; index++)
             // The Camera entry (document scanner) is Android-only; hide it on
             // web while keeping the index mapping intact for the other tabs.
-            if (!(kIsWeb && index == 2))
+            if (!(kIsWeb && index == kCameraNavIndex))
             Expanded(
               child: InkWell(
                 onTap: () => onSelected(index),
                 child: Stack(
                   alignment: Alignment.topCenter,
                   children: [
-                    if (index == currentIndex && index != 2)
+                    if (index == currentIndex)
                       Positioned(
                         top: 0,
                         left: 22,
@@ -52,37 +52,30 @@ class AppBottomNav extends StatelessWidget {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Transform.translate(
-                            offset: Offset(0, index == 2 ? -18 : 0),
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 180),
-                              curve: Curves.easeOut,
-                              width: index == 2 ? 52 : 40,
-                              height: index == 2 ? 52 : 40,
-                              margin: EdgeInsets.only(
-                                bottom: index == 2 ? 5 : 2,
+                          // Every tab draws the same: Camera used to be a raised,
+                          // accent-filled 52px circle sitting proud of the bar.
+                          // It now reads as an ordinary destination even though
+                          // tapping it opens the scanner.
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 180),
+                            curve: Curves.easeOut,
+                            width: 40,
+                            height: 40,
+                            margin: const EdgeInsets.only(bottom: 2),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: currentIndex == index
+                                  ? AppPalette.accent2.withValues(alpha: 0.45)
+                                  : Colors.transparent,
+                              border: Border.all(
+                                color: AppPalette.ink,
+                                width: 1.4,
                               ),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: index == 2
-                                    ? currentIndex == index
-                                        ? AppPalette.accent
-                                        : AppPalette.sheet
-                                    : currentIndex == index
-                                        ? AppPalette.accent2.withValues(alpha: 0.45)
-                                        : Colors.transparent,
-                                border: Border.all(
-                                  color: AppPalette.ink,
-                                  width: index == 2 ? 1.7 : 1.4,
-                                ),
-                              ),
-                              child: Icon(
-                                bottomNavItems[index].icon,
-                                size: index == 2 ? 26 : 20,
-                                color: index == 2 && currentIndex == index
-                                    ? Colors.white
-                                    : AppPalette.ink,
-                              ),
+                            ),
+                            child: Icon(
+                              bottomNavItems[index].icon,
+                              size: 20,
+                              color: AppPalette.ink,
                             ),
                           ),
                           Text(

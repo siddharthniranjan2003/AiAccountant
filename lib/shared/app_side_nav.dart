@@ -5,10 +5,11 @@ import '../core/constants.dart';
 import '../services/stock_info_launcher.dart';
 import 'stock_cube_icon.dart';
 
-/// Vertical navigation rail used on wide (desktop) layouts. Mirrors the visual
-/// language of [AppBottomNav] — circular ink-bordered icons, the camera entry
-/// (index 2) rendered as an accented action rather than a destination — but laid
-/// out as a left-hand column instead of a bottom row.
+/// Vertical navigation rail used on wide (desktop) layouts. Circular
+/// ink-bordered icons laid out as a left-hand column instead of a bottom row.
+/// Unlike [AppBottomNav], which now draws every entry the same, the rail still
+/// renders the camera ([kCameraNavIndex]) as a larger accented action to mark it
+/// as a thing you do rather than a place you go.
 class AppSideNav extends StatelessWidget {
   const AppSideNav({
     super.key,
@@ -46,17 +47,17 @@ class AppSideNav extends StatelessWidget {
             // Android-only; hidden on web.
             //
             // These indices are HARDCODED against bottomNavItems, unlike the
-            // bottom nav which iterates the list. Commenting an entry out of
-            // that list therefore shifts every index after it and must be
-            // mirrored here. Report is currently hidden, so Profile moved 4 -> 3.
+            // bottom nav which iterates the list. Reordering that list, or
+            // commenting an entry out of it, shifts positions here and must be
+            // mirrored. Report is currently hidden, so Profile sits at 3.
             //
             // With Report restored: _item(3) is Report and Profile becomes 4.
-            _item(0),
+            _item(kQueueNavIndex),
             const _StockInfoNavAction(),
-            if (!kIsWeb) _item(2),
+            if (!kIsWeb) _item(kCameraNavIndex),
             // _item(3),   // Report — hidden
-            _item(3), //    Profile (was 4 before Report was hidden)
-            _item(1), //    History
+            _item(3), //    Profile (would be 4 with Report restored)
+            _item(2), //    History
             const Spacer(),
           ],
         ),
@@ -120,7 +121,7 @@ class _SideNavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isCamera = index == 2;
+    final isCamera = index == kCameraNavIndex;
     return InkWell(
       onTap: onTap,
       child: SizedBox(

@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_document_scanner/google_mlkit_document_scanner.dart';
 
+import '../../core/constants.dart';
 import '../../core/models.dart';
 import '../../core/config.dart';
 import '../../data/seed_data.dart';
@@ -27,7 +28,9 @@ class AccountantShell extends StatefulWidget {
 
 class _AccountantShellState extends State<AccountantShell>
     with WidgetsBindingObserver {
-  int _currentIndex = 0;
+  // Queue, not 0 — slot 0 is the CameraScreen placeholder (see kCameraNavIndex),
+  // which _onNavSelected never navigates to.
+  int _currentIndex = kQueueNavIndex;
   int _queueTabIndex = 0;
 
   List<QueueEntry> _saleEntries = [];
@@ -131,7 +134,7 @@ class _AccountantShellState extends State<AccountantShell>
   // ── Navigation ───────────────────────────────────────────────────────────────
 
   Future<void> _onNavSelected(int index) async {
-    if (index == 2) {
+    if (index == kCameraNavIndex) {
       await _openTaggedCameraFlow();
       return;
     }
@@ -240,6 +243,16 @@ class _AccountantShellState extends State<AccountantShell>
     return IndexedStack(
       index: _currentIndex,
       children: [
+        // Never actually shown: tapping Camera opens the scanner rather than
+        // navigating, so _currentIndex never lands on kCameraNavIndex. It holds
+        // the slot that keeps this list aligned with bottomNavItems.
+        CameraScreen(
+          currentIndex: _currentIndex,
+          onNavSelected: _onNavSelected,
+          captures: _captures,
+          activeCaptureType: _activeCaptureType,
+          onCaptureRequested: _openTaggedCameraFlow,
+        ),
         QueueScreen(
           currentIndex: _currentIndex,
           onNavSelected: _onNavSelected,
@@ -256,13 +269,6 @@ class _AccountantShellState extends State<AccountantShell>
         HistoryScreen(
           currentIndex: _currentIndex,
           onNavSelected: _onNavSelected,
-        ),
-        CameraScreen(
-          currentIndex: _currentIndex,
-          onNavSelected: _onNavSelected,
-          captures: _captures,
-          activeCaptureType: _activeCaptureType,
-          onCaptureRequested: _openTaggedCameraFlow,
         ),
         // Report temporarily hidden. These children are positionally aligned
         // with bottomNavItems in core/constants.dart — restore both together.
