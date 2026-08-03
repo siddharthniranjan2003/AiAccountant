@@ -40,8 +40,14 @@ class _AccountantShellState extends State<AccountantShell>
   // while the native scanner is in front. We listen to it to repaint the badge.
   final ScanJobsService _scanService = ScanJobsService.instance;
 
-  TransactionType get _activeQueueType =>
-      _queueTabIndex == 0 ? TransactionType.purchase : TransactionType.sale;
+  // Purchase temporarily hidden — the queue is Sale-only and its tab index is
+  // pinned at 0, so deriving the type from it would resolve to PURCHASE and the
+  // scan badge would count the wrong queue: countFor(purchase) is 0 while a sale
+  // scan is in flight, so "Processing…" never appears. This has to move with
+  // queue_screen's _activeType; the two are the same decision in two places.
+  // TransactionType get _activeQueueType =>
+  //     _queueTabIndex == 0 ? TransactionType.purchase : TransactionType.sale;
+  TransactionType get _activeQueueType => TransactionType.sale;
 
   late final PushQueueService _pushQueueService;
 
