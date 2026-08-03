@@ -212,9 +212,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Purchase temporarily hidden, so the tabs are All / Sale and index 1 is
+    // now Sale. Restore the commented arm (and the label below) together — they
+    // are positionally coupled.
+    // final visibleItems = switch (_filterIndex) {
+    //   0 => _history,
+    //   1 => _history.where((e) => e.type == TransactionType.purchase).toList(),
+    //   _ => _history.where((e) => e.type == TransactionType.sale).toList(),
+    // };
     final visibleItems = switch (_filterIndex) {
       0 => _history,
-      1 => _history.where((e) => e.type == TransactionType.purchase).toList(),
       _ => _history.where((e) => e.type == TransactionType.sale).toList(),
     };
 
@@ -229,7 +236,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
       body: Column(
         children: [
           AppTopTabs(
-            labels: const ['All', 'Purchase', 'Sale'],
+            // labels: const ['All', 'Purchase', 'Sale'],   // Purchase hidden
+            labels: const ['All', 'Sale'],
             selectedIndex: _filterIndex,
             onSelected: (index) => setState(() => _filterIndex = index),
           ),
