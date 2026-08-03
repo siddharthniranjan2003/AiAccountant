@@ -36,13 +36,16 @@ class CaptureTypeDialog extends StatelessWidget {
                     onTap: () => Navigator.of(context).pop(TransactionType.sale),
                   ),
                 ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: CaptureTypeOption(
-                    label: 'Purchase',
-                    onTap: () => Navigator.of(context).pop(TransactionType.purchase),
-                  ),
-                ),
+                // Purchase capture temporarily hidden. This dialog is currently
+                // unreachable anyway — app_shell defaults straight to Sale — so
+                // restoring Purchase means uncommenting there too.
+                // const SizedBox(width: 14),
+                // Expanded(
+                //   child: CaptureTypeOption(
+                //     label: 'Purchase',
+                //     onTap: () => Navigator.of(context).pop(TransactionType.purchase),
+                //   ),
+                // ),
               ],
             ),
             const SizedBox(height: 16),

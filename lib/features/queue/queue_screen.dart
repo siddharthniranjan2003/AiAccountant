@@ -64,8 +64,11 @@ class _QueueScreenState extends State<QueueScreen> {
   // the just-edited row.
   final Map<String, QueueEditState> _editMarkers = {};
 
-  TransactionType get _activeType =>
-      widget.tabIndex == 0 ? TransactionType.purchase : TransactionType.sale;
+  // Purchase temporarily hidden — the queue is Sale-only, so the tab index no
+  // longer selects a type. Restore the commented line to bring Purchase back.
+  // TransactionType get _activeType =>
+  //     widget.tabIndex == 0 ? TransactionType.purchase : TransactionType.sale;
+  TransactionType get _activeType => TransactionType.sale;
 
   // Filtered to the active tab, tagged with any local edit marker, and sorted
   // newest-first by created_at. Sorting the flat list before grouping/serials
@@ -331,10 +334,18 @@ class _QueueScreenState extends State<QueueScreen> {
       onNavSelected: widget.onNavSelected,
       body: Column(
         children: [
+          // Purchase temporarily hidden — Sale is the only tab. Restore by
+          // swapping the commented block back in.
+          // AppTopTabs(
+          //   labels: const ['Purchase', 'Sale'],
+          //   selectedIndex: widget.tabIndex,
+          //   onSelected: widget.onTabChanged,
+          //   trailing: const _StockInfoButton(),
+          // ),
           AppTopTabs(
-            labels: const ['Purchase', 'Sale'],
-            selectedIndex: widget.tabIndex,
-            onSelected: widget.onTabChanged,
+            labels: const ['Sale'],
+            selectedIndex: 0,
+            onSelected: (_) {},
             trailing: const _StockInfoButton(),
           ),
           Expanded(

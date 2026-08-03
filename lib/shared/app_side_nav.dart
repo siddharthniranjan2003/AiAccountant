@@ -40,16 +40,23 @@ class AppSideNav extends StatelessWidget {
         child: Column(
           children: [
             const SizedBox(height: 12),
-            // Rail order: Queue, Rate, (Camera), Report, Profile, History —
-            // decoupled from bottomNavItems' index order, which still drives
-            // selection and the bottom nav. The Camera entry (document
-            // scanner) is Android-only; hidden on web.
+            // Rail order: Queue, Rate, (Camera), Profile, History — decoupled
+            // from bottomNavItems' index order, which still drives selection and
+            // the bottom nav. The Camera entry (document scanner) is
+            // Android-only; hidden on web.
+            //
+            // These indices are HARDCODED against bottomNavItems, unlike the
+            // bottom nav which iterates the list. Commenting an entry out of
+            // that list therefore shifts every index after it and must be
+            // mirrored here. Report is currently hidden, so Profile moved 4 -> 3.
+            //
+            // With Report restored: _item(3) is Report and Profile becomes 4.
             _item(0),
             const _StockInfoNavAction(),
             if (!kIsWeb) _item(2),
-            _item(3),
-            _item(4),
-            _item(1),
+            // _item(3),   // Report — hidden
+            _item(3), //    Profile (was 4 before Report was hidden)
+            _item(1), //    History
             const Spacer(),
           ],
         ),

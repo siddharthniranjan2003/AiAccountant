@@ -13,7 +13,8 @@ import '../../data/scan_uploader.dart';
 import '../queue/queue_screen.dart';
 import '../history/history_screen.dart';
 import '../camera/camera_screen.dart';
-import '../report/report_screen.dart';
+// Report temporarily hidden — restore with the ReportScreen child below.
+// import '../report/report_screen.dart';
 import '../profile/profile_screen.dart';
 import '../camera/capture_type_dialog.dart';
 
@@ -134,7 +135,14 @@ class _AccountantShellState extends State<AccountantShell>
   }
 
   Future<void> _openTaggedCameraFlow([TransactionType? preferredType]) async {
-    final selectedType = preferredType ?? await _showCaptureTypeDialog();
+    // Purchase capture temporarily hidden, so there is nothing to choose between
+    // — the camera goes straight to Sale instead of asking. Restore the
+    // commented line (and the Purchase option in CaptureTypeDialog) to bring the
+    // picker back.
+    // final selectedType = preferredType ?? await _showCaptureTypeDialog();
+    // Typed nullable so the guard below stays valid when the picker returns.
+    // ignore: unnecessary_nullable_for_final_variable_declarations
+    final TransactionType? selectedType = preferredType ?? TransactionType.sale;
     if (!mounted || selectedType == null) return;
 
     _activeCaptureType = selectedType;
@@ -210,6 +218,8 @@ class _AccountantShellState extends State<AccountantShell>
     unawaited(sendScanToParser(pdfPath, url));
   }
 
+  // Kept for when Purchase capture comes back — see _openTaggedCameraFlow.
+  // ignore: unused_element
   Future<TransactionType?> _showCaptureTypeDialog() {
     return showDialog<TransactionType>(
       context: context,
@@ -248,10 +258,12 @@ class _AccountantShellState extends State<AccountantShell>
           activeCaptureType: _activeCaptureType,
           onCaptureRequested: _openTaggedCameraFlow,
         ),
-        ReportScreen(
-          currentIndex: _currentIndex,
-          onNavSelected: _onNavSelected,
-        ),
+        // Report temporarily hidden. These children are positionally aligned
+        // with bottomNavItems in core/constants.dart — restore both together.
+        // ReportScreen(
+        //   currentIndex: _currentIndex,
+        //   onNavSelected: _onNavSelected,
+        // ),
         ProfileScreen(
           currentIndex: _currentIndex,
           onNavSelected: _onNavSelected,
