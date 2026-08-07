@@ -2,32 +2,36 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import '../core/palette.dart';
 import '../core/constants.dart';
-import '../services/stock_info_launcher.dart';
-import 'stock_cube_icon.dart';
+import '../core/site_config.dart';
 
 /// Vertical navigation rail used on wide (desktop) layouts. Circular
 /// ink-bordered icons laid out as a left-hand column instead of a bottom row.
 /// Unlike [AppBottomNav], which now draws every entry the same, the rail still
-/// renders the camera ([kCameraNavIndex]) as a larger accented action to mark it
-/// as a thing you do rather than a place you go.
+/// renders the camera as a larger accented action to mark it as a thing you do
+/// rather than a place you go.
 class AppSideNav extends StatelessWidget {
   const AppSideNav({
     super.key,
     required this.currentIndex,
     required this.onSelected,
+    this.site,
   });
 
   final int currentIndex;
   final ValueChanged<int> onSelected;
 
-  Widget _item(int index) => _SideNavItem(
-        index: index,
+  /// Test seam — see [AppBottomNav.site].
+  final SiteConfig? site;
+
+  Widget _item(int index, AppDestination destination) => _SideNavItem(
+        destination: destination,
         selected: index == currentIndex,
         onTap: () => onSelected(index),
       );
 
   @override
   Widget build(BuildContext context) {
+    final destinations = (site ?? SiteConfig.current).destinations;
     return Container(
       width: kSideNavWidth,
       decoration: BoxDecoration(
@@ -41,66 +45,13 @@ class AppSideNav extends StatelessWidget {
         child: Column(
           children: [
             const SizedBox(height: 12),
-            // Rail order: Queue, Rate, (Camera), Profile, History — decoupled
-            // from bottomNavItems' index order, which still drives selection and
-            // the bottom nav. The Camera entry (document scanner) is
-            // Android-only; hidden on web.
-            //
-            // These indices are HARDCODED against bottomNavItems, unlike the
-            // bottom nav which iterates the list. Reordering that list, or
-            // commenting an entry out of it, shifts positions here and must be
-            // mirrored. Report is currently hidden, so Profile sits at 3.
-            //
-            // With Report restored: _item(3) is Report and Profile becomes 4.
-            _item(kQueueNavIndex),
-            const _StockInfoNavAction(),
-            if (!kIsWeb) _item(kCameraNavIndex),
-            // _item(3),   // Report — hidden
-            _item(3), //    Profile (would be 4 with Report restored)
-            _item(2), //    History
+            // Same order as the bottom bar — the site's destination list is the
+            // single source of nav order. The Camera entry (document scanner)
+            // is Android-only; hidden on web.
+            for (int index = 0; index < destinations.length; index++)
+              if (!(kIsWeb && destinations[index] == AppDestination.camera))
+                _item(index, destinations[index]),
             const Spacer(),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// "Rate" rail action: opens the standalone Stock Info window (same job as the
-/// tab-bar cube on the Queue screen). An action, not a destination — so it
-/// never shows a selected state.
-class _StockInfoNavAction extends StatelessWidget {
-  const _StockInfoNavAction();
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () => StockInfoLauncher.open(itemName: ''),
-      child: SizedBox(
-        height: 72,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppPalette.sheet,
-                border: Border.all(color: AppPalette.ink, width: 1.4),
-              ),
-              child: const Center(
-                child: StockCubeIcon(size: 20, color: AppPalette.ink),
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Rate',
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: AppPalette.inkSoft,
-                    fontWeight: FontWeight.w700,
-                  ),
-            ),
           ],
         ),
       ),
@@ -110,18 +61,19 @@ class _StockInfoNavAction extends StatelessWidget {
 
 class _SideNavItem extends StatelessWidget {
   const _SideNavItem({
-    required this.index,
+    required this.destination,
     required this.selected,
     required this.onTap,
   });
 
-  final int index;
+  final AppDestination destination;
   final bool selected;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final isCamera = index == kCameraNavIndex;
+    final item = navItemFor[destination]!;
+    final isCamera = destination == AppDestination.camera;
     return InkWell(
       onTap: onTap,
       child: SizedBox(
@@ -166,15 +118,14 @@ class _SideNavItem extends StatelessWidget {
                       width: isCamera ? 1.7 : 1.4,
                     ),
                   ),
-                  child: Icon(
-                    bottomNavItems[index].icon,
-                    size: isCamera ? 26 : 20,
-                    color: isCamera && selected ? Colors.white : AppPalette.ink,
+                  child: item.buildIcon(
+                    isCamera ? 26 : 20,
+                    isCamera && selected ? Colors.white : AppPalette.ink,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  bottomNavItems[index].label,
+                  item.label,
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: selected ? AppPalette.ink : AppPalette.inkSoft,
                         fontWeight: selected ? FontWeight.w800 : FontWeight.w700,

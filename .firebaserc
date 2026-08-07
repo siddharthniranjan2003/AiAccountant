@@ -4,5 +4,13 @@
     "prod": "aiaccountant-b60ed",
     "testing": "tallybridge-testing-env-636d4",
     "deployment": "tallybridge-deployment-env"
+  },
+  "targets": {
+    "aiaccountant-b60ed": {
+      "hosting": {
+        "ops": ["aiaccountant-b60ed"],
+        "rate": ["aiaccountant-rate"]
+      }
+    }
   }
 }

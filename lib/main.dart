@@ -9,6 +9,7 @@ import 'features/auth/auth_gate.dart';
 import 'features/stock/stock_info_screen.dart';
 import 'core/theme.dart';
 import 'core/config.dart';
+import 'core/site_config.dart';
 import 'data/stock_items_cache.dart';
 import 'data/customers_cache.dart';
 import 'data/vendors_cache.dart';
@@ -102,7 +103,8 @@ class AccountantApp extends StatelessWidget {
         : const AuthGate();
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'AI Accountant',
+      // Per-site browser tab title (SITE dart-define); 'AI Accountant' without.
+      title: SiteConfig.current.title,
       theme: buildAppTheme(),
       scaffoldMessengerKey: _scaffoldKey,
       // Web renders smaller than mobile, so bump all text 40% on web only.

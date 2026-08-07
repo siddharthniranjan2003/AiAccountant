@@ -2,19 +2,26 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import '../core/palette.dart';
 import '../core/constants.dart';
+import '../core/site_config.dart';
 
 class AppBottomNav extends StatelessWidget {
   const AppBottomNav({
     super.key,
     required this.currentIndex,
     required this.onSelected,
+    this.site,
   });
 
   final int currentIndex;
   final ValueChanged<int> onSelected;
 
+  /// Test seam. [SiteConfig.current] is a compile-time define, so a test process
+  /// can't vary it; production never passes this.
+  final SiteConfig? site;
+
   @override
   Widget build(BuildContext context) {
+    final destinations = (site ?? SiteConfig.current).destinations;
     return Container(
       height: kBottomNavHeight,
       decoration: BoxDecoration(
@@ -25,10 +32,10 @@ class AppBottomNav extends StatelessWidget {
       ),
       child: Row(
         children: [
-          for (int index = 0; index < bottomNavItems.length; index++)
+          for (int index = 0; index < destinations.length; index++)
             // The Camera entry (document scanner) is Android-only; hide it on
             // web while keeping the index mapping intact for the other tabs.
-            if (!(kIsWeb && index == kCameraNavIndex))
+            if (!(kIsWeb && destinations[index] == AppDestination.camera))
             Expanded(
               child: InkWell(
                 onTap: () => onSelected(index),
@@ -72,14 +79,11 @@ class AppBottomNav extends StatelessWidget {
                                 width: 1.4,
                               ),
                             ),
-                            child: Icon(
-                              bottomNavItems[index].icon,
-                              size: 20,
-                              color: AppPalette.ink,
-                            ),
+                            child: navItemFor[destinations[index]]!
+                                .buildIcon(20, AppPalette.ink),
                           ),
                           Text(
-                            bottomNavItems[index].label,
+                            navItemFor[destinations[index]]!.label,
                             style: Theme.of(context)
                                 .textTheme
                                 .labelSmall

@@ -3,8 +3,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/models.dart';
 import '../../core/palette.dart';
-import '../../services/stock_info_launcher.dart';
-import '../../shared/stock_cube_icon.dart';
 import '../../shared/screen_frame.dart';
 import '../../shared/app_top_tabs.dart';
 import 'queue_table_header.dart';
@@ -64,11 +62,8 @@ class _QueueScreenState extends State<QueueScreen> {
   // the just-edited row.
   final Map<String, QueueEditState> _editMarkers = {};
 
-  // Purchase temporarily hidden — the queue is Sale-only, so the tab index no
-  // longer selects a type. Restore the commented line to bring Purchase back.
-  // TransactionType get _activeType =>
-  //     widget.tabIndex == 0 ? TransactionType.purchase : TransactionType.sale;
-  TransactionType get _activeType => TransactionType.sale;
+  TransactionType get _activeType =>
+      widget.tabIndex == 0 ? TransactionType.purchase : TransactionType.sale;
 
   // Filtered to the active tab, tagged with any local edit marker, and sorted
   // newest-first by created_at. Sorting the flat list before grouping/serials
@@ -338,19 +333,10 @@ class _QueueScreenState extends State<QueueScreen> {
       onNavSelected: widget.onNavSelected,
       body: Column(
         children: [
-          // Purchase temporarily hidden — Sale is the only tab. Restore by
-          // swapping the commented block back in.
-          // AppTopTabs(
-          //   labels: const ['Purchase', 'Sale'],
-          //   selectedIndex: widget.tabIndex,
-          //   onSelected: widget.onTabChanged,
-          //   trailing: const _StockInfoButton(),
-          // ),
           AppTopTabs(
-            labels: const ['Sale'],
-            selectedIndex: 0,
-            onSelected: (_) {},
-            trailing: const _StockInfoButton(),
+            labels: const ['Purchase', 'Sale'],
+            selectedIndex: widget.tabIndex,
+            onSelected: widget.onTabChanged,
           ),
           Expanded(
             child: Padding(
@@ -456,31 +442,3 @@ class _QueueScreenState extends State<QueueScreen> {
   }
 }
 
-/// Top-right tab-bar action: opens the standalone Stock Info window in a new
-/// browser tab with no item preselected (its search bar covers the catalog).
-class _StockInfoButton extends StatelessWidget {
-  const _StockInfoButton();
-
-  @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: 'Stock Info',
-      child: InkWell(
-        borderRadius: BorderRadius.circular(9),
-        onTap: () => StockInfoLauncher.open(itemName: ''),
-        child: Container(
-          width: 34,
-          height: 34,
-          decoration: BoxDecoration(
-            color: AppPalette.sheet,
-            border: Border.all(color: AppPalette.line),
-            borderRadius: BorderRadius.circular(9),
-          ),
-          child: const Center(
-            child: StockCubeIcon(size: 17, color: AppPalette.inkSoft),
-          ),
-        ),
-      ),
-    );
-  }
-}

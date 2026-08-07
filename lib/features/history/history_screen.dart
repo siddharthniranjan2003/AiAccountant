@@ -24,8 +24,6 @@ class HistoryScreen extends StatefulWidget {
 }
 
 class _HistoryScreenState extends State<HistoryScreen> {
-  // Kept for when the All / Purchase tabs come back — see build().
-  // ignore: unused_field, prefer_final_fields
   int _filterIndex = 0;
 
   final Map<String, Map<String, dynamic>> _pushedRowsById = {};
@@ -214,16 +212,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Purchase AND All temporarily hidden — History is Sale-only, so the tab
-    // index no longer selects anything. Restore the commented switch and the
-    // labels below together; they are positionally coupled.
-    // final visibleItems = switch (_filterIndex) {
-    //   0 => _history,
-    //   1 => _history.where((e) => e.type == TransactionType.purchase).toList(),
-    //   _ => _history.where((e) => e.type == TransactionType.sale).toList(),
-    // };
-    final visibleItems =
-        _history.where((e) => e.type == TransactionType.sale).toList();
+    final visibleItems = switch (_filterIndex) {
+      0 => _history,
+      1 => _history.where((e) => e.type == TransactionType.purchase).toList(),
+      _ => _history.where((e) => e.type == TransactionType.sale).toList(),
+    };
 
     final grouped = <String, List<HistoryEntry>>{};
     for (final entry in visibleItems) {
@@ -236,12 +229,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
       body: Column(
         children: [
           AppTopTabs(
-            // labels: const ['All', 'Purchase', 'Sale'],
-            // selectedIndex: _filterIndex,
-            // onSelected: (index) => setState(() => _filterIndex = index),
-            labels: const ['Sale'],
-            selectedIndex: 0,
-            onSelected: (_) {},
+            labels: const ['All', 'Purchase', 'Sale'],
+            selectedIndex: _filterIndex,
+            onSelected: (index) => setState(() => _filterIndex = index),
           ),
           Expanded(
             child: visibleItems.isEmpty

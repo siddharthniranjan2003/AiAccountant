@@ -4,9 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_document_scanner/google_mlkit_document_scanner.dart';
 
-import '../../core/constants.dart';
 import '../../core/models.dart';
 import '../../core/config.dart';
+import '../../core/site_config.dart';
 import '../../data/seed_data.dart';
 import '../../data/push_queue_service.dart';
 import '../../data/scan_jobs_service.dart';
@@ -14,8 +14,8 @@ import '../../data/scan_uploader.dart';
 import '../queue/queue_screen.dart';
 import '../history/history_screen.dart';
 import '../camera/camera_screen.dart';
-// Report temporarily hidden — restore with the ReportScreen child below.
-// import '../report/report_screen.dart';
+import '../report/report_screen.dart';
+import '../stock/stock_info_screen.dart';
 import '../profile/profile_screen.dart';
 import '../camera/capture_type_dialog.dart';
 
@@ -28,9 +28,10 @@ class AccountantShell extends StatefulWidget {
 
 class _AccountantShellState extends State<AccountantShell>
     with WidgetsBindingObserver {
-  // Queue, not 0 — slot 0 is the CameraScreen placeholder (see kCameraNavIndex),
-  // which _onNavSelected never navigates to.
-  int _currentIndex = kQueueNavIndex;
+  // Which screens this build ships, in nav order. Every index below is a
+  // position in this list — nothing is pinned to a fixed number.
+  final SiteConfig _site = SiteConfig.current;
+  late int _currentIndex = _site.destinations.indexOf(_site.home);
   int _queueTabIndex = 0;
 
   List<QueueEntry> _saleEntries = [];
@@ -43,14 +44,11 @@ class _AccountantShellState extends State<AccountantShell>
   // while the native scanner is in front. We listen to it to repaint the badge.
   final ScanJobsService _scanService = ScanJobsService.instance;
 
-  // Purchase temporarily hidden — the queue is Sale-only and its tab index is
-  // pinned at 0, so deriving the type from it would resolve to PURCHASE and the
-  // scan badge would count the wrong queue: countFor(purchase) is 0 while a sale
-  // scan is in flight, so "Processing…" never appears. This has to move with
-  // queue_screen's _activeType; the two are the same decision in two places.
-  // TransactionType get _activeQueueType =>
-  //     _queueTabIndex == 0 ? TransactionType.purchase : TransactionType.sale;
-  TransactionType get _activeQueueType => TransactionType.sale;
+  // Mirrors queue_screen's _activeType — the two are the same decision in two
+  // places, so they have to move together or the scan badge counts the wrong
+  // queue.
+  TransactionType get _activeQueueType =>
+      _queueTabIndex == 0 ? TransactionType.purchase : TransactionType.sale;
 
   late final PushQueueService _pushQueueService;
 
@@ -134,7 +132,7 @@ class _AccountantShellState extends State<AccountantShell>
   // ── Navigation ───────────────────────────────────────────────────────────────
 
   Future<void> _onNavSelected(int index) async {
-    if (index == kCameraNavIndex) {
+    if (_site.destinations[index] == AppDestination.camera) {
       await _openTaggedCameraFlow();
       return;
     }
@@ -144,14 +142,7 @@ class _AccountantShellState extends State<AccountantShell>
   }
 
   Future<void> _openTaggedCameraFlow([TransactionType? preferredType]) async {
-    // Purchase capture temporarily hidden, so there is nothing to choose between
-    // — the camera goes straight to Sale instead of asking. Restore the
-    // commented line (and the Purchase option in CaptureTypeDialog) to bring the
-    // picker back.
-    // final selectedType = preferredType ?? await _showCaptureTypeDialog();
-    // Typed nullable so the guard below stays valid when the picker returns.
-    // ignore: unnecessary_nullable_for_final_variable_declarations
-    final TransactionType? selectedType = preferredType ?? TransactionType.sale;
+    final selectedType = preferredType ?? await _showCaptureTypeDialog();
     if (!mounted || selectedType == null) return;
 
     _activeCaptureType = selectedType;
@@ -227,8 +218,6 @@ class _AccountantShellState extends State<AccountantShell>
     unawaited(sendScanToParser(pdfPath, url));
   }
 
-  // Kept for when Purchase capture comes back — see _openTaggedCameraFlow.
-  // ignore: unused_element
   Future<TransactionType?> _showCaptureTypeDialog() {
     return showDialog<TransactionType>(
       context: context,
@@ -243,44 +232,53 @@ class _AccountantShellState extends State<AccountantShell>
     return IndexedStack(
       index: _currentIndex,
       children: [
-        // Never actually shown: tapping Camera opens the scanner rather than
-        // navigating, so _currentIndex never lands on kCameraNavIndex. It holds
-        // the slot that keeps this list aligned with bottomNavItems.
-        CameraScreen(
-          currentIndex: _currentIndex,
-          onNavSelected: _onNavSelected,
-          captures: _captures,
-          activeCaptureType: _activeCaptureType,
-          onCaptureRequested: _openTaggedCameraFlow,
-        ),
-        QueueScreen(
-          currentIndex: _currentIndex,
-          onNavSelected: _onNavSelected,
-          rows: _allRows,
-          onRowsChanged: _onRowsChanged,
-          onRefresh: _pushQueueService.refresh,
-          tabIndex: _queueTabIndex,
-          onTabChanged: (i) => setState(() => _queueTabIndex = i),
-          loadingCount: _scanService.countFor(_activeQueueType),
-          oldestLoadingStart: _scanService.oldestStartFor(_activeQueueType),
-          garbageRows: _scanService.garbageEntries(),
-          pushedReferences: _pushQueueService.pushedPurchaseReferences,
-        ),
-        HistoryScreen(
-          currentIndex: _currentIndex,
-          onNavSelected: _onNavSelected,
-        ),
-        // Report temporarily hidden. These children are positionally aligned
-        // with bottomNavItems in core/constants.dart — restore both together.
-        // ReportScreen(
-        //   currentIndex: _currentIndex,
-        //   onNavSelected: _onNavSelected,
-        // ),
-        ProfileScreen(
-          currentIndex: _currentIndex,
-          onNavSelected: _onNavSelected,
-        ),
+        for (final destination in _site.destinations) _screenFor(destination),
       ],
     );
   }
+
+  Widget _screenFor(AppDestination destination) => switch (destination) {
+        // Never actually shown: tapping Camera opens the scanner rather than
+        // navigating, so _currentIndex never lands on it. It holds a slot so the
+        // stack stays aligned with the nav.
+        AppDestination.camera => CameraScreen(
+            currentIndex: _currentIndex,
+            onNavSelected: _onNavSelected,
+            captures: _captures,
+            activeCaptureType: _activeCaptureType,
+            onCaptureRequested: _openTaggedCameraFlow,
+          ),
+        AppDestination.queue => QueueScreen(
+            currentIndex: _currentIndex,
+            onNavSelected: _onNavSelected,
+            rows: _allRows,
+            onRowsChanged: _onRowsChanged,
+            onRefresh: _pushQueueService.refresh,
+            tabIndex: _queueTabIndex,
+            onTabChanged: (i) => setState(() => _queueTabIndex = i),
+            loadingCount: _scanService.countFor(_activeQueueType),
+            oldestLoadingStart: _scanService.oldestStartFor(_activeQueueType),
+            garbageRows: _scanService.garbageEntries(),
+            pushedReferences: _pushQueueService.pushedPurchaseReferences,
+          ),
+        AppDestination.history => HistoryScreen(
+            currentIndex: _currentIndex,
+            onNavSelected: _onNavSelected,
+          ),
+        AppDestination.report => ReportScreen(
+            currentIndex: _currentIndex,
+            onNavSelected: _onNavSelected,
+          ),
+        AppDestination.profile => ProfileScreen(
+            currentIndex: _currentIndex,
+            onNavSelected: _onNavSelected,
+          ),
+        // The same Stock Info screen the popup window shows, wrapped in the
+        // shell instead of its own Scaffold. Opens on the blank search.
+        AppDestination.rate => StockInfoScreen(
+            itemName: '',
+            currentIndex: _currentIndex,
+            onNavSelected: _onNavSelected,
+          ),
+      };
 }

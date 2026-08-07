@@ -12,6 +12,7 @@ import '../../services/stock_info_route.dart';
 import '../../services/stock_info_route_stub.dart'
     if (dart.library.js_interop) '../../services/stock_info_route_web.dart';
 import '../../shared/customer_picker_sheet.dart';
+import '../../shared/screen_frame.dart';
 
 /// A single Purchase/Sale history line, formatted for display.
 class _Txn {
@@ -64,23 +65,35 @@ class _Txn {
 String _trimNum(num n) =>
     n == n.roundToDouble() ? n.toStringAsFixed(0) : n.toString();
 
-/// Standalone Stock Info page — opens in its own browser tab from the ⓘ on a
-/// voucher item row and shows the item's Purchase & Sale history from Supabase.
+/// Stock Info — an item's Purchase & Sale history from Supabase.
+///
+/// Renders two ways. Standalone (the default) it is its own page with its own
+/// Scaffold: the browser tab opened by the ⓘ on a voucher item row, or a direct
+/// `#/stock-info` link. Pass [currentIndex] + [onNavSelected] and it renders
+/// inside [ScreenFrame] instead, as the Rate destination of a site that has one.
+/// The body is identical either way.
 ///
 /// When [partyName] is set (the ⓘ was clicked on a *sale* invoice) the Sale
 /// panel is scoped to that customer + this item and shows the customer as a
 /// header. Otherwise both panels are item-scoped (e.g. opened from a purchase
-/// invoice, or a direct link).
+/// invoice, a direct link, or the Rate tab's blank search).
 class StockInfoScreen extends StatefulWidget {
   const StockInfoScreen({
     super.key,
     required this.itemName,
     this.partyName,
     this.routeChanges,
-  });
+    this.currentIndex,
+    this.onNavSelected,
+  }) : assert((currentIndex == null) == (onNavSelected == null),
+            'embedding needs both the nav index and its callback');
 
   final String itemName;
   final String? partyName;
+
+  /// Non-null only when embedded in the shell — see the class doc.
+  final int? currentIndex;
+  final ValueChanged<int>? onNavSelected;
 
   /// Emits when the window is retargeted at a different item (the ⓘ clicked
   /// again in the main app). Defaults to the platform stream — inert off web.
@@ -356,9 +369,7 @@ class _StockInfoScreenState extends State<StockInfoScreen> {
       onPickParty: _item.isNotEmpty ? _pickParty : null,
     );
 
-    return Scaffold(
-      backgroundColor: AppPalette.sheet,
-      body: SafeArea(
+    final content = SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -434,8 +445,17 @@ class _StockInfoScreenState extends State<StockInfoScreen> {
             ],
           ),
         ),
-      ),
     );
+
+    final navIndex = widget.currentIndex;
+    if (navIndex != null) {
+      return ScreenFrame(
+        currentIndex: navIndex,
+        onNavSelected: widget.onNavSelected!,
+        body: content,
+      );
+    }
+    return Scaffold(backgroundColor: AppPalette.sheet, body: content);
   }
 }
 

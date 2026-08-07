@@ -182,9 +182,19 @@ class ReportCategory {
 class BottomNavItemData {
   const BottomNavItemData({
     required this.label,
-    required this.icon,
-  });
+    this.icon,
+    this.iconBuilder,
+  }) : assert(icon != null || iconBuilder != null,
+            'a nav item needs either a Material icon or a custom glyph');
 
   final String label;
-  final IconData icon;
+  final IconData? icon;
+
+  /// Custom glyph for entries no Material icon fits (Rate's stock cube, drawn
+  /// by a CustomPainter). Handed the size and colour the surrounding [Icon]s
+  /// would have used so it sits flush with its neighbours.
+  final Widget Function(double size, Color color)? iconBuilder;
+
+  Widget buildIcon(double size, Color color) =>
+      iconBuilder?.call(size, color) ?? Icon(icon, size: size, color: color);
 }

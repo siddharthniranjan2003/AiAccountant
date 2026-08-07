@@ -1,1 +1,76 @@
-{"hosting":{"public":"build/web","ignore":["firebase.json","**/.*","**/node_modules/**"],"rewrites":[{"source":"**","destination":"/index.html"}],"headers":[{"source":"/{index.html,flutter_service_worker.js,flutter_bootstrap.js,main.dart.js}","headers":[{"key":"Cache-Control","value":"no-cache, no-store, must-revalidate"}]},{"source":"/","headers":[{"key":"Cache-Control","value":"no-cache, no-store, must-revalidate"}]}]},"flutter":{"platforms":{"android":{"default":{"projectId":"tallybridge-testing-env-636d4","appId":"1:639712744833:android:9903b17e6e259236c00480","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"tallybridge-testing-env-636d4","configurations":{"android":"1:639712744833:android:9903b17e6e259236c00480","web":"1:639712744833:web:f4ebbc9f05f6234bc00480"}}}}}}
+{
+  "hosting": [
+    {
+      "target": "ops",
+      "public": "build/web",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "rewrites": [{ "source": "**", "destination": "/index.html" }],
+      "headers": [
+        {
+          "source": "/{index.html,flutter_service_worker.js,flutter_bootstrap.js,main.dart.js}",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache, no-store, must-revalidate"
+            }
+          ]
+        },
+        {
+          "source": "/",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache, no-store, must-revalidate"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "target": "rate",
+      "public": "build/web",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "rewrites": [{ "source": "**", "destination": "/index.html" }],
+      "headers": [
+        {
+          "source": "/{index.html,flutter_service_worker.js,flutter_bootstrap.js,main.dart.js}",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache, no-store, must-revalidate"
+            }
+          ]
+        },
+        {
+          "source": "/",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache, no-store, must-revalidate"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "tallybridge-testing-env-636d4",
+          "appId": "1:639712744833:android:9903b17e6e259236c00480",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "tallybridge-testing-env-636d4",
+          "configurations": {
+            "android": "1:639712744833:android:9903b17e6e259236c00480",
+            "web": "1:639712744833:web:f4ebbc9f05f6234bc00480"
+          }
+        }
+      }
+    }
+  }
+}
