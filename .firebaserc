@@ -8,9 +8,34 @@
   "targets": {
     "aiaccountant-b60ed": {
       "hosting": {
-        "ops": ["aiaccountant-b60ed"],
-        "rate": ["aiaccountant-rate"]
+        "ops": [
+          "aiaccountant-b60ed"
+        ],
+        "rate": [
+          "aiaccountant-rate"
+        ]
+      }
+    },
+    "tallybridge-testing-env-636d4": {
+      "hosting": {
+        "ops": [
+          "tallybridge-testing-ops"
+        ],
+        "rate": [
+          "tallybridge-testing-rate"
+        ]
+      }
+    },
+    "tallybridge-deployment-env": {
+      "hosting": {
+        "ops": [
+          "tallybridge-deployment-ops"
+        ],
+        "rate": [
+          "tallybridge-deployment-rate"
+        ]
       }
     }
-  }
+  },
+  "etags": {}
 }
