@@ -23,6 +23,9 @@
         ],
         "rate": [
           "tallybridge-testing-rate"
+        ],
+        "full": [
+          "tallybridge-testing-env-636d4"
         ]
       }
     },
@@ -33,6 +36,9 @@
         ],
         "rate": [
           "tallybridge-deployment-rate"
+        ],
+        "full": [
+          "tallybridge-deployment-env"
         ]
       }
     }
