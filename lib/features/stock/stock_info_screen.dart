@@ -370,81 +370,93 @@ class _StockInfoScreenState extends State<StockInfoScreen> {
     );
 
     final content = SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            children: [
-              _SearchBar(
-                initialItem: _item,
-                onSelect: _selectItem,
-                onClear: _clearAll,
-              ),
-              // Selected item name, shown right below the search bar.
-              Padding(
-                padding: const EdgeInsets.fromLTRB(4, 14, 4, 4),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text.rich(
-                    TextSpan(
-                      children: [
-                        TextSpan(
-                          text: 'Name: ',
-                          style: TextStyle(color: AppPalette.muted),
-                        ),
-                        TextSpan(
-                          text: name,
-                          style: TextStyle(color: AppPalette.ink),
-                        ),
-                      ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // Phone-width viewports already lost 12 to ScreenFrame's card padding,
+          // so spend less here. Measured off this box rather than the window so
+          // both mount paths below see the width they actually get.
+          final narrow = constraints.maxWidth < kDesktopBreakpoint;
+          return Padding(
+            padding: EdgeInsets.all(narrow ? 12 : 20),
+            child: Column(
+              children: [
+                _SearchBar(
+                  initialItem: _item,
+                  onSelect: _selectItem,
+                  onClear: _clearAll,
+                ),
+                // Selected item name, shown right below the search bar. Bounded
+                // to two lines so a long name can't push the panels off-screen.
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(4, 14, 4, 4),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                            text: 'Name: ',
+                            style: TextStyle(color: AppPalette.muted),
+                          ),
+                          TextSpan(
+                            text: name,
+                            style: TextStyle(color: AppPalette.ink),
+                          ),
+                        ],
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleMedium,
                     ),
-                    style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
-              ),
-              // Panels fill the rest of the screen. On wide screens they sit
-              // side-by-side and each scrolls on its own; on narrow screens they
-              // stack into a single scroll view.
-              Expanded(
-                child: _item.isEmpty
-                    ? Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(24),
-                          child: Text(
-                            'Search a stock item above to see its '
-                            'Purchase & Sale history.',
-                            textAlign: TextAlign.center,
-                            style:
-                                Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                      color: AppPalette.muted,
-                                    ),
-                          ),
-                        ),
-                      )
-                    : wide
-                        ? Row(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Expanded(
-                                child: SingleChildScrollView(child: purchase),
-                              ),
-                              Container(width: 1, color: AppPalette.line),
-                              Expanded(
-                                  child: SingleChildScrollView(child: sale)),
-                            ],
-                          )
-                        : SingleChildScrollView(
-                            child: Column(
-                              children: [
-                                purchase,
-                                Container(height: 1, color: AppPalette.line),
-                                sale,
-                              ],
+                // Panels fill the rest of the screen. On wide screens they sit
+                // side-by-side and each scrolls on its own; on narrow screens
+                // they stack into a single scroll view.
+                Expanded(
+                  child: _item.isEmpty
+                      ? Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Text(
+                              'Search a stock item above to see its '
+                              'Purchase & Sale history.',
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(color: AppPalette.muted),
                             ),
                           ),
-              ),
-            ],
-          ),
-        ),
+                        )
+                      : wide
+                          ? Row(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Expanded(
+                                  child:
+                                      SingleChildScrollView(child: purchase),
+                                ),
+                                Container(width: 1, color: AppPalette.line),
+                                Expanded(
+                                    child: SingleChildScrollView(child: sale)),
+                              ],
+                            )
+                          : SingleChildScrollView(
+                              child: Column(
+                                children: [
+                                  purchase,
+                                  Container(height: 1, color: AppPalette.line),
+                                  sale,
+                                ],
+                              ),
+                            ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
     );
 
     final navIndex = widget.currentIndex;
@@ -694,6 +706,11 @@ class _SearchBarState extends State<_SearchBar> {
                   }
                 });
               }
+              // On a phone the software keyboard eats the bottom of the
+              // viewport, so cap the list against what is actually left rather
+              // than a flat 320 it would be clipped by.
+              final mq = MediaQuery.of(context);
+              final free = mq.size.height - mq.viewInsets.bottom - 160;
               return TextFieldTapRegion(
                 child: Align(
                   alignment: Alignment.topLeft,
@@ -701,8 +718,10 @@ class _SearchBarState extends State<_SearchBar> {
                     elevation: 4,
                     borderRadius: BorderRadius.circular(12),
                     child: ConstrainedBox(
-                      constraints:
-                          BoxConstraints(maxHeight: 320, maxWidth: fieldWidth),
+                      constraints: BoxConstraints(
+                        maxHeight: free.clamp(120.0, 320.0),
+                        maxWidth: fieldWidth,
+                      ),
                       child: ListView.builder(
                         padding: EdgeInsets.zero,
                         shrinkWrap: true,
@@ -849,6 +868,8 @@ class _HistoryPanel extends StatelessWidget {
                 Text(
                   '$summaryVerb ${loaded.first.date}'
                   '  ·  ${loaded.first.qty} @ ₹${loaded.first.rate}',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: AppPalette.ink,
                     fontWeight: FontWeight.w700,
@@ -861,19 +882,20 @@ class _HistoryPanel extends StatelessWidget {
               // replaces the filter (or adds one when none is set).
               if (partyToggleName != null || onPickParty != null) ...[
                 const SizedBox(height: 10),
-                Row(
+                // A Wrap, not a Row: on a narrow panel the pick button drops
+                // below the chip instead of overflowing beside it.
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     if (partyToggleName != null)
-                      Flexible(
-                        child: _PartyToggle(
-                          name: partyToggleName!,
-                          active: partyActive,
-                          onToggle: onToggleParty,
-                          onRemove: onRemoveParty,
-                        ),
+                      _PartyToggle(
+                        name: partyToggleName!,
+                        active: partyActive,
+                        onToggle: onToggleParty,
+                        onRemove: onRemoveParty,
                       ),
-                    if (partyToggleName != null && onPickParty != null)
-                      const SizedBox(width: 8),
                     if (onPickParty != null)
                       _PartyPickButton(
                         onTap: onPickParty!,
@@ -906,12 +928,27 @@ class _HistoryPanel extends StatelessWidget {
       );
     }
     if (loaded.isEmpty) return _message(theme, emptyMessage);
-    return Column(
-      children: [
-        _TxnHeaderRow(showParty: showParty),
-        for (final t in loaded)
-          _TxnRow(txn: t, saleTint: saleTint, showParty: showParty),
-      ],
+    // Sized off this panel, not the window: on a wide screen the two panels sit
+    // side by side and each gets roughly half, which can itself be too narrow
+    // for six columns.
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxWidth < _kTableMinW;
+        return Column(
+          children: [
+            // Nothing to label once the rows reflow — they carry their own
+            // units instead.
+            if (!compact) _TxnHeaderRow(showParty: showParty),
+            for (final t in loaded)
+              _TxnRow(
+                txn: t,
+                saleTint: saleTint,
+                showParty: showParty,
+                compact: compact,
+              ),
+          ],
+        );
+      },
     );
   }
 
@@ -1053,6 +1090,12 @@ const double _kRateW = 78;
 const double _kDiscW = 54;
 const double _kAmtW = 104;
 
+// The six-column row needs its five fixed cells plus its own 12+12 padding, and
+// the flexible PARTY cell needs something left over. Below this the row would
+// overflow, so it reflows onto two lines instead — see [_TxnRow].
+const double _kTableMinW =
+    _kDateW + _kQtyW + _kRateW + _kDiscW + _kAmtW + 24 + 24;
+
 class _TxnHeaderRow extends StatelessWidget {
   const _TxnHeaderRow({required this.showParty});
   final bool showParty;
@@ -1103,10 +1146,14 @@ class _TxnRow extends StatelessWidget {
     required this.txn,
     required this.saleTint,
     required this.showParty,
+    required this.compact,
   });
   final _Txn txn;
   final bool saleTint;
   final bool showParty;
+  // Too narrow for six columns: date + party on one line, the numbers on the
+  // next. Set by [_HistoryPanel._body] from the panel's own width.
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -1128,7 +1175,68 @@ class _TxnRow extends StatelessWidget {
         border: Border(bottom: BorderSide(color: AppPalette.line)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      child: Row(
+      child: compact
+          ? _compactBody(theme, numStyle, amt)
+          : _columnBody(theme, numStyle, amt),
+    );
+  }
+
+  /// Two stacked lines. The numbers keep the units the columns would have
+  /// carried in their headers — "40 pcs · ₹250.00 · 5%" — so nothing is lost.
+  Widget _compactBody(ThemeData theme, TextStyle? numStyle, TextStyle? amt) {
+    // `disc` is '—' when the row has no discount; drop it rather than print a
+    // dash between two real numbers.
+    final figures = <String>[
+      txn.qty,
+      '₹${txn.rate}',
+      if (txn.disc != '—') txn.disc,
+    ].join('  ·  ');
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              txn.date,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: AppPalette.inkSoft,
+              ),
+            ),
+            if (showParty) ...[
+              const SizedBox(width: 10),
+              Flexible(
+                child: Text(
+                  txn.party,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: AppPalette.ink,
+                  ),
+                ),
+              ),
+            ],
+            if (txn.latest) ...[
+              const SizedBox(width: 6),
+              const _LatestBadge(),
+            ],
+          ],
+        ),
+        const SizedBox(height: 4),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Expanded(child: Text(figures, style: numStyle)),
+            const SizedBox(width: 8),
+            Text(txn.amount, style: amt),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _columnBody(ThemeData theme, TextStyle? numStyle, TextStyle? amt) {
+    return Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
@@ -1187,7 +1295,6 @@ class _TxnRow extends StatelessWidget {
             child: Text(txn.amount, style: amt, textAlign: TextAlign.right),
           ),
         ],
-      ),
     );
   }
 }
