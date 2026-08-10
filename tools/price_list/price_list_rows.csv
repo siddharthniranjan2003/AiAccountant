@@ -1,0 +1,851 @@
+stock_item_name,list_rate,unit,brand,doc_title,effective_from,storage_path,page_no,price_per_piece,pack_qty,thread_form,size,grade,edp_code,confidence,note
+CARBON TAP 3 X .5 SET TOTEM,1170.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,390.00,3,Metric Coarse,3.0 X 0.50,Standard,,review,
+"CARBON TAP 3/8"" BSP BOT TOTEM",1501.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,1501.00,1,BSP,3/8,Standard,,review,
+CARBON TAP 5 X .8 TPR TOTEM,419.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,1,Metric Coarse,5.0 X 0.80,Standard,,review,
+"CARBON TAP 5/32"" BSW BOT TOTEM",407.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,407.00,1,BSW/BSF,5/32,Standard,,review,
+HSS  LH TAP 27 X 3 BOT TOTEM,6473.25,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,4795.00,1,Metric Coarse,27.0 X 3.00,Standard,,verified,Left-hand tap: list +35% per price-list note 4 (p.27)
+"HSS LH TAP 1-1/4"" UNC BOT TOTEM",7917.75,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,5865.00,1,UNF/UNC,"1.1/4""",Standard,,review,Left-hand tap: list +35% per price-list note 4 (p.27)
+"HSS LH TAP 1-1/4"" UNC SEC TOTEM",7917.75,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,5865.00,1,UNF/UNC,"1.1/4""",Standard,,review,Left-hand tap: list +35% per price-list note 4 (p.27)
+"HSS LH TAP 1"" UNC BOT TOTEM",4889.70,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,3622.00,1,UNF/UNC,"1""",Standard,,review,Left-hand tap: list +35% per price-list note 4 (p.27)
+"HSS LH TAP 1"" UNC TPR TOTEM",4889.70,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,3622.00,1,UNF/UNC,"1""",Standard,,review,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 10 X 1 BOT TOTEM,915.30,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,678.00,1,Metric Coarse,10.0 X 1.00/1.25,Standard,,verified,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 10 X 1.5 BOT TOTEM,822.15,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,609.00,1,Metric Coarse,10.0 X 1.50,Standard,,verified,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 10 X 1.5 SEC TOTEM,822.15,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,609.00,1,Metric Coarse,10.0 X 1.50,Standard,,verified,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 10 X 1.5 SET TOTEM,2466.45,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,609.00,3,Metric Coarse,10.0 X 1.50,Standard,,verified,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 10 X 1.5 SPPT TOTEM,1008.45,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,747.00,1,Metric Coarse,10.0 X 1.50,SPPT,,review,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 10 X 1.5 TOTEM,822.15,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,609.00,1,Metric Coarse,10.0 X 1.50,Standard,,review,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 10 X 1.5 TPR TOTEM,822.15,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,609.00,1,Metric Coarse,10.0 X 1.50,Standard,,review,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 12 X 1.75 BOT TOTEM,1278.45,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,947.00,1,Metric Coarse,12.0 X 1.75,Standard,,verified,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 12 X 1.75 SEC TOTEM,1278.45,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,947.00,1,Metric Coarse,12.0 X 1.75,Standard,,verified,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 12 X 1.75 SET TOTEM,3835.35,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,947.00,3,Metric Coarse,12.0 X 1.75,Standard,,verified,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 12 X 1.75 TPR TOTEM,1278.45,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,947.00,1,Metric Coarse,12.0 X 1.75,Standard,,review,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 14 X 1.5 BOT TOTEM,1864.35,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1381.00,1,Metric Coarse,14.0 X 1.50,Standard,,verified,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 14 X 1.5 TPR TOTEM,1864.35,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1381.00,1,Metric Coarse,14.0 X 1.50,Standard,,review,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 14 X 2 BOT TOTEM,1860.30,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,1378.00,1,Metric Coarse,14.0 X 2.00,Standard,,verified,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 16 X 1.5 BOT TOTEM,1864.35,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1381.00,1,Metric Coarse,16.0 X 1.50,Standard,,verified,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 16 X 1.5 TPR TOTEM,1864.35,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1381.00,1,Metric Coarse,16.0 X 1.50,Standard,,review,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 16 X 2 BOT TOTEM,1860.30,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,1378.00,1,Metric Coarse,16.0 X 2.00,Standard,,verified,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 16 X 2 SEC TOTEM,1860.30,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,1378.00,1,Metric Coarse,16.0 X 2.00,Standard,,verified,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 16 X 2 SET TOTEM,5580.90,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,1378.00,3,Metric Coarse,16.0 X 2.00,Standard,,verified,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 16 X 2 TPR TOTEM,1860.30,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,1378.00,1,Metric Coarse,16.0 X 2.00,Standard,,review,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 16X2 TPR TOTEM,1860.30,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,1378.00,1,Metric Coarse,16.0 X 2.00,Standard,,verified,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 18 X 1.5 BOT TOTEM,3195.45,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,2367.00,1,Metric Coarse,18.0 X 1.50,Standard,,verified,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 18 X 2.5 BOT TOTEM,2808.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,2080.00,1,Metric Coarse,18.0 X 2.50,Standard,,review,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 18 X 2.5 SEC TOTEM,2808.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,2080.00,1,Metric Coarse,18.0 X 2.50,Standard,,review,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 18 X 2.5 SET TOTEM,8424.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,2080.00,3,Metric Coarse,18.0 X 2.50,Standard,,review,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 20 X 1.5 BOT TOTEM,4044.60,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,2996.00,1,Metric Coarse,20.0 X 1.50,Standard,,verified,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 20 X 1.5 TYPE C TOTEM,4044.60,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,2996.00,1,Metric Coarse,20.0 X 1.50,Standard,,review,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 20 X 2.5 BOT TOTEM,3580.20,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,2652.00,1,Metric Coarse,20.0 X 2.50,Standard,,verified,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 20 X 2.5 GOLD TOTEM,4573.80,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,3388.00,1,Metric Coarse,20.0 X 2.50,STD GOLD,,review,"Left-hand tap: list +35% per price-list note 4 (p.27) | invoice rate 2,970.00 != list 4,573.80"
+HSS LH TAP 20 X 2.5 SEC TOTEM,3580.20,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,2652.00,1,Metric Coarse,20.0 X 2.50,Standard,,review,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 20 X 2.5 SET TOTEM,10740.60,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,2652.00,3,Metric Coarse,20.0 X 2.50,Standard,,verified,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 20 X 2.5 TOTEM,3580.20,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,2652.00,1,Metric Coarse,20.0 X 2.50,Standard,,review,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 20 X 2.5 TPR TOTEM,3580.20,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,2652.00,1,Metric Coarse,20.0 X 2.50,Standard,,verified,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 22 X 2.5 GOLD TOTEM,4445.55,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,3293.00,1,Metric Coarse,22.0 X 2.50,STD GOLD,,review,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 24 X 1.5 BOT TOTEM,4823.55,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,3573.00,1,Metric Coarse,24.0 X 1.50,Standard,,verified,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 24 X 1.5 SEC TOTEM,4823.55,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,3573.00,1,Metric Coarse,24.0 X 1.50,Standard,,review,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 24 X 2 BOT TOTEM,4797.90,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,3554.00,1,Metric Coarse,24.0 X 2.00,Standard,,review,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 24 X 2 PAIR TOTEM,9595.80,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,3554.00,2,Metric Coarse,24.0 X 2.00,Standard,,verified,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 24 X 3 BOT TOTEM,4275.45,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,3167.00,1,Metric Coarse,24.0 X 3.00,Standard,,verified,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 24 X 3 GOLD TOTEM,5020.65,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,3719.00,1,Metric Coarse,24.0 X 3.00,STD GOLD,,review,"Left-hand tap: list +35% per price-list note 4 (p.27) | invoice rate 4,276.00 != list 5,020.65"
+HSS LH TAP 24 X 3 SEC TOTEM,4275.45,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,3167.00,1,Metric Coarse,24.0 X 3.00,Standard,,review,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 24 X 3 SET TOTEM,12826.35,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,3167.00,3,Metric Coarse,24.0 X 3.00,Standard,,review,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 24 X 3 TPR TOTEM,4275.45,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,3167.00,1,Metric Coarse,24.0 X 3.00,Standard,,verified,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 27 X 3 GOLD TOTEM,7323.75,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,5425.00,1,Metric Coarse,27.0 X 3.00,STD GOLD,,review,"Left-hand tap: list +35% per price-list note 4 (p.27) | invoice rate 3,495.56 != list 7,323.75"
+HSS LH TAP 27 X 3 SEC TOTEM,6473.25,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,4795.00,1,Metric Coarse,27.0 X 3.00,Standard,,review,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 27X3 TPR TOTEM,6473.25,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,4795.00,1,Metric Coarse,27.0 X 3.00,Standard,,review,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 3 X .5 BOT TOTEM,526.50,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,390.00,1,Metric Coarse,3.0 X 0.50,Standard,,review,Left-hand tap: list +35% per price-list note 4 (p.27)
+"HSS LH TAP 3/8"" BSW BOT TOTEM",789.75,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,585.00,1,BSW/BSF,3/8,Standard,,review,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 30 X 3.5 BOT TOTEM,7236.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,5360.00,1,Metric Coarse,30.0 X 3.50,Standard,,verified,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 30 X 3.5 GOLD TOTEM,8116.20,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,6012.00,1,Metric Coarse,30.0 X 3.50,STD GOLD,,review,"Left-hand tap: list +35% per price-list note 4 (p.27) | invoice rate 3,827.00 != list 8,116.20"
+HSS LH TAP 30 X 3.5 SEC TOTEM,7236.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,5360.00,1,Metric Coarse,30.0 X 3.50,Standard,,review,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 30 X 3.5 SET GOLD TOTEM,24348.60,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,6012.00,3,Metric Coarse,30.0 X 3.50,STD GOLD,,review,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 30 X 3.5 TPR TOTEM,7236.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,5360.00,1,Metric Coarse,30.0 X 3.50,Standard,,verified,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 4 X .7 BOT TOTEM,526.50,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,390.00,1,Metric Coarse,4.0 X 0.70,Standard,,review,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 4 X .7 SET TOTEM,1579.50,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,390.00,3,Metric Coarse,4.0 X 0.70,Standard,,review,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 5 X .8 BOT TOTEM,565.65,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,1,Metric Coarse,5.0 X 0.80,Standard,,review,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 5 X .8 SET TOTEM,1696.95,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,3,Metric Coarse,5.0 X 0.80,Standard,,review,"Left-hand tap: list +35% per price-list note 4 (p.27) | invoice rate 967.29 != list 1,696.95"
+HSS LH TAP 6 X 1 BOT TOTEM,565.65,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,1,Metric Coarse,6.0 X 1.00,Standard,,verified,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 6 X 1 SEC TOTEM,565.65,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,1,Metric Coarse,6.0 X 1.00,Standard,,review,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 6 X 1 SET TOTEM,1696.95,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,3,Metric Coarse,6.0 X 1.00,Standard,,verified,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 6 X 1 SPPT TOTEM,699.30,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,518.00,1,Metric Coarse,6.0 X 1.00,SPPT,,review,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 8 X 1.25 BOT TOTEM,680.40,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,504.00,1,Metric Coarse,8.0 X 1.25,Standard,,verified,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 8 X 1.25 SET TOTEM,2041.20,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,504.00,3,Metric Coarse,8.0 X 1.25,Standard,,verified,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LH TAP 8 X 1.25 SPFL TOTEM,680.40,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,504.00,1,Metric Coarse,8.0 X 1.25,Standard,,review,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LONG LH TAP 14 X 1.5 TYPE C TOTEM,1864.35,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1381.00,1,Metric Coarse,14.0 X 1.50,Standard,,review,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LONG LH TAP 16 X 1.5 TYPE C TOTEM,1864.35,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1381.00,1,Metric Coarse,16.0 X 1.50,Standard,,review,"Left-hand tap: list +35% per price-list note 4 (p.27) | invoice rate 2,371.00 != list 1,864.35"
+HSS LONG LH TAP 18 X 1.5 TYPE C TOTEM,3195.45,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,2367.00,1,Metric Coarse,18.0 X 1.50,Standard,,review,"Left-hand tap: list +35% per price-list note 4 (p.27) | invoice rate 3,989.00 != list 3,195.45"
+HSS LONG LH TAP 20 X 1.5 TYPE C TOTEM,4044.60,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,2996.00,1,Metric Coarse,20.0 X 1.50,Standard,,review,"Left-hand tap: list +35% per price-list note 4 (p.27) | invoice rate 5,196.15 != list 4,044.60"
+HSS LONG LH TAP 22 X 2.5 TYPE C TOTEM,3838.05,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,2843.00,1,Metric Coarse,22.0 X 2.50,Standard,,review,Left-hand tap: list +35% per price-list note 4 (p.27)
+HSS LONG LH TAP 24 X 3 TYPE C TOTEM,4275.45,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,3167.00,1,Metric Coarse,24.0 X 3.00,Standard,,review,"Left-hand tap: list +35% per price-list note 4 (p.27) | invoice rate 5,566.00 != list 4,275.45"
+HSS LONG LH TAP 27 X 3 TYPE C TOTEM,6473.25,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,4795.00,1,Metric Coarse,27.0 X 3.00,Standard,,review,"Left-hand tap: list +35% per price-list note 4 (p.27) | invoice rate 8,004.00 != list 6,473.25"
+"HSS LONG TAP 1/8"" BSP TOTEM",671.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,671.00,1,BSP,1/8,Standard,,review,
+HSS LONG TAP 10 X 1 TYPE C TOTEM,678.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,678.00,1,Metric Coarse,10.0 X 1.00/1.25,Standard,,review,invoice rate 988.00 != list 678.00
+HSS LONG TAP 10 X 1.5 SC4 TOTEM,609.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,609.00,1,Metric Coarse,10.0 X 1.50,Standard,,review,
+HSS LONG TAP 10 X 1.5 TYPE B TOTEM,609.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,609.00,1,Metric Coarse,10.0 X 1.50,Standard,,review,"invoice rate 1,095.00 != list 609.00"
+HSS LONG TAP 10 X 1.5 TYPE C TOTEM,609.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,609.00,1,Metric Coarse,10.0 X 1.50,Standard,,review,invoice rate 918.00 != list 609.00
+HSS LONG TAP 12 X 1 TYPE C TOTEM,1111.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1111.00,1,Metric Coarse,12.0 X 1.00/1.25/1.50,Standard,,review,"invoice rate 1,419.00 != list 1,111.00"
+HSS LONG TAP 12 X 1.75 SC4 TOTEM,947.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,947.00,1,Metric Coarse,12.0 X 1.75,Standard,,review,
+HSS LONG TAP 12 X 1.75 TYPE B TOTEM,947.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,947.00,1,Metric Coarse,12.0 X 1.75,Standard,,review,"invoice rate 1,534.00 != list 947.00"
+HSS LONG TAP 12 X 1.75 TYPE C TOTEM,947.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,947.00,1,Metric Coarse,12.0 X 1.75,Standard,,review,"invoice rate 1,297.00 != list 947.00"
+HSS LONG TAP 14 X 1.5 SC4 TOTEM,1381.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1381.00,1,Metric Coarse,14.0 X 1.50,Standard,,review,
+HSS LONG TAP 14 X 1.5 TYPE C TOTEM,1381.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1381.00,1,Metric Coarse,14.0 X 1.50,Standard,,review,"invoice rate 1,756.00 != list 1,381.00"
+HSS LONG TAP 14 X 2 TYPE C TOTEM,1378.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,1378.00,1,Metric Coarse,14.0 X 2.00,Standard,,review,"invoice rate 1,882.00 != list 1,378.00"
+HSS LONG TAP 14 X 2 TYPR C TOTEM,1378.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,1378.00,1,Metric Coarse,14.0 X 2.00,Standard,,review,
+HSS LONG TAP 16 X 1 TYPE C TOTEM,1426.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1426.00,1,Metric Coarse,16.0 X 1.00,Standard,,review,
+HSS LONG TAP 16 X 1.5 TYPE C TOTEM,1381.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1381.00,1,Metric Coarse,16.0 X 1.50,Standard,,review,"invoice rate 1,756.00 != list 1,381.00"
+HSS LONG TAP 16 X 2 TYPE C TOTEM,1378.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,1378.00,1,Metric Coarse,16.0 X 2.00,Standard,,review,"invoice rate 1,882.00 != list 1,378.00"
+HSS LONG TAP 18 X 1.5 TYPE C TOTEM,2367.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,2367.00,1,Metric Coarse,18.0 X 1.50,Standard,,review,"invoice rate 2,955.00 != list 2,367.00"
+HSS LONG TAP 20 X 1.5 TYPE C TOTEM,2996.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,2996.00,1,Metric Coarse,20.0 X 1.50,Standard,,review,"invoice rate 3,849.00 != list 2,996.00"
+HSS LONG TAP 20 X 2.5 TYPE C TOTEM,2652.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,2652.00,1,Metric Coarse,20.0 X 2.50,Standard,,review,"invoice rate 3,396.00 != list 2,652.00"
+HSS LONG TAP 22 X 1.5 TYPE C TOTEM,3264.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,3264.00,1,Metric Coarse,22.0 X 1.50,Standard,,review,
+HSS LONG TAP 22 X 2.5 TYPE C TOTEM,2843.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,2843.00,1,Metric Coarse,22.0 X 2.50,Standard,,review,"invoice rate 3,799.00 != list 2,843.00"
+HSS LONG TAP 24 X 1.5 TYPE C TOTEM,3573.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,3573.00,1,Metric Coarse,24.0 X 1.50,Standard,,review,"invoice rate 4,458.00 != list 3,573.00"
+HSS LONG TAP 24 X 3 TYPE C TOTEM,3167.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,3167.00,1,Metric Coarse,24.0 X 3.00,Standard,,review,"invoice rate 4,123.00 != list 3,167.00"
+HSS LONG TAP 27 X 3 TYPE C TOTEM,4795.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,4795.00,1,Metric Coarse,27.0 X 3.00,Standard,,review,"invoice rate 5,929.00 != list 4,795.00"
+HSS LONG TAP 3 X .5 TYPE C TOTEM,390.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,390.00,1,Metric Coarse,3.0 X 0.50,Standard,,review,invoice rate 859.00 != list 390.00
+HSS LONG TAP 3.5 X .6 TYPE C TOTEM,390.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,390.00,1,Metric Coarse,3.5 X 0.60,Standard,,review,
+HSS LONG TAP 30 X 1.5 TYPE C TOTEM,6002.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,6002.00,1,Metric Coarse,30.0 X 1.50/2.00,Standard,,review,"invoice rate 7,878.00 != list 6,002.00"
+HSS LONG TAP 30 X 3.5 TYPE C TOTEM,5360.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,5360.00,1,Metric Coarse,30.0 X 3.50,Standard,,review,
+HSS LONG TAP 36 X 1.5 TYPE C TOTEM,10167.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,10167.00,1,Metric Coarse,36.0 X 1.50/2.50/3.00,Standard,,review,"invoice rate 13,114.00 != list 10,167.00"
+HSS LONG TAP 4 X .7 TYPE C TOTEM,390.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,390.00,1,Metric Coarse,4.0 X 0.70,Standard,,review,invoice rate 859.00 != list 390.00
+HSS LONG TAP 5 X .8 TYPE C GOLD TOTEM,510.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,510.00,1,Metric Coarse,5.0 X 0.80,STD GOLD,,review,
+HSS LONG TAP 5 X .8 TYPE C TOTEM,419.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,1,Metric Coarse,5.0 X 0.80,Standard,,review,invoice rate 616.00 != list 419.00
+HSS LONG TAP 6 X .75 TYPE C TOTEM,570.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,570.00,1,Metric Coarse,6.0 X 0.75,Standard,,review,
+HSS LONG TAP 6 X 1 6G TYPE C GOLD TOTEM,510.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,510.00,1,Metric Coarse,6.0 X 1.00,STD GOLD,,review,invoice rate 346.00 != list 510.00
+HSS LONG TAP 6 X 1 SC4 TOTEM,419.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,1,Metric Coarse,6.0 X 1.00,Standard,,review,
+HSS LONG TAP 6 X 1 TYPE B TOTEM,419.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,1,Metric Coarse,6.0 X 1.00,Standard,,review,invoice rate 806.00 != list 419.00
+HSS LONG TAP 6 X 1 TYPE C GOLD TOTEM,510.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,510.00,1,Metric Coarse,6.0 X 1.00,STD GOLD,,review,
+HSS LONG TAP 6 X 1 TYPE C TOTEM,419.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,1,Metric Coarse,6.0 X 1.00,Standard,,review,invoice rate 662.00 != list 419.00
+HSS LONG TAP 7 X 1 TYPE C TOTEM,535.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,535.00,1,Metric Coarse,7.0 X 1.00,Standard,,review,
+HSS LONG TAP 8 X 1 TYPE C TOTEM,597.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,597.00,1,Metric Coarse,8.0 X 1.00,Standard,,review,invoice rate 791.00 != list 597.00
+HSS LONG TAP 8 X 1.25 SC4 TOTEM,504.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,504.00,1,Metric Coarse,8.0 X 1.25,Standard,,review,
+HSS LONG TAP 8 X 1.25 TYPE B TOTEM,504.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,504.00,1,Metric Coarse,8.0 X 1.25,Standard,,review,invoice rate 878.00 != list 504.00
+HSS LONG TAP 8 X 1.25 TYPE C GOLD TOTEM,575.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,575.00,1,Metric Coarse,8.0 X 1.25,STD GOLD,,review,
+HSS LONG TAP 8 X 1.25 TYPE C TOTEM,504.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,504.00,1,Metric Coarse,8.0 X 1.25,Standard,,review,invoice rate 718.00 != list 504.00
+HSS TAP  6 X 1 6G BOT TOTEM,419.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,1,Metric Coarse,6.0 X 1.00,Standard,,review,
+HSS TAP 0 BA BOT TOTEM,507.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,507.00,1,BA,0,Standard,,review,
+HSS TAP 1 BA BOT TOTEM,507.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,507.00,1,BA,1,Standard,,verified,
+HSS TAP 1 BA SPIREX GOLD TOTEM,507.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,507.00,1,BA,1,Standard,,review,
+"HSS TAP 1-1/2"" BSP BOT TOTEM",9833.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,9833.00,1,BSP,"1.1/2""",Standard,,verified,
+"HSS TAP 1-1/2"" BSP PAIR TOTEM",19666.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,9833.00,2,BSP,"1.1/2""",Standard,,verified,
+"HSS TAP 1-1/2"" BSP TPR TOTEM",9833.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,9833.00,1,BSP,"1.1/2""",Standard,,verified,
+"HSS TAP 1-1/2"" BSPT BOT TOTEM",12303.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,12303.00,1,BSPT,"1.1/2""",Standard,,review,
+"HSS TAP 1-1/2"" BSPT GOLD TOTEM",13890.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,8,13890.00,1,BSPT,"1.1/2""",STD GOLD,,review,
+"HSS TAP 1-1/2"" BSPT PAIR TOTEM",24606.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,12303.00,2,BSPT,"1.1/2""",Standard,,verified,
+"HSS TAP 1-1/2"" BSW BOT TOTEM",9089.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,9089.00,1,BSW/BSF,"1.1/2""",Standard,,review,
+"HSS TAP 1-1/2"" BSW SEC TOTEM",9089.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,9089.00,1,BSW/BSF,"1.1/2""",Standard,,verified,
+"HSS TAP 1-1/2"" BSW SET TOTEM",27267.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,9089.00,3,BSW/BSF,"1.1/2""",Standard,,review,
+"HSS TAP 1-1/2"" BSW TPR TOTEM",9089.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,9089.00,1,BSW/BSF,"1.1/2""",Standard,,review,
+"HSS TAP 1-1/2"" NPT BOT TOTEM",12760.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,12760.00,1,NPT,"1.1/2""",Standard,,verified,
+"HSS TAP 1-1/2"" NPT PAIR TOTEM",25520.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,12760.00,2,NPT,"1.1/2""",Standard,,verified,
+"HSS TAP 1-1/2"" NPT TPR TOTEM",12760.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,12760.00,1,NPT,"1.1/2""",Standard,,review,
+"HSS TAP 1-1/2"" UNC BOT TOTEM",9089.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,9089.00,1,UNF/UNC,"1.1/2""",Standard,,verified,
+"HSS TAP 1-1/2"" UNC SBF2 LHRH OAL 180 TOTEM",9089.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,9089.00,1,UNF/UNC,"1.1/2""",Standard,,review,"invoice rate 14,350.00 != list 9,089.00"
+"HSS TAP 1-1/2"" UNC SBF2 RHLH OAL 180 TOTEM",9089.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,9089.00,1,UNF/UNC,"1.1/2""",Standard,,review,"invoice rate 13,020.00 != list 9,089.00"
+"HSS TAP 1-1/2"" UNC SEC TOTEM",9089.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,9089.00,1,UNF/UNC,"1.1/2""",Standard,,verified,
+"HSS TAP 1-1/2"" UNC SET TOTEM",27267.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,9089.00,3,UNF/UNC,"1.1/2""",Standard,,review,
+"HSS TAP 1-1/2"" UNC TPR TOTEM",9089.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,9089.00,1,UNF/UNC,"1.1/2""",Standard,,verified,
+"HSS TAP 1-1/2"" UNF BOT TOTEM",9089.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,9089.00,1,UNF/UNC,"1.1/2""",Standard,,review,
+"HSS TAP 1-1/4"" BSP BOT TOTEM",7884.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,7884.00,1,BSP,"1.1/4""",Standard,,verified,
+"HSS TAP 1-1/4"" BSP PAIR TOTEM",15768.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,7884.00,2,BSP,"1.1/4""",Standard,,verified,
+"HSS TAP 1-1/4"" BSP TPR TOTEM",7884.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,7884.00,1,BSP,"1.1/4""",Standard,,verified,
+"HSS TAP 1-1/4"" BSW BOT TOTEM",5865.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,5865.00,1,BSW/BSF,"1.1/4""",Standard,,verified,
+"HSS TAP 1-1/4"" BSW SEC TOTEM",5865.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,5865.00,1,BSW/BSF,"1.1/4""",Standard,,verified,
+"HSS TAP 1-1/4"" BSW SET TOTEM",17595.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,5865.00,3,BSW/BSF,"1.1/4""",Standard,,verified,
+"HSS TAP 1-1/4"" BSW TPR TOTEM",5865.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,5865.00,1,BSW/BSF,"1.1/4""",Standard,,review,
+"HSS TAP 1-1/4"" NPT BOT TOTEM",10287.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,10287.00,1,NPT,"1.1/4""",Standard,,verified,
+"HSS TAP 1-1/4"" NPT PAIR TOTEM",20574.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,10287.00,2,NPT,"1.1/4""",Standard,,review,
+"HSS TAP 1-1/4"" NPT TPR TOTEM",10287.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,10287.00,1,NPT,"1.1/4""",Standard,,review,
+"HSS TAP 1-1/4"" UNC BOT TOTEM",5865.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,5865.00,1,UNF/UNC,"1.1/4""",Standard,,verified,
+"HSS TAP 1-1/4"" UNC SEC TOTEM",5865.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,5865.00,1,UNF/UNC,"1.1/4""",Standard,,verified,
+"HSS TAP 1-1/4"" UNC SET TOTEM",17595.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,5865.00,3,UNF/UNC,"1.1/4""",Standard,,review,
+"HSS TAP 1-1/4"" UNC TPR TOTEM",5865.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,5865.00,1,UNF/UNC,"1.1/4""",Standard,,verified,
+"HSS TAP 1-1/4"" UNF BOT TOTEM",5865.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,5865.00,1,UNF/UNC,"1.1/4""",Standard,,review,
+"HSS TAP 1-1/8"" BSW BOT TOTEM",4866.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,4866.00,1,BSW/BSF,"1.1/8""",Standard,,review,
+"HSS TAP 1-1/8"" BSW SET TOTEM",14598.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,4866.00,3,BSW/BSF,"1.1/8""",Standard,,verified,
+"HSS TAP 1-1/8"" UNC BOT TOTEM",4866.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,4866.00,1,UNF/UNC,"1.1/8""",Standard,,verified,
+"HSS TAP 1-1/8"" UNC SEC TOTEM",4866.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,4866.00,1,UNF/UNC,"1.1/8""",Standard,,review,
+"HSS TAP 1-1/8"" UNC TPR TOTEM",4866.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,4866.00,1,UNF/UNC,"1.1/8""",Standard,,verified,
+HSS TAP 1-3/4 UNC BOT TOTEM,12861.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,12861.00,1,UNF/UNC,"1.3/4""",Standard,,review,
+"HSS TAP 1-3/4"" BSW BOT TOTEM",12861.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,12861.00,1,BSW/BSF,"1.3/4""",Standard,,review,
+"HSS TAP 1-3/4"" BSW SET TOTEM",38583.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,12861.00,3,BSW/BSF,"1.3/4""",Standard,,review,
+"HSS TAP 1-3/4"" BSW TPR TOTEM",12861.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,12861.00,1,BSW/BSF,"1.3/4""",Standard,,review,
+"HSS TAP 1-3/4"" UNC TPR TOTEM",12861.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,12861.00,1,UNF/UNC,"1.3/4""",Standard,,review,
+"HSS TAP 1-3/4"" UNF BOT TOTEM",12861.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,12861.00,1,UNF/UNC,"1.3/4""",Standard,,verified,
+HSS TAP 1-3/8 BSW SET TOTEM,22689.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,7563.00,3,BSW/BSF,"1.3/8""",Standard,,review,
+"HSS TAP 1-3/8"" UNC SET TOTEM",22689.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,7563.00,3,UNF/UNC,"1.3/8""",Standard,,review,
+"HSS TAP 1-5/8"" UNF BOT TOTEM",10659.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,10659.00,1,UNF/UNC,"1.5/8""",Standard,,review,
+HSS TAP 1.4 X .35 BOT TOTEM,897.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,897.00,1,Metric Coarse,1.4 X 0.35,Standard,,verified,
+HSS TAP 1.4 X .35 SET TOTEM,2691.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,897.00,3,Metric Coarse,1.4 X 0.35,Standard,,verified,
+HSS TAP 1.6 X .35 BOT TOTEM,897.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,897.00,1,Metric Coarse,1.6 X 0.35,Standard,,review,
+HSS TAP 1.6 X .35 SET TOTEM,2691.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,897.00,3,Metric Coarse,1.6 X 0.35,Standard,,verified,
+HSS TAP 1.8 X .35 BOT TOTEM,897.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,897.00,1,Metric Coarse,1.8 X 0.35,Standard,,review,
+HSS TAP 1.8 X .35 SET TOTEM,2691.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,897.00,3,Metric Coarse,1.8 X 0.35,Standard,,review,
+HSS TAP 1.8 X .35 TPR TOTEM,897.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,897.00,1,Metric Coarse,1.8 X 0.35,Standard,,verified,
+"HSS TAP 1"" BSF BOT TOTEM",3622.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,3622.00,1,BSW/BSF,"1""",Standard,,review,
+"HSS TAP 1"" BSF SET TOTEM",10866.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,3622.00,3,BSW/BSF,"1""",Standard,,review,
+"HSS TAP 1"" BSP BOT TOTEM",5257.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,5257.00,1,BSP,"1""",Standard,,verified,
+"HSS TAP 1"" BSP PAIR  TOTEM",10514.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,5257.00,2,BSP,"1""",Standard,,verified,
+"HSS TAP 1"" BSP TPR TOTEM",5257.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,5257.00,1,BSP,"1""",Standard,,verified,
+"HSS TAP 1"" BSPT BOT TOTEM",7034.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,7034.00,1,BSPT,"1""",Standard,,verified,
+"HSS TAP 1"" BSPT PAIR TOTEM",14068.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,7034.00,2,BSPT,"1""",Standard,,review,
+"HSS TAP 1"" BSW BOT TOTEM",3622.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,3622.00,1,BSW/BSF,"1""",Standard,,verified,
+"HSS TAP 1"" BSW SEC TOTEM",3622.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,3622.00,1,BSW/BSF,"1""",Standard,,verified,
+"HSS TAP 1"" BSW SET TOTEM",10866.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,3622.00,3,BSW/BSF,"1""",Standard,,verified,
+"HSS TAP 1"" BSW TPR TOTEM",3622.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,3622.00,1,BSW/BSF,"1""",Standard,,review,
+"HSS TAP 1"" NPT BOT TOTEM",7206.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,7206.00,1,NPT,"1""",Standard,,verified,
+"HSS TAP 1"" NPT PAIR TOTEM",14412.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,7206.00,2,NPT,"1""",Standard,,verified,
+"HSS TAP 1"" UNC BOT TOTEM",3622.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,3622.00,1,UNF/UNC,"1""",Standard,,verified,
+"HSS TAP 1"" UNC SEC TOTEM",3622.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,3622.00,1,UNF/UNC,"1""",Standard,,review,
+"HSS TAP 1"" UNC SERIAL FORM TOTEM",3622.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,3622.00,1,UNF/UNC,"1""",Standard,,review,
+"HSS TAP 1"" UNC SET TOTEM",10866.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,3622.00,3,UNF/UNC,"1""",Standard,,verified,
+"HSS TAP 1"" UNC TOTEM",3622.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,3622.00,1,UNF/UNC,"1""",Standard,,review,
+"HSS TAP 1"" UNC TPR TOTEM",3622.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,3622.00,1,UNF/UNC,"1""",Standard,,verified,
+"HSS TAP 1"" UNF BOT TOTEM",3622.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,3622.00,1,UNF/UNC,"1""",Standard,,review,
+"HSS TAP 1"" UNF SEC TOTEM",3622.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,3622.00,1,UNF/UNC,"1""",Standard,,verified,
+"HSS TAP 1"" UNF TPR TOTEM",3622.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,3622.00,1,UNF/UNC,"1""",Standard,,review,
+"HSS TAP 1/2"" BSB BOT TOTEM",968.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,6,968.00,1,BSB,1/2,Standard,,review,
+"HSS TAP 1/2"" BSB SET TOTEM",2904.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,6,968.00,3,BSB,1/2,Standard,,review,
+"HSS TAP 1/2"" BSF SET TOTEM",2862.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,954.00,3,BSW/BSF,1/2,Standard,,review,
+"HSS TAP 1/2"" BSP BOT TOTEM",2269.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,2269.00,1,BSP,1/2,Standard,,verified,
+"HSS TAP 1/2"" BSP PAIR TOTEM",4538.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,2269.00,2,BSP,1/2,Standard,,verified,
+"HSS TAP 1/2"" BSP SEC TOTEM",2269.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,2269.00,1,BSP,1/2,Standard,,verified,
+"HSS TAP 1/2"" BSP TPR TOTEM",2269.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,2269.00,1,BSP,1/2,Standard,,verified,
+"HSS TAP 1/2"" BSPT BOT TOTEM",3057.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,3057.00,1,BSPT,1/2,Standard,,review,"invoice rate 3,363.00 != list 3,057.00"
+"HSS TAP 1/2"" BSPT PAIR TOTEM",6114.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,3057.00,2,BSPT,1/2,Standard,,verified,
+"HSS TAP 1/2"" BSW BOT TOTEM",954.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,954.00,1,BSW/BSF,1/2,Standard,,verified,
+"HSS TAP 1/2"" BSW SEC TOTEM",954.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,954.00,1,BSW/BSF,1/2,Standard,,verified,
+"HSS TAP 1/2"" BSW SET TOTEM",2862.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,954.00,3,BSW/BSF,1/2,Standard,,verified,
+"HSS TAP 1/2"" BSW SF SET TOTEM",3000.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,1000.00,3,BSW/BSF,1/2,SF/RS,,verified,
+"HSS TAP 1/2"" BSW TPR TOTEM",954.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,954.00,1,BSW/BSF,1/2,Standard,,verified,
+"HSS TAP 1/2"" NPT BOT TOTEM",3117.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,3117.00,1,NPT,1/2,Standard,,verified,
+"HSS TAP 1/2"" NPT PAIR TOTEM",6234.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,3117.00,2,NPT,1/2,Standard,,verified,
+"HSS TAP 1/2"" NPT TPR TOTEM",3117.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,3117.00,1,NPT,1/2,Standard,,verified,
+"HSS TAP 1/2"" UNC BOT TOTEM",954.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,954.00,1,UNF/UNC,1/2,Standard,,verified,
+"HSS TAP 1/2"" UNC SEC TOTEM",954.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,954.00,1,UNF/UNC,1/2,Standard,,review,
+"HSS TAP 1/2"" UNC SET TOTEM",2862.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,954.00,3,UNF/UNC,1/2,Standard,,verified,
+"HSS TAP 1/2"" UNC TPR TOTEM",954.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,954.00,1,UNF/UNC,1/2,Standard,,review,invoice rate 510.00 != list 954.00
+"HSS TAP 1/2"" UNF BOT TOTEM",954.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,954.00,1,UNF/UNC,1/2,Standard,,verified,
+"HSS TAP 1/2"" UNF SEC TOTEM",954.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,954.00,1,UNF/UNC,1/2,Standard,,verified,
+"HSS TAP 1/2"" UNF SET TOTEM",2862.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,954.00,3,UNF/UNC,1/2,Standard,,verified,
+"HSS TAP 1/4"" BSB BOT TOTEM",417.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,6,417.00,1,BSB,1/4,Standard,,review,
+"HSS TAP 1/4"" BSF BOT TOTEM",423.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,423.00,1,BSW/BSF,1/4,Standard,,verified,
+"HSS TAP 1/4"" BSF SEC TOTEM",423.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,423.00,1,BSW/BSF,1/4,Standard,,review,
+"HSS TAP 1/4"" BSF SET TOTEM",1269.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,423.00,3,BSW/BSF,1/4,Standard,,review,
+"HSS TAP 1/4"" BSP BOT GOLD TOTEM",1328.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,8,1328.00,1,BSP,1/4,STD GOLD,,review,
+"HSS TAP 1/4"" BSP BOT TOTEM",1023.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,1023.00,1,BSP,1/4,Standard,,verified,
+"HSS TAP 1/4"" BSP PAIR TOTEM",2046.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,1023.00,2,BSP,1/4,Standard,,verified,
+"HSS TAP 1/4"" BSP TPR TOTEM",1023.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,1023.00,1,BSP,1/4,Standard,,verified,
+"HSS TAP 1/4"" BSPT BOT TOTEM",1595.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,1595.00,1,BSPT,1/4,Standard,,verified,
+"HSS TAP 1/4"" BSPT PAIR TOTEM",3190.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,1595.00,2,BSPT,1/4,Standard,,verified,
+"HSS TAP 1/4"" BSPT TPR TOTEM",1595.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,1595.00,1,BSPT,1/4,Standard,,verified,
+"HSS TAP 1/4"" BSW BOT TOTEM",423.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,423.00,1,BSW/BSF,1/4,Standard,,verified,
+"HSS TAP 1/4"" BSW SEC MALE TOTEM",423.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,423.00,1,BSW/BSF,1/4,Standard,,review,
+"HSS TAP 1/4"" BSW SEC TOTEM",423.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,423.00,1,BSW/BSF,1/4,Standard,,verified,
+"HSS TAP 1/4"" BSW SET TOTEM",1269.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,423.00,3,BSW/BSF,1/4,Standard,,verified,
+"HSS TAP 1/4"" BSW SF SET TOTEM",1341.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,447.00,3,BSW/BSF,1/4,SF/RS,,review,
+"HSS TAP 1/4"" BSW TPR TOTEM",423.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,423.00,1,BSW/BSF,1/4,Standard,,review,
+"HSS TAP 1/4"" NPT BOT TOTEM",1635.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,1635.00,1,NPT,1/4,Standard,,verified,
+"HSS TAP 1/4"" NPT PAIR TOTEM",3270.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,1635.00,2,NPT,1/4,Standard,,verified,
+"HSS TAP 1/4"" UNC BOT TOTEM",423.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,423.00,1,UNF/UNC,1/4,Standard,,verified,
+"HSS TAP 1/4"" UNC SEC TOTEM",423.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,423.00,1,UNF/UNC,1/4,Standard,,verified,
+"HSS TAP 1/4"" UNC SET TOTEM",1269.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,423.00,3,UNF/UNC,1/4,Standard,,verified,
+"HSS TAP 1/4"" UNC TPR TOTEM",423.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,423.00,1,UNF/UNC,1/4,Standard,,review,invoice rate 466.00 != list 423.00
+"HSS TAP 1/4"" UNF BOT TOTEM",423.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,423.00,1,UNF/UNC,1/4,Standard,,verified,
+"HSS TAP 1/4"" UNF SEC TOTEM",423.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,423.00,1,UNF/UNC,1/4,Standard,,verified,
+"HSS TAP 1/4"" UNF SET TOTEM",1269.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,423.00,3,UNF/UNC,1/4,Standard,,verified,
+"HSS TAP 1/4"" UNF SPPT TOTEM",518.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,518.00,1,UNF/UNC,1/4,SPPT,,review,invoice rate 345.00 != list 518.00
+"HSS TAP 1/4"" UNF TPR TOTEM",423.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,423.00,1,UNF/UNC,1/4,Standard,,verified,
+"HSS TAP 1/8"" BSF BOT TOTEM",407.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,407.00,1,BSW/BSF,1/8,Standard,,review,
+"HSS TAP 1/8"" BSP BOT TOTEM",671.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,671.00,1,BSP,1/8,Standard,,verified,
+"HSS TAP 1/8"" BSP PAIR TOTEM",1342.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,671.00,2,BSP,1/8,Standard,,verified,
+"HSS TAP 1/8"" BSP TPR TOTEM",671.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,671.00,1,BSP,1/8,Standard,,verified,
+"HSS TAP 1/8"" BSPT BOT TOTEM",914.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,914.00,1,BSPT,1/8,Standard,,verified,
+"HSS TAP 1/8"" BSPT PAIR TOTEM",1828.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,914.00,2,BSPT,1/8,Standard,,verified,
+"HSS TAP 1/8"" BSPT TPR TOTEM",914.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,914.00,1,BSPT,1/8,Standard,,review,
+"HSS TAP 1/8"" BSW BOT TOTEM",407.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,407.00,1,BSW/BSF,1/8,Standard,,verified,
+"HSS TAP 1/8"" BSW SEC TOTEM",407.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,407.00,1,BSW/BSF,1/8,Standard,,review,invoice rate 448.00 != list 407.00
+"HSS TAP 1/8"" BSW SET TOTEM",1221.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,407.00,3,BSW/BSF,1/8,Standard,,verified,
+"HSS TAP 1/8"" BSW TPR TOTEM",407.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,407.00,1,BSW/BSF,1/8,Standard,,review,
+"HSS TAP 1/8"" NPT BOT TOTEM",939.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,939.00,1,NPT,1/8,Standard,,verified,
+"HSS TAP 1/8"" NPT PAIR TOTEM",1878.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,939.00,2,NPT,1/8,Standard,,verified,
+HSS TAP 10 BA SET TOTEM,2859.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,953.00,3,BA,10,Standard,,verified,
+HSS TAP 10 UNC BOT TOTEM,461.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,461.00,1,UNF/UNC,10,Standard,,verified,
+HSS TAP 10 UNC SEC TOTEM,461.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,461.00,1,UNF/UNC,10,Standard,,verified,
+HSS TAP 10 UNC SET TOTEM,1383.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,461.00,3,UNF/UNC,10,Standard,,verified,
+HSS TAP 10 UNC TPR TOTEM,461.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,461.00,1,UNF/UNC,10,Standard,,review,invoice rate 508.00 != list 461.00
+HSS TAP 10 UNF BOT TOTEM,461.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,461.00,1,UNF/UNC,10,Standard,,verified,
+HSS TAP 10 UNF SEC TOTEM,461.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,461.00,1,UNF/UNC,10,Standard,,verified,
+HSS TAP 10 UNF SET TOTEM,1383.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,461.00,3,UNF/UNC,10,Standard,,verified,
+HSS TAP 10 X 1 BOT TOTEM,678.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,678.00,1,Metric Coarse,10.0 X 1.00/1.25,Standard,,verified,
+HSS TAP 10 X 1 PAIR TOTEM,1356.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,678.00,2,Metric Coarse,10.0 X 1.00/1.25,Standard,,verified,
+HSS TAP 10 X 1 SB3 TOTEM,678.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,678.00,1,Metric Coarse,10.0 X 1.00/1.25,Standard,,review,
+HSS TAP 10 X 1 SEC TOTEM,678.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,678.00,1,Metric Coarse,10.0 X 1.00/1.25,Standard,,verified,
+HSS TAP 10 X 1 TPR TOTEM,678.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,678.00,1,Metric Coarse,10.0 X 1.00/1.25,Standard,,verified,
+HSS TAP 10 X 1.5 6G SPPT GOLD TOTEM,855.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,855.00,1,Metric Coarse,10.0 X 1.50,SPPT GOLD,,review,invoice rate 590.00 != list 855.00
+HSS TAP 10 X 1.5 BOT TOTEM,609.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,609.00,1,Metric Coarse,10.0 X 1.50,Standard,,verified,
+HSS TAP 10 X 1.5 S TOTEM,609.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,609.00,1,Metric Coarse,10.0 X 1.50,Standard,,review,
+HSS TAP 10 X 1.5 SEC TOTEM,609.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,609.00,1,Metric Coarse,10.0 X 1.50,Standard,,verified,
+HSS TAP 10 X 1.5 SET GOLD TOTEM,2133.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,711.00,3,Metric Coarse,10.0 X 1.50,STD GOLD,,review,
+HSS TAP 10 X 1.5 SET TOTEM,1827.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,609.00,3,Metric Coarse,10.0 X 1.50,Standard,,verified,
+HSS TAP 10 X 1.5 SET XL GOLD TOTEM,2133.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,711.00,3,Metric Coarse,10.0 X 1.50,STD GOLD,,review,
+HSS TAP 10 X 1.5 SF SET GOLD TOTEM,2133.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,711.00,3,Metric Coarse,10.0 X 1.50,STD GOLD,,review,
+HSS TAP 10 X 1.5 SF SET TOTEM,1941.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,647.00,3,Metric Coarse,10.0 X 1.50,SF/RS,,verified,
+HSS TAP 10 X 1.5 SPPT GOLD TOTEM,855.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,855.00,1,Metric Coarse,10.0 X 1.50,SPPT GOLD,,review,invoice rate 530.00 != list 855.00
+HSS TAP 10 X 1.5 SPPT TOTEM,747.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,747.00,1,Metric Coarse,10.0 X 1.50,SPPT,,verified,
+HSS TAP 10 X 1.5 TPR TOTEM,609.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,609.00,1,Metric Coarse,10.0 X 1.50,Standard,,verified,
+HSS TAP 11 X 1 BOT TOTEM,1196.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1196.00,1,Metric Coarse,11.0 X 1.00/1.25,Standard,,verified,
+HSS TAP 11 X 1 PAIR TOTEM,2392.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1196.00,2,Metric Coarse,11.0 X 1.00/1.25,Standard,,review,"invoice rate 2,632.00 != list 2,392.00"
+HSS TAP 11 X 1 SEC TOTEM,1196.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1196.00,1,Metric Coarse,11.0 X 1.00/1.25,Standard,,review,"invoice rate 1,316.00 != list 1,196.00"
+HSS TAP 12 X 1 BOT TOTEM,1111.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1111.00,1,Metric Coarse,12.0 X 1.00/1.25/1.50,Standard,,verified,
+HSS TAP 12 X 1 PAIR TOTEM,2222.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1111.00,2,Metric Coarse,12.0 X 1.00/1.25/1.50,Standard,,verified,
+HSS TAP 12 X 1 SEC TOTEM,1111.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1111.00,1,Metric Coarse,12.0 X 1.00/1.25/1.50,Standard,,verified,
+HSS TAP 12 X 1 TPR TOTEM,1111.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1111.00,1,Metric Coarse,12.0 X 1.00/1.25/1.50,Standard,,review,
+HSS TAP 12 X 1.75  SPPT TOTEM,1143.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,1143.00,1,Metric Coarse,12.0 X 1.75,SPPT,,verified,
+HSS TAP 12 X 1.75 BOT TOTEM,947.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,947.00,1,Metric Coarse,12.0 X 1.75,Standard,,verified,
+HSS TAP 12 X 1.75 SEC TOTEM,947.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,947.00,1,Metric Coarse,12.0 X 1.75,Standard,,verified,
+HSS TAP 12 X 1.75 SERIAL FORM SET TOTEM,2841.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,947.00,3,Metric Coarse,12.0 X 1.75,Standard,,review,
+HSS TAP 12 X 1.75 SET TOTEM,2841.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,947.00,3,Metric Coarse,12.0 X 1.75,Standard,,verified,
+HSS TAP 12 X 1.75 SF SET TOTEM,3000.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,1000.00,3,Metric Coarse,12.0 X 1.75,SF/RS,,verified,
+HSS TAP 12 X 1.75 SPPT GOLD TOTEM,1320.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,1320.00,1,Metric Coarse,12.0 X 1.75,SPPT GOLD,,review,"invoice rate 915.00 != list 1,320.00"
+HSS TAP 12 X 1.75 TPR TOTEM,947.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,947.00,1,Metric Coarse,12.0 X 1.75,Standard,,verified,
+HSS TAP 14 X 1 BOT TOTEM,1426.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1426.00,1,Metric Coarse,14.0 X 1.00,Standard,,verified,
+HSS TAP 14 X 1 PAIR TOTEM,2852.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1426.00,2,Metric Coarse,14.0 X 1.00,Standard,,verified,
+HSS TAP 14 X 1.25 BOT TOTEM,1456.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1456.00,1,Metric Coarse,14.0 X 1.25,Standard,,verified,
+HSS TAP 14 X 1.25 PAIR TOTEM,2912.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1456.00,2,Metric Coarse,14.0 X 1.25,Standard,,verified,
+HSS TAP 14 X 1.25 SET TOTEM,4368.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1456.00,3,Metric Coarse,14.0 X 1.25,Standard,,verified,
+HSS TAP 14 X 1.25 TPR TOTEM,1456.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1456.00,1,Metric Coarse,14.0 X 1.25,Standard,,review,
+HSS TAP 14 X 1.5 BOT TOTEM,1381.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1381.00,1,Metric Coarse,14.0 X 1.50,Standard,,verified,
+HSS TAP 14 X 1.5 PAIR TOTEM,2762.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1381.00,2,Metric Coarse,14.0 X 1.50,Standard,,verified,
+HSS TAP 14 X 1.5 SEC TOTEM,1381.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1381.00,1,Metric Coarse,14.0 X 1.50,Standard,,verified,
+HSS TAP 14 X 1.5 TPR TOTEM,1381.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1381.00,1,Metric Coarse,14.0 X 1.50,Standard,,verified,
+HSS TAP 14 X 2 BOT TOTEM,1378.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,1378.00,1,Metric Coarse,14.0 X 2.00,Standard,,verified,
+HSS TAP 14 X 2 SEC TOTEM,1378.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,1378.00,1,Metric Coarse,14.0 X 2.00,Standard,,verified,
+HSS TAP 14 X 2 SET TOTEM,4134.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,1378.00,3,Metric Coarse,14.0 X 2.00,Standard,,verified,
+HSS TAP 14 X 2 SF SET TOTEM,4359.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,1453.00,3,Metric Coarse,14.0 X 2.00,SF/RS,,verified,
+HSS TAP 14 X 2 SPPT TOTEM,1663.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,1663.00,1,Metric Coarse,14.0 X 2.00,SPPT,,verified,
+HSS TAP 14 X 2 TPR TOTEM,1378.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,1378.00,1,Metric Coarse,14.0 X 2.00,Standard,,verified,
+HSS TAP 16 X 1 BOT TOTEM,1426.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1426.00,1,Metric Coarse,16.0 X 1.00,Standard,,verified,
+HSS TAP 16 X 1 PAIR TOTEM,2852.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1426.00,2,Metric Coarse,16.0 X 1.00,Standard,,verified,
+HSS TAP 16 X 1 SEC TOTEM,1426.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1426.00,1,Metric Coarse,16.0 X 1.00,Standard,,review,
+HSS TAP 16 X 1 TPR TOTEM,1426.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1426.00,1,Metric Coarse,16.0 X 1.00,Standard,,review,
+HSS TAP 16 X 1.5 BOT TOTEM,1381.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1381.00,1,Metric Coarse,16.0 X 1.50,Standard,,verified,
+HSS TAP 16 X 1.5 PAIR TOTEM,2762.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1381.00,2,Metric Coarse,16.0 X 1.50,Standard,,verified,
+HSS TAP 16 X 1.5 SEC TOTEM,1381.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1381.00,1,Metric Coarse,16.0 X 1.50,Standard,,verified,
+HSS TAP 16 X 1.5 SET TOTEM,4143.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1381.00,3,Metric Coarse,16.0 X 1.50,Standard,,review,
+HSS TAP 16 X 1.5 TPR TOTEM,1381.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1381.00,1,Metric Coarse,16.0 X 1.50,Standard,,verified,
+HSS TAP 16 X 2 6G SPPT TOTEM,1663.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,1663.00,1,Metric Coarse,16.0 X 2.00,SPPT,,review,
+HSS TAP 16 X 2 BOT TOTEM,1378.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,1378.00,1,Metric Coarse,16.0 X 2.00,Standard,,verified,
+HSS TAP 16 X 2 GOLD TOTEM,1442.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,1442.00,1,Metric Coarse,16.0 X 2.00,STD GOLD,,review,
+HSS TAP 16 X 2 SEC TOTEM,1378.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,1378.00,1,Metric Coarse,16.0 X 2.00,Standard,,verified,
+HSS TAP 16 X 2 SET TOTEM,4134.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,1378.00,3,Metric Coarse,16.0 X 2.00,Standard,,verified,
+HSS TAP 16 X 2 SF SET TOTEM,4359.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,1453.00,3,Metric Coarse,16.0 X 2.00,SF/RS,,verified,
+HSS TAP 16 X 2 SPPT TOTEM,1663.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,1663.00,1,Metric Coarse,16.0 X 2.00,SPPT,,verified,
+HSS TAP 16 X 2 TPR TOTEM,1378.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,1378.00,1,Metric Coarse,16.0 X 2.00,Standard,,verified,
+HSS TAP 18 X 1 BOT TOTEM,2594.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,2594.00,1,Metric Coarse,18.0 X 1.00/2.00,Standard,,verified,
+HSS TAP 18 X 1 PAIR TOTEM,5188.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,2594.00,2,Metric Coarse,18.0 X 1.00/2.00,Standard,,verified,
+HSS TAP 18 X 1.5 BOT TOTEM,2367.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,2367.00,1,Metric Coarse,18.0 X 1.50,Standard,,verified,
+HSS TAP 18 X 1.5 PAIR TOTEM,4734.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,2367.00,2,Metric Coarse,18.0 X 1.50,Standard,,verified,
+HSS TAP 18 X 1.5 SEC TOTEM,2367.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,2367.00,1,Metric Coarse,18.0 X 1.50,Standard,,verified,
+HSS TAP 18 X 1.5 TPR TOTEM,2367.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,2367.00,1,Metric Coarse,18.0 X 1.50,Standard,,verified,
+HSS TAP 18 X 2.5 BOT TOTEM,2080.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,2080.00,1,Metric Coarse,18.0 X 2.50,Standard,,verified,
+HSS TAP 18 X 2.5 SEC TOTEM,2080.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,2080.00,1,Metric Coarse,18.0 X 2.50,Standard,,verified,
+HSS TAP 18 X 2.5 SET TOTEM,6240.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,2080.00,3,Metric Coarse,18.0 X 2.50,Standard,,verified,
+HSS TAP 18 X 2.5 SF SET TOTEM,6543.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,2181.00,3,Metric Coarse,18.0 X 2.50,SF/RS,,review,
+HSS TAP 18 X 2.5 TPR TOTEM,2080.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,2080.00,1,Metric Coarse,18.0 X 2.50,Standard,,review,
+HSS TAP 2 BA BOT TOTEM,447.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,447.00,1,BA,2,Standard,,verified,
+HSS TAP 2 UNC BOT TOTEM,17866.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,17866.00,1,UNF/UNC,"2""",Standard,,review,
+HSS TAP 2 UNF SET TOTEM,53598.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,17866.00,3,UNF/UNC,"2""",Standard,,review,
+HSS TAP 2 X .4 BOT TOTEM,643.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,643.00,1,Metric Coarse,2.0 X 0.40,Standard,,verified,
+HSS TAP 2 X .4 SEC TOTEM,643.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,643.00,1,Metric Coarse,2.0 X 0.40,Standard,,verified,
+HSS TAP 2 X .4 SET TOTEM,1929.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,643.00,3,Metric Coarse,2.0 X 0.40,Standard,,verified,
+HSS TAP 2 X .4 SPPT TOTEM,760.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,760.00,1,Metric Coarse,2.0 X 0.40,SPPT,,review,
+HSS TAP 2 X .4 TPR TOTEM,643.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,643.00,1,Metric Coarse,2.0 X 0.40,Standard,,verified,
+HSS TAP 2.2 X .45 BOT TOTEM,643.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,643.00,1,Metric Coarse,2.2 X 0.45,Standard,,verified,
+HSS TAP 2.2 X .45 SEC TOTEM,643.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,643.00,1,Metric Coarse,2.2 X 0.45,Standard,,verified,
+HSS TAP 2.2 X .45 SET TOTEM,1929.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,643.00,3,Metric Coarse,2.2 X 0.45,Standard,,verified,
+HSS TAP 2.2 X .45 SPPT TOTEM,760.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,760.00,1,Metric Coarse,2.2 X 0.45,SPPT,,review,
+HSS TAP 2.2 X .45 TPR TOTEM,643.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,643.00,1,Metric Coarse,2.2 X 0.45,Standard,,verified,
+HSS TAP 2.3 X .4 BOT TOTEM,643.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,643.00,1,Metric Coarse,2.3 X 0.40,Standard,,verified,
+HSS TAP 2.3 X .4 SET TOTEM,1929.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,643.00,3,Metric Coarse,2.3 X 0.40,Standard,,verified,
+HSS TAP 2.5 X .45 SEC TOTEM,643.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,643.00,1,Metric Coarse,2.5 X 0.45,Standard,,verified,
+HSS TAP 2.5 X .45 SET TOTEM,1929.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,643.00,3,Metric Coarse,2.5 X 0.45,Standard,,verified,
+HSS TAP 2.5 X .45 SPPT TOTEM,760.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,760.00,1,Metric Coarse,2.5 X 0.45,SPPT,,verified,
+HSS TAP 2.5 X .45 TPR TOTEM,643.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,643.00,1,Metric Coarse,2.5 X 0.45,Standard,,verified,
+HSS TAP 2.6 X .45 BOT TOTEM,643.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,643.00,1,Metric Coarse,2.6 X 0.45,Standard,,review,invoice rate 708.00 != list 643.00
+HSS TAP 2.6 X .45 SEC TOTEM,643.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,643.00,1,Metric Coarse,2.6 X 0.45,Standard,,review,
+HSS TAP 2.6 X .45 SET TOTEM,1929.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,643.00,3,Metric Coarse,2.6 X 0.45,Standard,,review,
+HSS TAP 2.6 X .45 SPPT TOTEM,760.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,760.00,1,Metric Coarse,2.6 X 0.45,SPPT,,review,invoice rate 502.00 != list 760.00
+HSS TAP 2.6 X .45 TPR TOTEM,643.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,643.00,1,Metric Coarse,2.6 X 0.45,Standard,,review,
+"HSS TAP 2"" BSP BOT TOTEM",17648.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,17648.00,1,BSP,"2""",Standard,,verified,
+"HSS TAP 2"" BSP PAIR TOTEM",35296.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,17648.00,2,BSP,"2""",Standard,,verified,
+"HSS TAP 2"" BSP TPR TOTEM",17648.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,17648.00,1,BSP,"2""",Standard,,review,
+"HSS TAP 2"" BSW BOT TOTEM",17866.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,17866.00,1,BSW/BSF,"2""",Standard,,review,
+"HSS TAP 2"" BSW SEC TOTEM",17866.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,17866.00,1,BSW/BSF,"2""",Standard,,review,
+"HSS TAP 2"" BSW SET TOTEM",53598.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,17866.00,3,BSW/BSF,"2""",Standard,,review,
+"HSS TAP 2"" BSW TPR TOTEM",17866.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,17866.00,1,BSW/BSF,"2""",Standard,,review,
+"HSS TAP 2"" NPT BOT TOTEM",23056.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,23056.00,1,NPT,"2""",Standard,,verified,
+"HSS TAP 2"" NPT TPR TOTEM",23056.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,23056.00,1,NPT,"2""",Standard,,review,
+"HSS TAP 2"" UNC SET TOTEM",53598.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,17866.00,3,UNF/UNC,"2""",Standard,,review,
+"HSS TAP 2"" UNF SET TOTEM",53598.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,17866.00,3,UNF/UNC,"2""",Standard,,review,
+HSS TAP 20 X 1 BOT TOTEM,2985.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,2985.00,1,Metric Coarse,20.0 X 1.00/2.00,Standard,,review,"invoice rate 3,463.00 != list 2,985.00"
+HSS TAP 20 X 1 PAIR TOTEM,5970.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,2985.00,2,Metric Coarse,20.0 X 1.00/2.00,Standard,,review,
+HSS TAP 20 X 1 SEC TOTEM,2985.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,2985.00,1,Metric Coarse,20.0 X 1.00/2.00,Standard,,review,
+HSS TAP 20 X 1.5 BOT TOTEM,2996.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,2996.00,1,Metric Coarse,20.0 X 1.50,Standard,,verified,
+HSS TAP 20 X 1.5 PAIR TOTEM,5992.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,2996.00,2,Metric Coarse,20.0 X 1.50,Standard,,verified,
+HSS TAP 20 X 1.5 SEC TOTEM,2996.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,2996.00,1,Metric Coarse,20.0 X 1.50,Standard,,verified,
+HSS TAP 20 X 1.5 TPR TOTEM,2996.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,2996.00,1,Metric Coarse,20.0 X 1.50,Standard,,verified,
+HSS TAP 20 X 2.5 BOT TOTEM,2652.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,2652.00,1,Metric Coarse,20.0 X 2.50,Standard,,verified,
+HSS TAP 20 X 2.5 GOLD TOTEM,3388.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,3388.00,1,Metric Coarse,20.0 X 2.50,STD GOLD,,review,"invoice rate 1,242.00 != list 3,388.00"
+HSS TAP 20 X 2.5 SEC GOLD TOTEM,3388.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,3388.00,1,Metric Coarse,20.0 X 2.50,STD GOLD,,review,
+HSS TAP 20 X 2.5 SEC TOTEM,2652.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,2652.00,1,Metric Coarse,20.0 X 2.50,Standard,,verified,
+HSS TAP 20 X 2.5 SET TOTEM,7956.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,2652.00,3,Metric Coarse,20.0 X 2.50,Standard,,verified,
+HSS TAP 20 X 2.5 SF SET TOTEM,8352.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,2784.00,3,Metric Coarse,20.0 X 2.50,SF/RS,,review,
+HSS TAP 20 X 2.5 TPR TOTEM,2652.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,2652.00,1,Metric Coarse,20.0 X 2.50,Standard,,verified,
+HSS TAP 22 X 1 BOT TOTEM,3516.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,3516.00,1,Metric Coarse,22.0 X 1.00/2.00,Standard,,verified,
+HSS TAP 22 X 1 PAIR TOTEM,7032.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,3516.00,2,Metric Coarse,22.0 X 1.00/2.00,Standard,,review,
+HSS TAP 22 X 1.5 BOT TOTEM,3264.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,3264.00,1,Metric Coarse,22.0 X 1.50,Standard,,verified,
+HSS TAP 22 X 1.5 PAIR TOTEM,6528.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,3264.00,2,Metric Coarse,22.0 X 1.50,Standard,,verified,
+HSS TAP 22 X 1.5 SEC TOTEM,3264.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,3264.00,1,Metric Coarse,22.0 X 1.50,Standard,,verified,
+HSS TAP 22 X 1.5 TPR TOTEM,3264.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,3264.00,1,Metric Coarse,22.0 X 1.50,Standard,,verified,
+HSS TAP 22 X 2.5 BOT TOTEM,2843.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,2843.00,1,Metric Coarse,22.0 X 2.50,Standard,,verified,
+HSS TAP 22 X 2.5 GOLD TOTEM,3293.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,3293.00,1,Metric Coarse,22.0 X 2.50,STD GOLD,,review,"invoice rate 1,760.00 != list 3,293.00"
+HSS TAP 22 X 2.5 SEC GOLD TOTEM,3293.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,3293.00,1,Metric Coarse,22.0 X 2.50,STD GOLD,,review,
+HSS TAP 22 X 2.5 SEC TOTEM,2843.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,2843.00,1,Metric Coarse,22.0 X 2.50,Standard,,verified,
+HSS TAP 22 X 2.5 SET TOTEM,8529.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,2843.00,3,Metric Coarse,22.0 X 2.50,Standard,,verified,
+HSS TAP 24 X 1.5 BOT TOTEM,3573.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,3573.00,1,Metric Coarse,24.0 X 1.50,Standard,,verified,
+HSS TAP 24 X 1.5 PAIR TOTEM,7146.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,3573.00,2,Metric Coarse,24.0 X 1.50,Standard,,verified,
+HSS TAP 24 X 1.5 SEC TOTEM,3573.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,3573.00,1,Metric Coarse,24.0 X 1.50,Standard,,verified,
+HSS TAP 24 X 1.5 TPR TOTEM,3573.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,3573.00,1,Metric Coarse,24.0 X 1.50,Standard,,review,
+HSS TAP 24 X 2 BOT TOTEM,3554.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,3554.00,1,Metric Coarse,24.0 X 2.00,Standard,,verified,
+HSS TAP 24 X 2 PAIR TOTEM,7108.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,3554.00,2,Metric Coarse,24.0 X 2.00,Standard,,verified,
+HSS TAP 24 X 2 SEC TOTEM,3554.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,3554.00,1,Metric Coarse,24.0 X 2.00,Standard,,review,
+HSS TAP 24 X 3 BOT TOTEM,3167.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,3167.00,1,Metric Coarse,24.0 X 3.00,Standard,,verified,
+HSS TAP 24 X 3 GOLD TOTEM,3719.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,3719.00,1,Metric Coarse,24.0 X 3.00,STD GOLD,,review,"invoice rate 1,754.00 != list 3,719.00"
+HSS TAP 24 X 3 SEC TOTEM,3167.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,3167.00,1,Metric Coarse,24.0 X 3.00,Standard,,verified,
+HSS TAP 24 X 3 SET TOTEM,9501.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,3167.00,3,Metric Coarse,24.0 X 3.00,Standard,,verified,
+HSS TAP 24 X 3 SF SET TOTEM,9963.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,3321.00,3,Metric Coarse,24.0 X 3.00,SF/RS,,review,
+HSS TAP 24 X 3 TPR TOTEM,3167.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,3167.00,1,Metric Coarse,24.0 X 3.00,Standard,,verified,
+HSS TAP 25 X 1 BOT TOTEM,3783.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,3783.00,1,Metric Coarse,25.0 X 1.00/1.50,Standard,,verified,
+HSS TAP 25 X 1 PAIR TOTEM,7566.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,3783.00,2,Metric Coarse,25.0 X 1.00/1.50,Standard,,review,
+HSS TAP 25 X 3 BOT TOTEM,3862.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,3862.00,1,Metric Coarse,25.0 X 3.00,Standard,,review,
+HSS TAP 25 X 3 SEC TOTEM,3862.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,3862.00,1,Metric Coarse,25.0 X 3.00,Standard,,review,
+HSS TAP 27 X 1.5 BOT TOTEM,5338.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,5338.00,1,Metric Coarse,27.0 X 1.50/2.00,Standard,,review,"invoice rate 6,193.00 != list 5,338.00"
+HSS TAP 27 X 1.5 PAIR TOTEM,10676.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,5338.00,2,Metric Coarse,27.0 X 1.50/2.00,Standard,,verified,
+HSS TAP 27 X 1.5 TPR TOTEM,5338.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,5338.00,1,Metric Coarse,27.0 X 1.50/2.00,Standard,,review,
+HSS TAP 27 X 3 BOT TOTEM,4795.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,4795.00,1,Metric Coarse,27.0 X 3.00,Standard,,verified,
+HSS TAP 27 X 3 GOLD TOTEM,5425.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,5425.00,1,Metric Coarse,27.0 X 3.00,STD GOLD,,review,"invoice rate 2,560.00 != list 5,425.00"
+HSS TAP 27 X 3 SEC TOTEM,4795.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,4795.00,1,Metric Coarse,27.0 X 3.00,Standard,,verified,
+HSS TAP 27 X 3 SET TOTEM,14385.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,4795.00,3,Metric Coarse,27.0 X 3.00,Standard,,review,"invoice rate 16,689.00 != list 14,385.00"
+HSS TAP 27 X 3 SF SET TOTEM,15099.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,5033.00,3,Metric Coarse,27.0 X 3.00,SF/RS,,review,
+HSS TAP 27 X 3 TPR TOTEM,4795.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,4795.00,1,Metric Coarse,27.0 X 3.00,Standard,,verified,
+HSS TAP 3 X .5 6G BOT TOTEM,390.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,390.00,1,Metric Coarse,3.0 X 0.50,Standard,,review,
+HSS TAP 3 X .5 BOT TOTEM,390.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,390.00,1,Metric Coarse,3.0 X 0.50,Standard,,verified,
+HSS TAP 3 X .5 SEC GOLD TOTEM,496.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,496.00,1,Metric Coarse,3.0 X 0.50,STD GOLD,,review,invoice rate 343.00 != list 496.00
+HSS TAP 3 X .5 SEC TOTEM,390.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,390.00,1,Metric Coarse,3.0 X 0.50,Standard,,verified,
+HSS TAP 3 X .5 SET TOTEM,1170.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,390.00,3,Metric Coarse,3.0 X 0.50,Standard,,verified,
+HSS TAP 3 X .5 SF SET TOTEM,1269.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,423.00,3,Metric Coarse,3.0 X 0.50,SF/RS,,verified,
+HSS TAP 3 X .5 SPIREX BLD TOTEM,390.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,390.00,1,Metric Coarse,3.0 X 0.50,Standard,,review,invoice rate 268.00 != list 390.00
+HSS TAP 3 X .5 SPPT GOLD TOTEM,592.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,592.00,1,Metric Coarse,3.0 X 0.50,SPPT GOLD,,review,invoice rate 285.00 != list 592.00
+HSS TAP 3 X .5 SPPT TOTEM,491.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,491.00,1,Metric Coarse,3.0 X 0.50,SPPT,,verified,
+HSS TAP 3 X .5 TPR TOTEM,390.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,390.00,1,Metric Coarse,3.0 X 0.50,Standard,,verified,
+HSS TAP 3.5 X .6 BOT TOTEM,390.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,390.00,1,Metric Coarse,3.5 X 0.60,Standard,,verified,
+HSS TAP 3.5 X .6 SEC TOTEM,390.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,390.00,1,Metric Coarse,3.5 X 0.60,Standard,,verified,
+HSS TAP 3.5 X .6 SET TOTEM,1170.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,390.00,3,Metric Coarse,3.5 X 0.60,Standard,,verified,
+HSS TAP 3.5 X .6 SPPT TOTEM,491.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,491.00,1,Metric Coarse,3.5 X 0.60,SPPT,,verified,
+HSS TAP 3.5 X .6 TPR TOTEM,390.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,390.00,1,Metric Coarse,3.5 X 0.60,Standard,,verified,
+"HSS TAP 3/16"" BSF BOT TOTEM",407.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,407.00,1,BSW/BSF,3/16,Standard,,verified,
+"HSS TAP 3/16"" BSF SET TOTEM",1221.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,407.00,3,BSW/BSF,3/16,Standard,,review,
+"HSS TAP 3/16"" BSW BOT TOTEM",407.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,407.00,1,BSW/BSF,3/16,Standard,,verified,
+"HSS TAP 3/16"" BSW SEC TOTEM",407.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,407.00,1,BSW/BSF,3/16,Standard,,verified,
+"HSS TAP 3/16"" BSW SET TOTEM",1221.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,407.00,3,BSW/BSF,3/16,Standard,,verified,
+"HSS TAP 3/16"" BSW TPR TOTEM",407.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,407.00,1,BSW/BSF,3/16,Standard,,verified,
+HSS TAP 3/4 BSP PAIR TOTEM,6742.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,3371.00,2,BSP,3/4,Standard,,review,
+"HSS TAP 3/4"" BSF SET TOTEM",6285.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,2095.00,3,BSW/BSF,3/4,Standard,,review,
+"HSS TAP 3/4"" BSP BOT TOTEM",3371.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,3371.00,1,BSP,3/4,Standard,,verified,
+"HSS TAP 3/4"" BSP PAIR TOTEM",6742.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,3371.00,2,BSP,3/4,Standard,,verified,
+"HSS TAP 3/4"" BSP TPR TOTEM",3371.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,3371.00,1,BSP,3/4,Standard,,verified,
+"HSS TAP 3/4"" BSPT BOT TOTEM",4528.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,4528.00,1,BSPT,3/4,Standard,,review,"invoice rate 4,981.00 != list 4,528.00"
+"HSS TAP 3/4"" BSPT PAIR TOTEM",9056.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,4528.00,2,BSPT,3/4,Standard,,verified,
+"HSS TAP 3/4"" BSPT TPR TOTEM",4528.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,4528.00,1,BSPT,3/4,Standard,,review,
+"HSS TAP 3/4"" BSW BOT TOTEM",2095.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,2095.00,1,BSW/BSF,3/4,Standard,,verified,
+"HSS TAP 3/4"" BSW SEC TOTEM",2095.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,2095.00,1,BSW/BSF,3/4,Standard,,verified,
+"HSS TAP 3/4"" BSW SET TOTEM",6285.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,2095.00,3,BSW/BSF,3/4,Standard,,verified,
+"HSS TAP 3/4"" BSW SF SET TOTEM",6603.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,2201.00,3,BSW/BSF,3/4,SF/RS,,verified,
+"HSS TAP 3/4"" BSW TPR TOTEM",2095.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,2095.00,1,BSW/BSF,3/4,Standard,,review,
+"HSS TAP 3/4"" NPT BOT TOTEM",4619.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,4619.00,1,NPT,3/4,Standard,,verified,
+"HSS TAP 3/4"" NPT PAIR TOTEM",9238.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,4619.00,2,NPT,3/4,Standard,,verified,
+"HSS TAP 3/4"" NPT TPR TOTEM",4619.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,4619.00,1,NPT,3/4,Standard,,verified,
+"HSS TAP 3/4"" UNC BOT TOTEM",2095.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,2095.00,1,UNF/UNC,3/4,Standard,,verified,
+"HSS TAP 3/4"" UNC SEC TOTEM",2095.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,2095.00,1,UNF/UNC,3/4,Standard,,review,
+"HSS TAP 3/4"" UNC SET TOTEM",6285.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,2095.00,3,UNF/UNC,3/4,Standard,,verified,
+"HSS TAP 3/4"" UNC TPR TOTEM",2095.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,2095.00,1,UNF/UNC,3/4,Standard,,review,
+"HSS TAP 3/4"" UNF BOT TOTEM",2095.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,2095.00,1,UNF/UNC,3/4,Standard,,verified,
+"HSS TAP 3/4"" UNF SEC TOTEM",2095.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,2095.00,1,UNF/UNC,3/4,Standard,,verified,
+"HSS TAP 3/4"" UNF SET TOTEM",6285.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,2095.00,3,UNF/UNC,3/4,Standard,,verified,
+"HSS TAP 3/8"" BSB BOT TOTEM",706.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,6,706.00,1,BSB,3/8,Standard,,verified,
+"HSS TAP 3/8"" BSF BOT TOTEM",585.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,585.00,1,BSW/BSF,3/8,Standard,,verified,
+"HSS TAP 3/8"" BSF SET TOTEM",1755.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,585.00,3,BSW/BSF,3/8,Standard,,verified,
+"HSS TAP 3/8"" BSF TPR TOTEM",585.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,585.00,1,BSW/BSF,3/8,Standard,,review,
+"HSS TAP 3/8"" BSP BOT TOTEM",1501.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,1501.00,1,BSP,3/8,Standard,,verified,
+"HSS TAP 3/8"" BSP PAIR TOTEM",3002.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,1501.00,2,BSP,3/8,Standard,,verified,
+"HSS TAP 3/8"" BSP TPR TOTEM",1501.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,1501.00,1,BSP,3/8,Standard,,verified,
+"HSS TAP 3/8"" BSPT BOT TOTEM",2049.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,2049.00,1,BSPT,3/8,Standard,,verified,
+"HSS TAP 3/8"" BSPT PAIR TOTEM",4098.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,2049.00,2,BSPT,3/8,Standard,,verified,
+"HSS TAP 3/8"" BSPT TPR TOTEM",2049.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,2049.00,1,BSPT,3/8,Standard,,review,
+"HSS TAP 3/8"" BSW BOT TOTEM",585.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,585.00,1,BSW/BSF,3/8,Standard,,verified,
+"HSS TAP 3/8"" BSW SEC TOTEM",585.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,585.00,1,BSW/BSF,3/8,Standard,,verified,
+"HSS TAP 3/8"" BSW SET TOTEM",1755.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,585.00,3,BSW/BSF,3/8,Standard,,verified,
+"HSS TAP 3/8"" BSW TPR TOTEM",585.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,585.00,1,BSW/BSF,3/8,Standard,,verified,
+"HSS TAP 3/8"" NPT BOT TOTEM",2080.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,2080.00,1,NPT,3/8,Standard,,review,"invoice rate 2,288.00 != list 2,080.00"
+"HSS TAP 3/8"" NPT PAIR TOTEM",4160.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,2080.00,2,NPT,3/8,Standard,,verified,
+"HSS TAP 3/8"" NPT TPR TOTEM",2080.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,2080.00,1,NPT,3/8,Standard,,review,
+"HSS TAP 3/8"" UNC BOT TOTEM",585.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,585.00,1,UNF/UNC,3/8,Standard,,verified,
+"HSS TAP 3/8"" UNC SEC TOTEM",585.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,585.00,1,UNF/UNC,3/8,Standard,,verified,
+"HSS TAP 3/8"" UNC SET TOTEM",1755.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,585.00,3,UNF/UNC,3/8,Standard,,verified,
+"HSS TAP 3/8"" UNC SF SET TOTEM",1890.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,630.00,3,UNF/UNC,3/8,SF/RS,,review,
+"HSS TAP 3/8"" UNC TPR TOTEM",585.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,585.00,1,UNF/UNC,3/8,Standard,,verified,
+"HSS TAP 3/8"" UNF BOT TOTEM",585.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,585.00,1,UNF/UNC,3/8,Standard,,verified,
+"HSS TAP 3/8"" UNF SEC TOTEM",585.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,585.00,1,UNF/UNC,3/8,Standard,,review,
+"HSS TAP 3/8"" UNF SET TOTEM",1755.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,585.00,3,UNF/UNC,3/8,Standard,,verified,
+"HSS TAP 3/8"" UNF TPR TOTEM",585.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,585.00,1,UNF/UNC,3/8,Standard,,verified,
+HSS TAP 30  X 3.5 SF SET TOTEM,16905.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,5635.00,3,Metric Coarse,30.0 X 3.50,SF/RS,,review,"invoice rate 11,834.00 != list 16,905.00"
+HSS TAP 30 X 1.5 BOT TOTEM,6002.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,6002.00,1,Metric Coarse,30.0 X 1.50/2.00,Standard,,verified,
+HSS TAP 30 X 1.5 PAIR TOTEM,12004.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,6002.00,2,Metric Coarse,30.0 X 1.50/2.00,Standard,,review,
+HSS TAP 30 X 1.5 TPR TOTEM,6002.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,6002.00,1,Metric Coarse,30.0 X 1.50/2.00,Standard,,verified,
+HSS TAP 30 X 3.5 BOT TOTEM,5360.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,5360.00,1,Metric Coarse,30.0 X 3.50,Standard,,verified,
+HSS TAP 30 X 3.5 GOLD TOTEM,6012.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,6012.00,1,Metric Coarse,30.0 X 3.50,STD GOLD,,review,"invoice rate 2,835.00 != list 6,012.00"
+HSS TAP 30 X 3.5 SEC TOTEM,5360.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,5360.00,1,Metric Coarse,30.0 X 3.50,Standard,,verified,
+HSS TAP 30 X 3.5 SET TOTEM,16080.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,5360.00,3,Metric Coarse,30.0 X 3.50,Standard,,verified,
+HSS TAP 30 X 3.5 TPR TOTEM,5360.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,5360.00,1,Metric Coarse,30.0 X 3.50,Standard,,verified,
+HSS TAP 33 X 1.5 BOT TOTEM,7328.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,7328.00,1,Metric Coarse,33.0 X 1.50/2.00/3.00,Standard,,review,"invoice rate 8,501.00 != list 7,328.00"
+HSS TAP 33 X 1.5 PAIR TOTEM,14656.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,7328.00,2,Metric Coarse,33.0 X 1.50/2.00/3.00,Standard,,review,
+HSS TAP 33 X 1.5 TPR TOTEM,7328.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,7328.00,1,Metric Coarse,33.0 X 1.50/2.00/3.00,Standard,,verified,
+HSS TAP 33 X 3.5 BOT TOTEM,6532.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,6532.00,1,Metric Coarse,33.0 X 3.50,Standard,,verified,
+HSS TAP 33 X 3.5 SEC TOTEM,6532.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,6532.00,1,Metric Coarse,33.0 X 3.50,Standard,,verified,
+HSS TAP 33 X 3.5 SET TOTEM,19596.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,6532.00,3,Metric Coarse,33.0 X 3.50,Standard,,verified,
+HSS TAP 33 X 3.5 TPR TOTEM,6532.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,6532.00,1,Metric Coarse,33.0 X 3.50,Standard,,verified,
+HSS TAP 36 X 1.5 BOT TOTEM,10167.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,10167.00,1,Metric Coarse,36.0 X 1.50/2.50/3.00,Standard,,verified,
+HSS TAP 36 X 1.5 PAIR TOTEM,20334.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,10167.00,2,Metric Coarse,36.0 X 1.50/2.50/3.00,Standard,,review,
+HSS TAP 36 X 1.5 TPR TOTEM,10167.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,10167.00,1,Metric Coarse,36.0 X 1.50/2.50/3.00,Standard,,review,
+HSS TAP 36 X 4 BOT TOTEM,9089.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,9089.00,1,Metric Coarse,36.0 X 4.00,Standard,,verified,
+HSS TAP 36 X 4 SEC TOTEM,9089.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,9089.00,1,Metric Coarse,36.0 X 4.00,Standard,,verified,
+HSS TAP 36 X 4 SET TOTEM,27267.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,9089.00,3,Metric Coarse,36.0 X 4.00,Standard,,verified,
+HSS TAP 36 X 4 TPR TOTEM,9089.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,9089.00,1,Metric Coarse,36.0 X 4.00,Standard,,verified,
+HSS TAP 39 X 1.5 TPR TOTEM,12672.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,12672.00,1,Metric Coarse,39.0 X 1.50/2.00/3.00,Standard,,review,
+HSS TAP 39 X 4 BOT TOTEM,10680.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,10680.00,1,Metric Coarse,39.0 X 4.00,Standard,,verified,
+HSS TAP 39 X 4 SEC TOTEM,10680.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,10680.00,1,Metric Coarse,39.0 X 4.00,Standard,,review,
+HSS TAP 39 X 4 SET TOTEM,32040.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,10680.00,3,Metric Coarse,39.0 X 4.00,Standard,,verified,
+HSS TAP 39 X 4 TPR TOTEM,10680.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,10680.00,1,Metric Coarse,39.0 X 4.00,Standard,,verified,
+HSS TAP 4 UNC BOT TOTEM,461.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,461.00,1,UNF/UNC,4,Standard,,verified,
+HSS TAP 4 UNC SET TOTEM,1383.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,461.00,3,UNF/UNC,4,Standard,,verified,
+HSS TAP 4 UNF SET TOTEM,1383.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,461.00,3,UNF/UNC,4,Standard,,review,
+HSS TAP 4 X .35 BOT TOTEM,583.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,583.00,1,Metric Coarse,4.0 X 0.35/0.50,Standard,,review,
+HSS TAP 4 X .35 PAIR TOTEM,1166.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,583.00,2,Metric Coarse,4.0 X 0.35/0.50,Standard,,verified,
+HSS TAP 4 X .7 6G SPFL GOLD TOTEM,496.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,496.00,1,Metric Coarse,4.0 X 0.70,STD GOLD,,review,invoice rate 293.00 != list 496.00
+HSS TAP 4 X .7 6G SPIREX GOLD TOTEM,496.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,496.00,1,Metric Coarse,4.0 X 0.70,STD GOLD,,review,invoice rate 267.00 != list 496.00
+HSS TAP 4 X .7 BOT TOTEM,390.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,390.00,1,Metric Coarse,4.0 X 0.70,Standard,,verified,
+HSS TAP 4 X .7 SEC TOTEM,390.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,390.00,1,Metric Coarse,4.0 X 0.70,Standard,,verified,
+HSS TAP 4 X .7 SET GOLD TOTEM,1488.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,496.00,3,Metric Coarse,4.0 X 0.70,STD GOLD,,review,"invoice rate 937.00 != list 1,488.00"
+HSS TAP 4 X .7 SET TOTEM,1170.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,390.00,3,Metric Coarse,4.0 X 0.70,Standard,,verified,
+HSS TAP 4 X .7 SET XL GOLD TOTEM,1488.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,496.00,3,Metric Coarse,4.0 X 0.70,STD GOLD,,review,
+HSS TAP 4 X .7 SF SET TOTEM,1269.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,423.00,3,Metric Coarse,4.0 X 0.70,SF/RS,,verified,
+HSS TAP 4 X .7 SPPT GOLD TOTEM,592.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,592.00,1,Metric Coarse,4.0 X 0.70,SPPT GOLD,,review,invoice rate 285.00 != list 592.00
+HSS TAP 4 X .7 SPPT TOTEM,491.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,491.00,1,Metric Coarse,4.0 X 0.70,SPPT,,verified,
+HSS TAP 4 X .7 TPR TOTEM,390.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,390.00,1,Metric Coarse,4.0 X 0.70,Standard,,verified,
+HSS TAP 4 X .75 BOT TOTEM,531.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,531.00,1,Metric Coarse,4.0 X 0.75,Standard,,review,invoice rate 302.67 != list 531.00
+HSS TAP 4 X .75 PAIR TOTEM,1062.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,531.00,2,Metric Coarse,4.0 X 0.75,Standard,,review,
+HSS TAP 4 X .75 SET TOTEM,1593.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,531.00,3,Metric Coarse,4.0 X 0.75,Standard,,review,
+HSS TAP 4.5 X .75 BOT TOTEM,419.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,1,Metric Coarse,4.5 X 0.75,Standard,,verified,
+HSS TAP 4.5 X .75 SEC TOTEM,419.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,1,Metric Coarse,4.5 X 0.75,Standard,,verified,
+HSS TAP 4.5 X .75 SET TOTEM,1257.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,3,Metric Coarse,4.5 X 0.75,Standard,,review,
+HSS TAP 42 X 1.5 BOT TOTEM,14077.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,14077.00,1,Metric Coarse,42.0 X 1.50/2.50/3.00/4.00,Standard,,verified,
+HSS TAP 42 X 1.5 TPR TOTEM,14077.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,14077.00,1,Metric Coarse,42.0 X 1.50/2.50/3.00/4.00,Standard,,review,
+HSS TAP 42 X 4.5 BOT TOTEM,12442.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,12442.00,1,Metric Coarse,42.0 X 4.50,Standard,,verified,
+HSS TAP 42 X 4.5 SEC TOTEM,12442.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,12442.00,1,Metric Coarse,42.0 X 4.50,Standard,,verified,
+HSS TAP 42 X 4.5 SET TOTEM,37326.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,12442.00,3,Metric Coarse,42.0 X 4.50,Standard,,verified,
+HSS TAP 42 X 4.5 TPR TOTEM,12442.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,12442.00,1,Metric Coarse,42.0 X 4.50,Standard,,verified,
+HSS TAP 45 X 1.5 BOT TOTEM,19505.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,19505.00,1,Metric Coarse,45.0 X 1.50/3.00,Standard,,verified,
+HSS TAP 45 X 1.5 PAIR TOTEM,39010.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,19505.00,2,Metric Coarse,45.0 X 1.50/3.00,Standard,,review,
+HSS TAP 45 X 1.5 TPR TOTEM,19505.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,19505.00,1,Metric Coarse,45.0 X 1.50/3.00,Standard,,verified,
+HSS TAP 45 X 4.5 BOT TOTEM,16752.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,16752.00,1,Metric Coarse,45.0 X 4.50,Standard,,review,"invoice rate 19,433.00 != list 16,752.00"
+HSS TAP 45 X 4.5 SEC TOTEM,16752.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,16752.00,1,Metric Coarse,45.0 X 4.50,Standard,,review,
+HSS TAP 45 X 4.5 SET TOTEM,50256.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,16752.00,3,Metric Coarse,45.0 X 4.50,Standard,,review,
+HSS TAP 45 X 4.5 TPR TOTEM,16752.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,16752.00,1,Metric Coarse,45.0 X 4.50,Standard,,review,
+HSS TAP 48 X 1.5 BOT TOTEM,20276.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,20276.00,1,Metric Coarse,48.0 X 1.50/2.00/3.00/4.00,Standard,,verified,
+HSS TAP 48 X 1.5 PAIR TOTEM,40552.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,20276.00,2,Metric Coarse,48.0 X 1.50/2.00/3.00/4.00,Standard,,review,
+HSS TAP 48 X 1.5 TPR TOTEM,20276.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,20276.00,1,Metric Coarse,48.0 X 1.50/2.00/3.00/4.00,Standard,,review,
+HSS TAP 48 X 5 BOT TOTEM,17866.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,17866.00,1,Metric Coarse,48.0 X 5.00,Standard,,verified,
+HSS TAP 48 X 5 SEC TOTEM,17866.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,17866.00,1,Metric Coarse,48.0 X 5.00,Standard,,review,
+HSS TAP 48 X 5 SET TOTEM,53598.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,17866.00,3,Metric Coarse,48.0 X 5.00,Standard,,verified,
+HSS TAP 48 X 5 TPR TOTEM,17866.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,17866.00,1,Metric Coarse,48.0 X 5.00,Standard,,review,
+HSS TAP 5 UNC SET TOTEM,1383.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,461.00,3,UNF/UNC,5,Standard,,review,
+HSS TAP 5 X .5 BOT TOTEM,570.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,570.00,1,Metric Coarse,5.0 X 0.50/0.75,Standard,,verified,
+HSS TAP 5 X .5 SEC TOTEM,570.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,570.00,1,Metric Coarse,5.0 X 0.50/0.75,Standard,,review,
+HSS TAP 5 X .5 SET TOTEM,1710.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,570.00,3,Metric Coarse,5.0 X 0.50/0.75,Standard,,verified,
+HSS TAP 5 X .8 BOT TOTEM,419.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,1,Metric Coarse,5.0 X 0.80,Standard,,verified,
+HSS TAP 5 X .8 SEC TOTEM,419.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,1,Metric Coarse,5.0 X 0.80,Standard,,verified,
+HSS TAP 5 X .8 SET GOLD TOTEM,1530.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,510.00,3,Metric Coarse,5.0 X 0.80,STD GOLD,,review,"invoice rate 964.00 != list 1,530.00"
+HSS TAP 5 X .8 SET TOTEM,1257.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,3,Metric Coarse,5.0 X 0.80,Standard,,verified,
+HSS TAP 5 X .8 SET XL TOTEM,1257.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,3,Metric Coarse,5.0 X 0.80,Standard,,review,
+HSS TAP 5 X .8 SF SET TOTEM,1341.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,447.00,3,Metric Coarse,5.0 X 0.80,SF/RS,,verified,
+HSS TAP 5 X .8 SPIREX TOTEM,419.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,1,Metric Coarse,5.0 X 0.80,Standard,,review,
+HSS TAP 5 X .8 SPPT GOLD TOTEM,620.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,620.00,1,Metric Coarse,5.0 X 0.80,SPPT GOLD,,verified,
+HSS TAP 5 X .8 SPPT TOTEM,518.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,518.00,1,Metric Coarse,5.0 X 0.80,SPPT,,verified,
+HSS TAP 5 X .8 TPR TOTEM,419.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,1,Metric Coarse,5.0 X 0.80,Standard,,verified,
+"HSS TAP 5/16"" BSF BOT TOTEM",480.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,480.00,1,BSW/BSF,5/16,Standard,,verified,
+"HSS TAP 5/16"" BSF SET TOTEM",1440.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,480.00,3,BSW/BSF,5/16,Standard,,review,
+"HSS TAP 5/16"" BSF TPR TOTEM",480.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,480.00,1,BSW/BSF,5/16,Standard,,review,
+"HSS TAP 5/16"" BSW BOT TOTEM",480.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,480.00,1,BSW/BSF,5/16,Standard,,verified,
+"HSS TAP 5/16"" BSW SEC TOTEM",480.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,480.00,1,BSW/BSF,5/16,Standard,,verified,
+"HSS TAP 5/16"" BSW SET TOTEM",1440.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,480.00,3,BSW/BSF,5/16,Standard,,verified,
+"HSS TAP 5/16"" BSW SF SET TOTEM",1557.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,519.00,3,BSW/BSF,5/16,SF/RS,,review,
+"HSS TAP 5/16"" BSW TPR TOTEM",480.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,480.00,1,BSW/BSF,5/16,Standard,,verified,
+"HSS TAP 5/16"" UNC BOT TOTEM",480.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,480.00,1,UNF/UNC,5/16,Standard,,verified,
+"HSS TAP 5/16"" UNC SEC TOTEM",480.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,480.00,1,UNF/UNC,5/16,Standard,,verified,
+"HSS TAP 5/16"" UNC SET TOTEM",1440.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,480.00,3,UNF/UNC,5/16,Standard,,verified,
+"HSS TAP 5/16"" UNC TPR TOTEM",480.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,480.00,1,UNF/UNC,5/16,Standard,,review,invoice rate 528.00 != list 480.00
+"HSS TAP 5/16"" UNF BOT TOTEM",480.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,480.00,1,UNF/UNC,5/16,Standard,,verified,
+"HSS TAP 5/16"" UNF SEC TOTEM",480.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,480.00,1,UNF/UNC,5/16,Standard,,verified,
+"HSS TAP 5/16"" UNF SET TOTEM",1440.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,480.00,3,UNF/UNC,5/16,Standard,,review,"invoice rate 1,584.00 != list 1,440.00"
+"HSS TAP 5/32"" BSW BOT TOTEM",407.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,407.00,1,BSW/BSF,5/32,Standard,,verified,
+"HSS TAP 5/32"" BSW SEC TOTEM",407.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,407.00,1,BSW/BSF,5/32,Standard,,verified,
+"HSS TAP 5/32"" BSW SET TOTEM",1221.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,407.00,3,BSW/BSF,5/32,Standard,,verified,
+"HSS TAP 5/32"" BSW TPR TOTEM",407.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,407.00,1,BSW/BSF,5/32,Standard,,verified,
+"HSS TAP 5/8"" BSF BOT TOTEM",1381.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,1381.00,1,BSW/BSF,5/8,Standard,,verified,
+"HSS TAP 5/8"" BSP BOT TOTEM",2513.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,2513.00,1,BSP,5/8,Standard,,verified,
+"HSS TAP 5/8"" BSP PAIR TOTEM",5026.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,2513.00,2,BSP,5/8,Standard,,verified,
+"HSS TAP 5/8"" BSW BOT TOTEM",1381.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,1381.00,1,BSW/BSF,5/8,Standard,,verified,
+"HSS TAP 5/8"" BSW SEC TOTEM",1381.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,1381.00,1,BSW/BSF,5/8,Standard,,verified,
+"HSS TAP 5/8"" BSW SET TOTEM",4143.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,1381.00,3,BSW/BSF,5/8,Standard,,verified,
+"HSS TAP 5/8"" BSW TPR TOTEM",1381.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,1381.00,1,BSW/BSF,5/8,Standard,,verified,
+"HSS TAP 5/8"" UNC BOT TOTEM",1381.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,1381.00,1,UNF/UNC,5/8,Standard,,verified,
+"HSS TAP 5/8"" UNC SEC TOTEM",1381.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,1381.00,1,UNF/UNC,5/8,Standard,,review,
+"HSS TAP 5/8"" UNC SET TOTEM",4143.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,1381.00,3,UNF/UNC,5/8,Standard,,verified,
+"HSS TAP 5/8"" UNF BOT TOTEM",1381.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,1381.00,1,UNF/UNC,5/8,Standard,,verified,
+"HSS TAP 5/8"" UNF SEC TOTEM",1381.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,1381.00,1,UNF/UNC,5/8,Standard,,review,
+"HSS TAP 5/8"" UNF SET TOTEM",4143.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,1381.00,3,UNF/UNC,5/8,Standard,,verified,
+HSS TAP 50 X 1.5 BOT TOTEM,22408.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,22408.00,1,Metric Coarse,50.0 X 1.50/2.00/3.00,Standard,,review,
+HSS TAP 50 X 1.5 SEC TOTEM,22408.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,22408.00,1,Metric Coarse,50.0 X 1.50/2.00/3.00,Standard,,verified,
+HSS TAP 52 X 5 BOT TOTEM,22424.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,22424.00,1,Metric Coarse,52.0 X 5.00,Standard,,review,"invoice rate 26,012.00 != list 22,424.00"
+HSS TAP 52 X 5 SEC TOTEM,22424.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,22424.00,1,Metric Coarse,52.0 X 5.00,Standard,,review,"invoice rate 26,012.00 != list 22,424.00"
+HSS TAP 52 X 5 SET TOTEM,67272.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,22424.00,3,Metric Coarse,52.0 X 5.00,Standard,,review,
+HSS TAP 52 X 5 TPR TOTEM,22424.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,22424.00,1,Metric Coarse,52.0 X 5.00,Standard,,review,"invoice rate 26,012.00 != list 22,424.00"
+HSS TAP 56 X 5.5 BOT TOTEM,31912.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,31912.00,1,Metric Coarse,56.0 X 5.50,Standard,,review,
+HSS TAP 56 X 5.5 SET TOTEM,95736.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,31912.00,3,Metric Coarse,56.0 X 5.50,Standard,,review,
+HSS TAP 56 X 5.5 TPR TOTEM,31912.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,31912.00,1,Metric Coarse,56.0 X 5.50,Standard,,review,
+HSS TAP 6 UNC BOT TOTEM,461.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,461.00,1,UNF/UNC,6,Standard,,verified,
+HSS TAP 6 UNC SEC TOTEM,461.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,461.00,1,UNF/UNC,6,Standard,,verified,
+HSS TAP 6 UNC SET TOTEM,1383.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,461.00,3,UNF/UNC,6,Standard,,verified,
+HSS TAP 6 UNC TPR TOTEM,461.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,461.00,1,UNF/UNC,6,Standard,,verified,
+HSS TAP 6 X .75 BOT TOTEM,570.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,570.00,1,Metric Coarse,6.0 X 0.75,Standard,,verified,
+HSS TAP 6 X .75 PAIR TOTEM,1140.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,570.00,2,Metric Coarse,6.0 X 0.75,Standard,,verified,
+HSS TAP 6 X 1 6G SPPT TOTEM,518.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,518.00,1,Metric Coarse,6.0 X 1.00,SPPT,,review,invoice rate 330.00 != list 518.00
+HSS TAP 6 X 1 BOT TOTEM,419.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,1,Metric Coarse,6.0 X 1.00,Standard,,verified,
+HSS TAP 6 X 1 S TOTEM,419.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,1,Metric Coarse,6.0 X 1.00,Standard,,review,
+HSS TAP 6 X 1 SEC TOTEM,419.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,1,Metric Coarse,6.0 X 1.00,Standard,,verified,
+HSS TAP 6 X 1 SET GOLD TOTEM,1530.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,510.00,3,Metric Coarse,6.0 X 1.00,STD GOLD,,review,
+HSS TAP 6 X 1 SET TOTEM,1257.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,3,Metric Coarse,6.0 X 1.00,Standard,,verified,
+HSS TAP 6 X 1 SF SEC TOTEM,447.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,447.00,1,Metric Coarse,6.0 X 1.00,SF/RS,,review,
+HSS TAP 6 X 1 SF SET TOTEM,1341.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,447.00,3,Metric Coarse,6.0 X 1.00,SF/RS,,verified,
+HSS TAP 6 X 1 SF TPR TOTEM,447.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,447.00,1,Metric Coarse,6.0 X 1.00,SF/RS,,review,
+HSS TAP 6 X 1 SPPT GOLD TOTEM,620.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,620.00,1,Metric Coarse,6.0 X 1.00,SPPT GOLD,,verified,
+HSS TAP 6 X 1 SPPT TOTEM,518.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,518.00,1,Metric Coarse,6.0 X 1.00,SPPT,,verified,
+HSS TAP 6 X 1 TPR TOTEM,419.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,1,Metric Coarse,6.0 X 1.00,Standard,,verified,
+HSS TAP 64 X 6 BOT TOTEM,35378.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,35378.00,1,Metric Coarse,64.0 X 6.00,Standard,,verified,
+HSS TAP 64 X 6 SEC TOTEM,35378.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,35378.00,1,Metric Coarse,64.0 X 6.00,Standard,,verified,
+HSS TAP 64 X 6 SET TOTEM,106134.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,35378.00,3,Metric Coarse,64.0 X 6.00,Standard,,verified,
+HSS TAP 64 X 6 TPR TOTEM,35378.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,35378.00,1,Metric Coarse,64.0 X 6.00,Standard,,review,
+HSS TAP 68 X 6 BOT TOTEM,44132.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,44132.00,1,Metric Coarse,68.0 X 6.00,Standard,,verified,
+HSS TAP 7 X 1 BOT TOTEM,535.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,535.00,1,Metric Coarse,7.0 X 1.00,Standard,,verified,
+HSS TAP 7 X 1 SEC TOTEM,535.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,535.00,1,Metric Coarse,7.0 X 1.00,Standard,,review,
+HSS TAP 7 X 1 SET TOTEM,1605.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,535.00,3,Metric Coarse,7.0 X 1.00,Standard,,verified,
+"HSS TAP 7/16"" BSF BOT TOTEM",747.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,747.00,1,BSW/BSF,7/16,Standard,,verified,
+"HSS TAP 7/16"" BSF SEC TOTEM",747.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,747.00,1,BSW/BSF,7/16,Standard,,review,
+"HSS TAP 7/16"" BSF SET TOTEM",2241.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,747.00,3,BSW/BSF,7/16,Standard,,review,
+"HSS TAP 7/16"" BSW SET TOTEM",2241.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,747.00,3,BSW/BSF,7/16,Standard,,verified,
+"HSS TAP 7/16"" UNC BOT TOTEM",747.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,747.00,1,UNF/UNC,7/16,Standard,,verified,
+"HSS TAP 7/16"" UNC SEC TOTEM",747.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,747.00,1,UNF/UNC,7/16,Standard,,verified,
+"HSS TAP 7/16"" UNC SET TOTEM",2241.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,747.00,3,UNF/UNC,7/16,Standard,,verified,
+"HSS TAP 7/16"" UNF BOT TOTEM",747.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,747.00,1,UNF/UNC,7/16,Standard,,verified,
+"HSS TAP 7/16"" UNF SEC TOTEM",747.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,747.00,1,UNF/UNC,7/16,Standard,,verified,
+"HSS TAP 7/16"" UNF SET TOTEM",2241.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,747.00,3,UNF/UNC,7/16,Standard,,verified,
+"HSS TAP 7/16"" UNF TPR TOTEM",747.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,747.00,1,UNF/UNC,7/16,Standard,,review,
+"HSS TAP 7/32"" BSW BOT TOTEM",461.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,461.00,1,BSW/BSF,7/32,Standard,,review,
+"HSS TAP 7/32"" BSW SEC TOTEM",461.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,461.00,1,BSW/BSF,7/32,Standard,,review,
+"HSS TAP 7/8"" BSF BOT TOTEM",2892.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,2892.00,1,BSW/BSF,7/8,Standard,,verified,
+"HSS TAP 7/8"" BSP BOT TOTEM",4159.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,4159.00,1,BSP,7/8,Standard,,verified,
+"HSS TAP 7/8"" BSP PAIR TOTEM",8318.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,4159.00,2,BSP,7/8,Standard,,verified,
+"HSS TAP 7/8"" BSW BOT TOTEM",2892.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,2892.00,1,BSW/BSF,7/8,Standard,,verified,
+"HSS TAP 7/8"" BSW SEC TOTEM",2892.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,2892.00,1,BSW/BSF,7/8,Standard,,verified,
+"HSS TAP 7/8"" BSW SET TOTEM",8676.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,2892.00,3,BSW/BSF,7/8,Standard,,verified,
+"HSS TAP 7/8"" UNC BOT TOTEM",2892.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,2892.00,1,UNF/UNC,7/8,Standard,,verified,
+"HSS TAP 7/8"" UNC SEC TOTEM",2892.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,2892.00,1,UNF/UNC,7/8,Standard,,review,
+"HSS TAP 7/8"" UNC SET TOTEM",8676.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,2892.00,3,UNF/UNC,7/8,Standard,,verified,
+"HSS TAP 7/8"" UNF BOT TOTEM",2892.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,2892.00,1,UNF/UNC,7/8,Standard,,verified,
+"HSS TAP 7/8"" UNF SET TOTEM",8676.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,2892.00,3,UNF/UNC,7/8,Standard,,verified,
+HSS TAP 8 UNC BOT TOTEM,461.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,461.00,1,UNF/UNC,8,Standard,,verified,
+HSS TAP 8 UNC SEC TOTEM,461.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,461.00,1,UNF/UNC,8,Standard,,verified,
+HSS TAP 8 UNC SET TOTEM,1383.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,461.00,3,UNF/UNC,8,Standard,,verified,
+HSS TAP 8 UNC TPR TOTEM,461.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,461.00,1,UNF/UNC,8,Standard,,review,
+HSS TAP 8 UNF SET TOTEM,1383.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,461.00,3,UNF/UNC,8,Standard,,review,
+HSS TAP 8 X 1 BOT TOTEM,597.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,597.00,1,Metric Coarse,8.0 X 1.00,Standard,,verified,
+HSS TAP 8 X 1 PAIR TOTEM,1194.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,597.00,2,Metric Coarse,8.0 X 1.00,Standard,,verified,
+HSS TAP 8 X 1 SEC TOTEM,597.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,597.00,1,Metric Coarse,8.0 X 1.00,Standard,,verified,
+HSS TAP 8 X 1 TPR TOTEM,597.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,597.00,1,Metric Coarse,8.0 X 1.00,Standard,,verified,
+HSS TAP 8 X 1.25 6G BOT TOTEM,504.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,504.00,1,Metric Coarse,8.0 X 1.25,Standard,,review,invoice rate 325.00 != list 504.00
+HSS TAP 8 X 1.25 BOT RT SPL TOTEM,504.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,504.00,1,Metric Coarse,8.0 X 1.25,Standard,,review,
+HSS TAP 8 X 1.25 BOT TOTEM,504.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,504.00,1,Metric Coarse,8.0 X 1.25,Standard,,verified,
+HSS TAP 8 X 1.25 S TOTEM,504.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,504.00,1,Metric Coarse,8.0 X 1.25,Standard,,review,
+HSS TAP 8 X 1.25 SEC TOTEM,504.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,504.00,1,Metric Coarse,8.0 X 1.25,Standard,,verified,
+HSS TAP 8 X 1.25 SET GOLD TOTEM,1725.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,575.00,3,Metric Coarse,8.0 X 1.25,STD GOLD,,review,
+HSS TAP 8 X 1.25 SET TOTEM,1512.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,504.00,3,Metric Coarse,8.0 X 1.25,Standard,,verified,
+HSS TAP 8 X 1.25 SET XL GOLD TOTEM,1725.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,575.00,3,Metric Coarse,8.0 X 1.25,STD GOLD,,review,
+HSS TAP 8 X 1.25 SF SET TOTEM,1557.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,519.00,3,Metric Coarse,8.0 X 1.25,SF/RS,,verified,
+HSS TAP 8 X 1.25 SPPT GOLD TOTEM,685.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,685.00,1,Metric Coarse,8.0 X 1.25,SPPT GOLD,,verified,
+HSS TAP 8 X 1.25 SPPT TOTEM,599.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,599.00,1,Metric Coarse,8.0 X 1.25,SPPT,,verified,
+HSS TAP 8 X 1.25 TPR TOTEM,504.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,504.00,1,Metric Coarse,8.0 X 1.25,Standard,,verified,
+HSS TAP 9 X 1 BOT TOTEM,737.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,737.00,1,Metric Coarse,9.0 X 1.00,Standard,,verified,
+HSS TAP 9 X 1 PAIR TOTEM,1474.00,PAIR,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,737.00,2,Metric Coarse,9.0 X 1.00,Standard,,verified,
+HSS TAP 9 X 1 SET TOTEM,2211.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,737.00,3,Metric Coarse,9.0 X 1.00,Standard,,review,
+HSS TAP 9 X 1.25 6G SPPT TOTEM,747.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,747.00,1,Metric Coarse,9.0 X 1.25,SPPT,,review,invoice rate 540.00 != list 747.00
+HSS TAP 9 X 1.25 BOT TOTEM,609.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,609.00,1,Metric Coarse,9.0 X 1.25,Standard,,verified,
+HSS TAP 9 X 1.25 SET TOTEM,1827.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,609.00,3,Metric Coarse,9.0 X 1.25,Standard,,review,
+HSS TAP 9 X 1.25 SPPT TOTEM,747.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,747.00,1,Metric Coarse,9.0 X 1.25,SPPT,,review,
+"HSS TAP 9/16"" BSB BOT TOTEM",1731.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,6,1731.00,1,BSB,9/16,Standard,,review,"invoice rate 1,905.00 != list 1,731.00"
+"HSS TAP 9/16"" BSB TOTEM",1731.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,6,1731.00,1,BSB,9/16,Standard,,review,
+"HSS TAP 9/16"" BSF SET TOTEM",4143.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,1381.00,3,BSW/BSF,9/16,Standard,,review,
+"HSS TAP 9/16"" BSW SET TOTEM",4143.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,1381.00,3,BSW/BSF,9/16,Standard,,review,"invoice rate 4,560.00 != list 4,143.00"
+"HSS TAP 9/16"" UNC BOT TOTEM",1381.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,1381.00,1,UNF/UNC,9/16,Standard,,review,
+"HSS TAP 9/16"" UNC SET TOTEM",4143.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,1381.00,3,UNF/UNC,9/16,Standard,,review,
+"HSS TAP 9/16"" UNF BOT TOTEM",1381.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,1381.00,1,UNF/UNC,9/16,Standard,,verified,
+"HSS TAP 9/16"" UNF SEC TOTEM",1381.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,1381.00,1,UNF/UNC,9/16,Standard,,review,
+"HSS TAP 9/16"" UNF SET TOTEM",4143.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,1381.00,3,UNF/UNC,9/16,Standard,,verified,
+HSS TRD TAP 12 X 1.75 SET TOTEM,2841.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,947.00,3,Metric Coarse,12.0 X 1.75,Standard,,review,"invoice rate 2,575.00 != list 2,841.00"
+HSS TRD TAP 16 X 2 SET TOTEM,4134.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,1378.00,3,Metric Coarse,16.0 X 2.00,Standard,,review,"invoice rate 3,777.00 != list 4,134.00"
+HSS-E LONG TAP 16 X 2 TYPE B GOLD TOTEM,1442.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,1442.00,1,Metric Coarse,16.0 X 2.00,STD GOLD,,review,"invoice rate 1,600.00 != list 1,442.00"
+HSS-E LONG TAP 6 X 1 TYPE C XL TICN TOTEM,419.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,1,Metric Coarse,6.0 X 1.00,Standard,,review,invoice rate 594.00 != list 419.00
+HSS-E ROLL TAP 10 X 1.5 SD3 TOTEM,609.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,609.00,1,Metric Coarse,10.0 X 1.50,Standard,,review,
+HSS-E ROLL TAP 12 X 1.75 SD3 TOTEM,947.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,947.00,1,Metric Coarse,12.0 X 1.75,Standard,,review,
+HSS-E ROLL TAP 14 X 1.5 6G SDF3 TOTEM,1381.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1381.00,1,Metric Coarse,14.0 X 1.50,Standard,,review,
+HSS-E ROLL TAP 3.5 X .6 SD3 TOTEM,390.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,390.00,1,Metric Coarse,3.5 X 0.60,Standard,,review,
+HSS-E ROLL TAP 4 X .7 SD1 TOTEM,390.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,390.00,1,Metric Coarse,4.0 X 0.70,Standard,,review,
+HSS-E ROLL TAP 4 X .7 SD3 TOTEM,390.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,390.00,1,Metric Coarse,4.0 X 0.70,Standard,,review,invoice rate 978.00 != list 390.00
+HSS-E ROLL TAP 5 X .8 SD3 TOTEM,419.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,1,Metric Coarse,5.0 X 0.80,Standard,,review,invoice rate 525.00 != list 419.00
+HSS-E ROLL TAP 6 X 1 O/G TIN GOLD TOTEM,510.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,510.00,1,Metric Coarse,6.0 X 1.00,STD GOLD,,review,
+HSS-E ROLL TAP 6 X 1 SD3 TOTEM,419.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,1,Metric Coarse,6.0 X 1.00,Standard,,review,
+HSS-E ROLL TAP 8 X 1.25 SD3 TOTEM,504.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,504.00,1,Metric Coarse,8.0 X 1.25,Standard,,review,invoice rate 970.00 != list 504.00
+"HSS-E TAP 1/2"" BSP SBU2 TOTEM",2269.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,2269.00,1,BSP,1/2,Standard,,review,"invoice rate 2,135.00 != list 2,269.00"
+"HSS-E TAP 1/2"" UNC HPT SPIREX HIGH HELIX TOTEM",954.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,954.00,1,UNF/UNC,1/2,Standard,,review,
+"HSS-E TAP 1/2"" UNC SB3 TOTEM",954.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,954.00,1,UNF/UNC,1/2,Standard,,review,
+"HSS-E TAP 1/2"" UNC SB4 TOTEM",954.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,954.00,1,UNF/UNC,1/2,Standard,,review,
+"HSS-E TAP 1/2"" UNC SC4 TOTEM",954.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,954.00,1,UNF/UNC,1/2,Standard,,review,
+"HSS-E TAP 1/4"" BSP SA1 TOTEM",1023.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,1023.00,1,BSP,1/4,Standard,,review,"invoice rate 1,565.00 != list 1,023.00"
+"HSS-E TAP 1/4"" BSP SB3 TOTEM",1023.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,1023.00,1,BSP,1/4,Standard,,review,
+"HSS-E TAP 1/4"" BSP SPFL TIN SB3 TOTEM",1023.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,1023.00,1,BSP,1/4,Standard,,review,"invoice rate 1,270.00 != list 1,023.00"
+"HSS-E TAP 1/4"" BSP SPIREX TOTEM",1023.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,1023.00,1,BSP,1/4,Standard,,review,"invoice rate 1,105.00 != list 1,023.00"
+"HSS-E TAP 1/4"" UNC SB3 TOTEM",423.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,423.00,1,UNF/UNC,1/4,Standard,,review,
+"HSS-E TAP 1/4"" UNF SA4 TOTEM",423.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,423.00,1,UNF/UNC,1/4,Standard,,review,invoice rate 625.00 != list 423.00
+"HSS-E TAP 1/8"" BSP SB3 SPFL TIN TOTEM",671.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,671.00,1,BSP,1/8,Standard,,review,"invoice rate 1,350.00 != list 671.00"
+"HSS-E TAP 1/8"" BSP SPFL TIN TOTEM",671.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,671.00,1,BSP,1/8,Standard,,review,
+"HSS-E TAP 1/8"" BSPT BOT GOLD TOTEM",1154.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,8,1154.00,1,BSPT,1/8,STD GOLD,,review,"invoice rate 810.00 != list 1,154.00"
+HSS-E TAP 10 X 1 SA3 TOTEM,678.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,678.00,1,Metric Coarse,10.0 X 1.00/1.25,Standard,,review,invoice rate 616.00 != list 678.00
+HSS-E TAP 10 X 1 SAF3 TOTEM,678.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,678.00,1,Metric Coarse,10.0 X 1.00/1.25,Standard,,verified,
+HSS-E TAP 10 X 1 SB3 TOTEM,678.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,678.00,1,Metric Coarse,10.0 X 1.00/1.25,Standard,,review,invoice rate 915.00 != list 678.00
+HSS-E TAP 10 X 1.5 SA2 TOTEM,609.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,609.00,1,Metric Coarse,10.0 X 1.50,Standard,,review,
+HSS-E TAP 10 X 1.5 SA3 TOTEM,609.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,609.00,1,Metric Coarse,10.0 X 1.50,Standard,,review,invoice rate 713.00 != list 609.00
+HSS-E TAP 10 X 1.5 SAS5 TOTEM,609.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,609.00,1,Metric Coarse,10.0 X 1.50,Standard,,review,
+HSS-E TAP 10 X 1.5 SB2 TOTEM,609.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,609.00,1,Metric Coarse,10.0 X 1.50,Standard,,review,
+HSS-E TAP 10 X 1.5 SB3 TOTEM,609.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,609.00,1,Metric Coarse,10.0 X 1.50,Standard,,review,"invoice rate 1,244.00 != list 609.00"
+HSS-E TAP 10 X 1.5 SBF3 TOTEM,609.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,609.00,1,Metric Coarse,10.0 X 1.50,Standard,,review,
+HSS-E TAP 10 X 1.5 SBS5 TOTEM,609.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,609.00,1,Metric Coarse,10.0 X 1.50,Standard,,review,"invoice rate 1,533.00 != list 609.00"
+HSS-E TAP 10 X 1.5 SET GOLD TOTEM,2133.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,711.00,3,Metric Coarse,10.0 X 1.50,STD GOLD,,review,"invoice rate 1,945.00 != list 2,133.00"
+HSS-E TAP 10 X 1.5 SET XL GOLD TOTEM,2133.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,711.00,3,Metric Coarse,10.0 X 1.50,STD GOLD,,review,
+HSS-E TAP 10 X 1.5 SF SET GOLD TOTEM,2133.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,711.00,3,Metric Coarse,10.0 X 1.50,STD GOLD,,review,"invoice rate 1,790.00 != list 2,133.00"
+HSS-E TAP 10 X 1.5 SPFL GOLD TOTEM,711.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,711.00,1,Metric Coarse,10.0 X 1.50,STD GOLD,,review,
+HSS-E TAP 10 X 1.5 SPIREX GOLD TOTEM,711.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,711.00,1,Metric Coarse,10.0 X 1.50,STD GOLD,,review,invoice rate 981.00 != list 711.00
+HSS-E TAP 12 X 1.75 SA2 TOTEM,947.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,947.00,1,Metric Coarse,12.0 X 1.75,Standard,,review,
+HSS-E TAP 12 X 1.75 SA3 TOTEM,947.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,947.00,1,Metric Coarse,12.0 X 1.75,Standard,,review,"invoice rate 1,734.00 != list 947.00"
+HSS-E TAP 12 X 1.75 SAS5 TOTEM,947.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,947.00,1,Metric Coarse,12.0 X 1.75,Standard,,review,"invoice rate 1,280.00 != list 947.00"
+HSS-E TAP 12 X 1.75 SB3 TOTEM,947.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,947.00,1,Metric Coarse,12.0 X 1.75,Standard,,review,"invoice rate 1,914.00 != list 947.00"
+HSS-E TAP 12 X 1.75 SBF3 TOTEM,947.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,947.00,1,Metric Coarse,12.0 X 1.75,Standard,,review,
+HSS-E TAP 12 X 1.75 SBS5 TOTEM,947.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,947.00,1,Metric Coarse,12.0 X 1.75,Standard,,review,
+HSS-E TAP 12 X 1.75 SET XL GOLD TOTEM,3258.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,1086.00,3,Metric Coarse,12.0 X 1.75,STD GOLD,,review,
+HSS-E TAP 12 X 1.75 SF SET GOLD TOTEM,3258.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,1086.00,3,Metric Coarse,12.0 X 1.75,STD GOLD,,review,"invoice rate 2,839.00 != list 3,258.00"
+HSS-E TAP 12 X 1.75 SPFL TIN TOTEM,947.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,947.00,1,Metric Coarse,12.0 X 1.75,Standard,,review,
+HSS-E TAP 12 X 1.75 SPIREX GOLD TOTEM,1086.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,1086.00,1,Metric Coarse,12.0 X 1.75,STD GOLD,,review,"invoice rate 1,480.00 != list 1,086.00"
+HSS-E TAP 14 X 2 SA3 TOTEM,1378.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,1378.00,1,Metric Coarse,14.0 X 2.00,Standard,,review,
+HSS-E TAP 16 X 1 SB3 TOTEM,1426.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1426.00,1,Metric Coarse,16.0 X 1.00,Standard,,review,"invoice rate 2,097.00 != list 1,426.00"
+HSS-E TAP 16 X 1.5 SA3 TOTEM,1381.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1381.00,1,Metric Coarse,16.0 X 1.50,Standard,,review,"invoice rate 1,760.00 != list 1,381.00"
+HSS-E TAP 16 X 1.5 SAS5 TOTEM,1381.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1381.00,1,Metric Coarse,16.0 X 1.50,Standard,,review,
+HSS-E TAP 16 X 1.5 SB3 TOTEM,1381.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1381.00,1,Metric Coarse,16.0 X 1.50,Standard,,review,
+HSS-E TAP 16 X 1.5 SPIREX TOTEM,1381.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,1381.00,1,Metric Coarse,16.0 X 1.50,Standard,,review,"invoice rate 1,030.00 != list 1,381.00"
+HSS-E TAP 16 X 2 6G SA3 TOTEM,1378.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,1378.00,1,Metric Coarse,16.0 X 2.00,Standard,,review,
+HSS-E TAP 16 X 2 D376 16 X 2 6G SA5 TOTEM,1378.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,1378.00,1,Metric Coarse,16.0 X 2.00,Standard,,review,
+HSS-E TAP 16 X 2 SA3 TOTEM,1378.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,1378.00,1,Metric Coarse,16.0 X 2.00,Standard,,review,"invoice rate 2,342.00 != list 1,378.00"
+HSS-E TAP 16 X 2 SB3 TOTEM,1378.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,1378.00,1,Metric Coarse,16.0 X 2.00,Standard,,review,"invoice rate 2,583.00 != list 1,378.00"
+HSS-E TAP 16 X 2 SF SET GOLD TOTEM,4326.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,1442.00,3,Metric Coarse,16.0 X 2.00,STD GOLD,,review,"invoice rate 3,730.00 != list 4,326.00"
+HSS-E TAP 16 X 2 SPIREX GOLD TOTEM,1442.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,1442.00,1,Metric Coarse,16.0 X 2.00,STD GOLD,,review,"invoice rate 1,999.00 != list 1,442.00"
+HSS-E TAP 18 X 1.5 SB3 TOTEM,2367.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,2367.00,1,Metric Coarse,18.0 X 1.50,Standard,,review,
+HSS-E TAP 18 X 1.5 SC4 TOTEM,2367.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,2367.00,1,Metric Coarse,18.0 X 1.50,Standard,,review,
+HSS-E TAP 20 X 2.5 7G SB3 TOTEM,2652.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,2652.00,1,Metric Coarse,20.0 X 2.50,Standard,,review,
+HSS-E TAP 20 X 2.5 SPIREX GOLD TOTEM,3388.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,3388.00,1,Metric Coarse,20.0 X 2.50,STD GOLD,,review,"invoice rate 3,785.00 != list 3,388.00"
+HSS-E TAP 24 X 3 6G LHRH SBF2 OAL 180 TOTEM,3167.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,3167.00,1,Metric Coarse,24.0 X 3.00,Standard,,review,
+HSS-E TAP 27 X 3 6G LHRH SBF2 OAL 180 TOTEM,4795.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,4795.00,1,Metric Coarse,27.0 X 3.00,Standard,,review,
+HSS-E TAP 27 X 3 6G RHLH SBF2 OAL 180 TOTEM,4795.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,4795.00,1,Metric Coarse,27.0 X 3.00,Standard,,review,
+HSS-E TAP 3 X .5 SBS5 TOTEM,390.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,390.00,1,Metric Coarse,3.0 X 0.50,Standard,,review,
+HSS-E TAP 3 X .5 SPIREX TOTEM,390.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,390.00,1,Metric Coarse,3.0 X 0.50,Standard,,review,
+"HSS-E TAP 3/8"" BSP SB3 TOTEM",1501.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,1501.00,1,BSP,3/8,Standard,,review,"invoice rate 1,325.00 != list 1,501.00"
+"HSS-E TAP 3/8"" UNC SA3 TOTEM",585.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,585.00,1,UNF/UNC,3/8,Standard,,review,
+HSS-E TAP 30 X 3.5 SPFL SBS3 TOTEM,5360.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,5360.00,1,Metric Coarse,30.0 X 3.50,Standard,,review,
+HSS-E TAP 4 X .7 SAS5 TOTEM,390.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,390.00,1,Metric Coarse,4.0 X 0.70,Standard,,review,invoice rate 608.00 != list 390.00
+HSS-E TAP 4 X .7 SB3 TOTEM,390.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,390.00,1,Metric Coarse,4.0 X 0.70,Standard,,review,
+HSS-E TAP 4 X .7 SBS5 TOTEM,390.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,390.00,1,Metric Coarse,4.0 X 0.70,Standard,,review,
+HSS-E TAP 4 X .7 SD1 TOTEM,390.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,390.00,1,Metric Coarse,4.0 X 0.70,Standard,,review,
+HSS-E TAP 4 X .7 SET XL GOLD TOTEM,1488.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,496.00,3,Metric Coarse,4.0 X 0.70,STD GOLD,,review,
+HSS-E TAP 4 X .7 SF SET GOLD TOTEM,1488.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,496.00,3,Metric Coarse,4.0 X 0.70,STD GOLD,,review,"invoice rate 1,144.00 != list 1,488.00"
+HSS-E TAP 4 X .7 SPIREX TOTEM,390.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,390.00,1,Metric Coarse,4.0 X 0.70,Standard,,review,
+HSS-E TAP 5 X .8 SAF3 TOTEM,419.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,1,Metric Coarse,5.0 X 0.80,Standard,,review,
+HSS-E TAP 5 X .8 SAS5 TOTEM,419.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,1,Metric Coarse,5.0 X 0.80,Standard,,review,"invoice rate 1,076.00 != list 419.00"
+HSS-E TAP 5 X .8 SB3 TOTEM,419.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,1,Metric Coarse,5.0 X 0.80,Standard,,review,
+HSS-E TAP 5 X .8 SBS5 TOTEM,419.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,1,Metric Coarse,5.0 X 0.80,Standard,,review,invoice rate 724.00 != list 419.00
+HSS-E TAP 5 X .8 SET GOLD TOTEM,1530.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,510.00,3,Metric Coarse,5.0 X 0.80,STD GOLD,,review,
+HSS-E TAP 5 X .8 SF SET GOLD TOTEM,1530.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,510.00,3,Metric Coarse,5.0 X 0.80,STD GOLD,,review,"invoice rate 1,172.00 != list 1,530.00"
+HSS-E TAP 5 X .8 SPIREX GOLD TOTEM,510.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,510.00,1,Metric Coarse,5.0 X 0.80,STD GOLD,,review,invoice rate 430.00 != list 510.00
+"HSS-E TAP 5/16"" UNC SB3 TOTEM",480.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,480.00,1,UNF/UNC,5/16,Standard,,review,
+"HSS-E TAP 5/16"" UNF SA3 TOTEM",480.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,480.00,1,UNF/UNC,5/16,Standard,,review,
+"HSS-E TAP 5/16"" UNF SB3 TOTEM",480.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,480.00,1,UNF/UNC,5/16,Standard,,review,invoice rate 680.00 != list 480.00
+HSS-E TAP 6 X 1 D371 6 X 1 SA5 TOTEM,419.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,1,Metric Coarse,6.0 X 1.00,Standard,,review,
+HSS-E TAP 6 X 1 SA3 TOTEM,419.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,1,Metric Coarse,6.0 X 1.00,Standard,,review,
+HSS-E TAP 6 X 1 SAF3 TOTEM,419.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,1,Metric Coarse,6.0 X 1.00,Standard,,review,
+HSS-E TAP 6 X 1 SAS5 TOTEM,419.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,1,Metric Coarse,6.0 X 1.00,Standard,,review,invoice rate 790.00 != list 419.00
+HSS-E TAP 6 X 1 SB3 TOTEM,419.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,1,Metric Coarse,6.0 X 1.00,Standard,,review,invoice rate 894.00 != list 419.00
+HSS-E TAP 6 X 1 SBS5 TOTEM,419.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,1,Metric Coarse,6.0 X 1.00,Standard,,review,invoice rate 780.00 != list 419.00
+HSS-E TAP 6 X 1 SET GOLD TOTEM,1530.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,510.00,3,Metric Coarse,6.0 X 1.00,STD GOLD,,review,"invoice rate 1,148.00 != list 1,530.00"
+HSS-E TAP 6 X 1 SF SET GOLD TOTEM,1530.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,510.00,3,Metric Coarse,6.0 X 1.00,STD GOLD,,review,"invoice rate 1,172.00 != list 1,530.00"
+HSS-E TAP 6 X 1 SPIREX BLD TOTEM,419.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,1,Metric Coarse,6.0 X 1.00,Standard,,review,invoice rate 238.00 != list 419.00
+HSS-E TAP 6 X 1 SPIREX GOLD TOTEM,510.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,510.00,1,Metric Coarse,6.0 X 1.00,STD GOLD,,review,invoice rate 732.00 != list 510.00
+"HSS-E TAP 7/16"" UNC SB3 TOTEM",747.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,747.00,1,UNF/UNC,7/16,Standard,,review,"invoice rate 1,055.00 != list 747.00"
+HSS-E TAP 8 X 1 SB3 TOTEM,597.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,5,597.00,1,Metric Coarse,8.0 X 1.00,Standard,,review,
+HSS-E TAP 8 X 1.25 SAF3 TOTEM,504.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,504.00,1,Metric Coarse,8.0 X 1.25,Standard,,review,
+HSS-E TAP 8 X 1.25 SAS5 TOTEM,504.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,504.00,1,Metric Coarse,8.0 X 1.25,Standard,,review,invoice rate 958.00 != list 504.00
+HSS-E TAP 8 X 1.25 SB3 TOTEM,504.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,504.00,1,Metric Coarse,8.0 X 1.25,Standard,,review,"invoice rate 1,000.00 != list 504.00"
+HSS-E TAP 8 X 1.25 SBS5 TOTEM,504.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,504.00,1,Metric Coarse,8.0 X 1.25,Standard,,review,invoice rate 880.00 != list 504.00
+HSS-E TAP 8 X 1.25 SET XL GOLD TOTEM,1725.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,575.00,3,Metric Coarse,8.0 X 1.25,STD GOLD,,review,"invoice rate 1,800.00 != list 1,725.00"
+HSS-E TAP 8 X 1.25 SF SET GOLD TOTEM,1725.00,SET,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,575.00,3,Metric Coarse,8.0 X 1.25,STD GOLD,,review,"invoice rate 1,499.00 != list 1,725.00"
+HSS-E TAP 8 X 1.25 SPFL GOLD TOTEM,575.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,575.00,1,Metric Coarse,8.0 X 1.25,STD GOLD,,review,
+HSS-E TAP 8 X 1.25 SPIREX GOLD TOTEM,575.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,9,575.00,1,Metric Coarse,8.0 X 1.25,STD GOLD,,review,invoice rate 799.00 != list 575.00
+HSS-E TAP 9 X 1.25 SA3 TOTEM,609.00,NOS,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,609.00,1,Metric Coarse,9.0 X 1.25,Standard,,review,invoice rate 905.00 != list 609.00
+"HSSS TAP 5/8"" BSW SEC TOTEM",1381.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,1381.00,1,BSW/BSF,5/8,Standard,,review,
+SOLID CARBIDE ROLL TAP 6 X 1 TH CO TOTEM,419.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,1,Metric Coarse,6.0 X 1.00,Standard,,review,
+SOLID CARBIDE TAP 3 X .5 TOTEM,390.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,390.00,1,Metric Coarse,3.0 X 0.50,Standard,,review,
+SOLID CARBIDE TAP 4 X .7 TOTEM,390.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,390.00,1,Metric Coarse,4.0 X 0.70,Standard,,review,
+SOLID CARBIDE TAP 5 X .8 TOTEM,419.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,1,Metric Coarse,5.0 X 0.80,Standard,,review,
+SOLID CARBIDE TAP 6 X 1 TOTEM,419.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,419.00,1,Metric Coarse,6.0 X 1.00,Standard,,review,
+SOLID CARBIDE TAP 8 X 1.25 TOTEM,504.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,504.00,1,Metric Coarse,8.0 X 1.25,Standard,,review,
+"TAP 1-1/4"" BSW SET TOTEM",17595.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,5865.00,3,BSW/BSF,"1.1/4""",Standard,,review,
+"TAP 1-1/8"" BSW SET TOTEM",14598.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,4866.00,3,BSW/BSF,"1.1/8""",Standard,,review,
+"TAP 1/2"" BSB SET TOTEM",2904.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,6,968.00,3,BSB,1/2,Standard,,review,
+TAP 4 X .7 SET TOTEM,1170.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,4,390.00,3,Metric Coarse,4.0 X 0.70,Standard,,review,
+"TAP 5/8"" BSP PAIR TOTEM",5026.00,,TOTEM,TOTEM HSS Taps Price List,2024-01-08,price-lists/totem-hpt-2024-01-08.pdf,3,2513.00,2,BSP,5/8,Standard,,review,
