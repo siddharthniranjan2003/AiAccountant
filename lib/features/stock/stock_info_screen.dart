@@ -65,6 +65,45 @@ class _Txn {
 String _trimNum(num n) =>
     n == n.roundToDouble() ? n.toStringAsFixed(0) : n.toString();
 
+/// One edition of a manufacturer's price list, as it applies to this item.
+///
+/// Today `price_list` is keyed on `stock_item_name` alone, so exactly one of
+/// these ever comes back. The band is built as a list anyway: when the table
+/// grows to hold successive editions, the History panel fills in with no widget
+/// change. `pageNo` belongs to the edition, not the item — the same tap sits on
+/// a different page of a different revision.
+class _PriceListEntry {
+  const _PriceListEntry({
+    required this.rate,
+    required this.unit,
+    required this.docTitle,
+    required this.pageNo,
+    required this.effectiveFrom,
+    required this.verified,
+  });
+
+  final String rate;
+  final String unit;
+  final String docTitle;
+  final int? pageNo;
+  final String effectiveFrom;
+  final bool verified;
+
+  factory _PriceListEntry.fromRow(Map<String, dynamic> row) {
+    final rate = (row['list_rate'] as num?)?.toDouble() ?? 0;
+    return _PriceListEntry(
+      rate: '₹${formatDecimal(rate)}',
+      unit: (row['unit'] as String? ?? '').trim(),
+      docTitle: (row['doc_title'] as String? ?? '').trim(),
+      pageNo: (row['page_no'] as num?)?.toInt(),
+      effectiveFrom: formatShortDate(row['effective_from'] as String?),
+      // Anything not confirmed against a real invoice says so on the row —
+      // 285 of the 731 seeded rows have never been checked.
+      verified: (row['confidence'] as String? ?? '') == 'verified',
+    );
+  }
+}
+
 /// Stock Info — an item's Purchase & Sale history from Supabase.
 ///
 /// Renders two ways. Standalone (the default) it is its own page with its own
@@ -125,6 +164,13 @@ class _StockInfoScreenState extends State<StockInfoScreen> {
   String? _purchaseError;
   String? _saleError;
 
+  // Price-list editions covering this item, newest effective date first.
+  // Same convention as the panels: null = loading, empty = not in the price
+  // list. A failure here is silent — the band just stays in its "not matched"
+  // state rather than putting an error above the item name.
+  List<_PriceListEntry>? _priceList;
+  bool _historyOpen = false;
+
   // The stock item currently shown; changes when the user picks one via search.
   late String _item;
 
@@ -161,10 +207,12 @@ class _StockInfoScreenState extends State<StockInfoScreen> {
     if (_item.isEmpty) {
       _purchases = const [];
       _sales = const [];
+      _priceList = const [];
       return;
     }
     _loadPurchases();
     _loadSales();
+    _loadPriceList();
   }
 
   @override
@@ -189,10 +237,37 @@ class _StockInfoScreenState extends State<StockInfoScreen> {
       // Rate nav (no item): back to the blank-search state, nothing to query.
       _purchases = _item.isEmpty ? const [] : null;
       _sales = _item.isEmpty ? const [] : null;
+      _priceList = _item.isEmpty ? const [] : null;
+      _historyOpen = false;
     });
     if (_item.isEmpty) return;
     _loadPurchases();
     _loadSales();
+    _loadPriceList();
+  }
+
+  // The band's query: one .eq on the primary key, ordered so the newest
+  // edition leads. No join — price_list stands alone.
+  Future<void> _loadPriceList() async {
+    final item = _item;
+    try {
+      final res = await Supabase.instance.client
+          .from('price_list')
+          .select('list_rate, unit, doc_title, page_no, effective_from, '
+              'confidence')
+          .eq('stock_item_name', item)
+          .order('effective_from', ascending: false);
+      // A slow response for an item the user has already navigated away from
+      // must not overwrite the current one.
+      if (!mounted || item != _item) return;
+      setState(() => _priceList = [
+            for (final row in res)
+              _PriceListEntry.fromRow(Map<String, dynamic>.from(row)),
+          ]);
+    } catch (_) {
+      if (!mounted || item != _item) return;
+      setState(() => _priceList = const []);
+    }
   }
 
   Future<void> _loadPurchases() async {
@@ -315,9 +390,12 @@ class _StockInfoScreenState extends State<StockInfoScreen> {
       _sales = null;
       _purchaseError = null;
       _saleError = null;
+      _priceList = null;
+      _historyOpen = false;
     });
     _loadPurchases();
     _loadSales();
+    _loadPriceList();
   }
 
   // Search cleared (× in the search bar): no item selected, empty panels.
@@ -328,6 +406,8 @@ class _StockInfoScreenState extends State<StockInfoScreen> {
       _sales = const [];
       _purchaseError = null;
       _saleError = null;
+      _priceList = const [];
+      _historyOpen = false;
     });
   }
 
@@ -385,6 +465,17 @@ class _StockInfoScreenState extends State<StockInfoScreen> {
                   onSelect: _selectItem,
                   onClear: _clearAll,
                 ),
+                // The manufacturer's list price for this item, above the name so
+                // it reads before the invoice history it should be compared to.
+                // Hidden entirely on the blank-search state.
+                if (_item.isNotEmpty)
+                  _PriceListBand(
+                    entries: _priceList,
+                    historyOpen: _historyOpen,
+                    onToggleHistory: () =>
+                        setState(() => _historyOpen = !_historyOpen),
+                    narrow: narrow,
+                  ),
                 // Selected item name, shown right below the search bar. Bounded
                 // to two lines so a long name can't push the panels off-screen.
                 Padding(
@@ -468,6 +559,363 @@ class _StockInfoScreenState extends State<StockInfoScreen> {
       );
     }
     return Scaffold(backgroundColor: AppPalette.sheet, body: content);
+  }
+}
+
+/// The list-price band: three columns — what the number is, the number, and a
+/// History disclosure — sitting between the search bar and the item name.
+///
+/// The rate is stated in the item's own selling unit (a SET of three taps shows
+/// the SET price), so it lines up with the RATE column of the tables below it
+/// rather than with the per-piece figure the PDF prints. Which document that
+/// came from, which page, and from when all live inside History, which keeps
+/// the resting state to three columns.
+class _PriceListBand extends StatelessWidget {
+  const _PriceListBand({
+    required this.entries,
+    required this.historyOpen,
+    required this.onToggleHistory,
+    required this.narrow,
+  });
+
+  /// null while loading, empty when this item is not in any price list.
+  final List<_PriceListEntry>? entries;
+  final bool historyOpen;
+  final VoidCallback onToggleHistory;
+  final bool narrow;
+
+  static const _label = 'Rate as per Last Price list';
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final list = entries;
+    final current = (list == null || list.isEmpty) ? null : list.first;
+
+    final labelStyle = theme.textTheme.bodyMedium?.copyWith(
+      color: AppPalette.inkSoft,
+      fontWeight: FontWeight.w800,
+      fontSize: 13,
+    );
+    final subStyle = theme.textTheme.labelSmall?.copyWith(
+      color: AppPalette.muted,
+      fontWeight: FontWeight.w700,
+      fontSize: 10.5,
+      letterSpacing: 0.5,
+    );
+
+    // Sub-label carries the unit, because "₹1,221.00" is meaningless without
+    // knowing it buys a SET rather than one tap.
+    final String sub;
+    if (list == null) {
+      sub = 'checking…';
+    } else if (current == null) {
+      sub = 'not matched';
+    } else {
+      final unit = current.unit.isEmpty ? '' : 'per ${current.unit}';
+      sub = current.verified
+          ? unit
+          : (unit.isEmpty ? 'not invoice-checked' : '$unit · not invoice-checked');
+    }
+
+    final label = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(_label, style: labelStyle),
+        if (sub.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Text(sub.toUpperCase(), style: subStyle),
+          ),
+      ],
+    );
+
+    final value = Text(
+      list == null ? '—' : (current?.rate ?? 'Not in price list'),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: theme.textTheme.titleLarge?.copyWith(
+        color: current == null ? AppPalette.muted : AppPalette.ink,
+        fontWeight: FontWeight.w800,
+        fontSize: current == null ? 15 : 20,
+        letterSpacing: current == null ? 0 : -0.6,
+      ),
+    );
+
+    final button = current == null
+        ? const SizedBox.shrink()
+        : _HistoryButton(open: historyOpen, onPressed: onToggleHistory);
+
+    return Container(
+      margin: const EdgeInsets.only(top: 12),
+      decoration: BoxDecoration(
+        color: Color.alphaBlend(
+          AppPalette.pen.withValues(alpha: 0.035),
+          AppPalette.sheet,
+        ),
+        border: Border.all(color: AppPalette.line),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: EdgeInsets.fromLTRB(narrow ? 12 : 16, 10, narrow ? 12 : 16, 10),
+            // At phone width the disclosure drops to its own full-width row
+            // instead of squeezing the rate.
+            // At phone width the three columns become two rows: the label owns
+            // one line (it wraps to two at large text scales), then the rate and
+            // the disclosure share the next. Keeping all three on one line
+            // overflows once the text scaler goes past ~1.3.
+            child: narrow
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      label,
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Flexible(child: value),
+                          if (current != null) ...[
+                            const SizedBox(width: 12),
+                            button,
+                          ],
+                        ],
+                      ),
+                    ],
+                  )
+                : Row(
+                    children: [
+                      Expanded(child: label),
+                      const SizedBox(width: 16),
+                      Flexible(child: value),
+                      if (current != null) ...[
+                        const SizedBox(width: 16),
+                        button,
+                      ],
+                    ],
+                  ),
+          ),
+          if (current != null && historyOpen)
+            _PriceListHistory(entries: list!, narrow: narrow),
+        ],
+      ),
+    );
+  }
+}
+
+/// The History disclosure. Labelled, not an icon — at phone width it becomes a
+/// full-width row where a bare chevron would read as decoration.
+class _HistoryButton extends StatelessWidget {
+  const _HistoryButton({required this.open, required this.onPressed});
+
+  final bool open;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppPalette.sheet,
+      borderRadius: BorderRadius.circular(9),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(9),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
+          decoration: BoxDecoration(
+            border: Border.all(color: AppPalette.line),
+            borderRadius: BorderRadius.circular(9),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'History',
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      color: AppPalette.inkSoft,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 11.5,
+                    ),
+              ),
+              const SizedBox(width: 6),
+              AnimatedRotation(
+                turns: open ? 0.5 : 0,
+                duration: const Duration(milliseconds: 180),
+                child: Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  size: 16,
+                  color: AppPalette.muted,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The expanded revision list: one row per price-list edition, newest first.
+/// Only the newest carries CURRENT; the rest are dimmed but stay readable,
+/// since an older edition is still the right citation for an older invoice.
+class _PriceListHistory extends StatelessWidget {
+  const _PriceListHistory({required this.entries, required this.narrow});
+
+  final List<_PriceListEntry> entries;
+  final bool narrow;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final pad = narrow ? 12.0 : 16.0;
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.fromLTRB(pad, 0, pad, 8),
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: AppPalette.line)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (var i = 0; i < entries.length; i++)
+            _PriceListHistoryRow(
+              entry: entries[i],
+              current: i == 0,
+              first: i == 0,
+              theme: theme,
+              narrow: narrow,
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PriceListHistoryRow extends StatelessWidget {
+  const _PriceListHistoryRow({
+    required this.entry,
+    required this.current,
+    required this.first,
+    required this.theme,
+    required this.narrow,
+  });
+
+  final _PriceListEntry entry;
+  final bool current;
+  final bool first;
+  final ThemeData theme;
+  final bool narrow;
+
+  @override
+  Widget build(BuildContext context) {
+    final dim = !current;
+    final rate = Text(
+      entry.rate,
+      style: theme.textTheme.bodyMedium?.copyWith(
+        color: dim ? AppPalette.muted : AppPalette.ink,
+        fontWeight: FontWeight.w800,
+        fontSize: 13.5,
+      ),
+    );
+    // Document + page is the citation. It is text rather than a link because
+    // nothing has been uploaded to the price-lists bucket yet; wiring the
+    // download is a data task, not a UI one.
+    final doc = Text(
+      [
+        if (entry.docTitle.isNotEmpty) entry.docTitle,
+        if (entry.pageNo != null) 'page ${entry.pageNo}',
+      ].join(' · '),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: theme.textTheme.bodySmall?.copyWith(
+        color: AppPalette.muted,
+        fontWeight: FontWeight.w700,
+        fontSize: 11.5,
+      ),
+    );
+    final when = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          entry.effectiveFrom,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: dim ? AppPalette.muted : AppPalette.inkSoft,
+            fontWeight: FontWeight.w700,
+            fontSize: 11.5,
+          ),
+        ),
+        if (current) ...[
+          const SizedBox(width: 6),
+          _BandChip(
+            text: entry.verified ? 'CURRENT' : 'UNVERIFIED',
+            color: entry.verified ? AppPalette.success : AppPalette.accent,
+          ),
+        ],
+      ],
+    );
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      decoration: first
+          ? null
+          : BoxDecoration(
+              border: Border(top: BorderSide(color: AppPalette.line)),
+            ),
+      child: narrow
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Expanded(child: rate),
+                    when,
+                  ],
+                ),
+                const SizedBox(height: 3),
+                doc,
+              ],
+            )
+          : Row(
+              children: [
+                SizedBox(width: 104, child: rate),
+                Expanded(child: doc),
+                const SizedBox(width: 12),
+                when,
+              ],
+            ),
+    );
+  }
+}
+
+class _BandChip extends StatelessWidget {
+  const _BandChip({required this.text, required this.color});
+
+  final String text;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        border: Border.all(color: color.withValues(alpha: 0.32)),
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: Text(
+        text,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: color,
+              fontWeight: FontWeight.w800,
+              fontSize: 9,
+              letterSpacing: 0.5,
+            ),
+      ),
+    );
   }
 }
 
