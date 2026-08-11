@@ -85,8 +85,13 @@ for pg, (thread, blocks) in EDP.items():
             if FAB.match(t) and i+1 < len(toks) and NUM.match(clean(toks[i+1])):
                 if label:
                     parts = [p for p in label if not STD.fullmatch(p)]
-                    size = parts[0] if parts else ""
-                    pitch = " ".join(parts[1:2])
+                    # Standard markers (IS 6175, DIN 371, ISO Part 2, LONG SHANK TAPS)
+                    # are printed in the left margin and share a line with real data.
+                    # Taking parts[0] made 55 cells "size=IS pitch=6175". Size and pitch
+                    # are the two tokens nearest the first EDP code, so read from the right.
+                    pitch = parts[-1] if parts and re.fullmatch(r"[\d.]+|-", parts[-1]) else ""
+                    rest  = parts[:-1] if pitch else parts
+                    size  = rest[-1] if rest else ""
                     col = 0
                 if col < len(grades):
                     emit(page_no=pg, series=SC, standard=std, thread_form=thread,
