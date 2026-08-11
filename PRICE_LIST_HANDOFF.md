@@ -1,11 +1,40 @@
 # Price List → Rate Screen — Session Handoff
 
 **Date:** 2026-08-10
-**Branch:** `feat/two-site-nav-split`
-**Status:** Data created and verified in TESTING. Frontend is mockup-only. PDF upload blocked.
+**Branch:** `feat/price-list-pipeline`
+**Status:** Data audited row-by-row against the PDF and re-seeded in TESTING (731 rows).
+Frontend is mockup-only. PDF upload still blocked.
 
 This document is written to be dropped into a fresh chat as full context. Everything
 below is either verified fact or explicitly flagged as an assumption.
+
+---
+
+## 0. Audit pass — what changed
+
+Every seeded row was re-checked against the PDF by a **second, independent extractor**
+that locates each price by its word coordinates (`cat_geom.py` / `edp_geom.py`) rather
+than by counting tokens the way `extract2.py` does. The two now agree on all 3,229
+catalogue cells, price and size.
+
+**Transcription was perfect: all 850 rows held exactly the number printed at the
+coordinates they claimed.** The errors were all in *attribution* — which cell an item
+was matched to — plus one whole class of rows that should never have been seeded.
+
+| | before | after |
+|---|---|---|
+| Rows | 850 | **731** |
+| `verified` by invoice | 413 | **446** |
+| Rows referencing a missing item | 107 | **0** |
+| Rows with no `unit` | 294 | **0** |
+
+- **199 dropped**: 107 orphans (the `prune` step had never actually been applied),
+  79 HSS-E, 6 solid carbide, 5 Silver Cut, 2 SPIREX — all priced from the wrong grid.
+- **80 added**, 41 of them invoice-verified.
+- **2 prices corrected**, both off by 26×. See §9.6.
+
+Run `python3 tools/price_list/verify.py` to re-audit at any time; the per-item result
+is committed as `tools/price_list/price_list_audit.csv`.
 
 ---
 
@@ -109,6 +138,17 @@ Handling: captured **as printed** and flagged in the `note` column on 18 rows. A
 citable dataset must match what the page actually says, because the download button
 shows the reader that same page. Prices on that page appear unaffected — only the
 pitch column is corrupt.
+
+### ⚠ Two more published-PDF defects, found in the audit
+
+- **Page 3, number tables.** The header rule draws `BA` spanning three sub-columns and
+  `UNF / UNC` spanning one. The sub-headers read `Standard, SPPT, Standard, SPPT` —
+  unmistakably two 2-column groups, so the rule is drawn one column too far right.
+  Read as 2+2; the 42 affected rows carry the defect in `note`.
+- **Pages 12/13 and 18, duplicated EDP codes.** Five codes appear twice at different
+  prices: `FAB0205713` and `FAB0204185` on both p12 and p13, and `FAB0204165`,
+  `FAB0204166`, `FAB0208023` twice within a single p18 row. Both extractors read them
+  identically, so this is the document, not the parser. No seeded row uses these.
 
 ---
 
@@ -234,7 +274,14 @@ duplicated rows together.
 
 | Script | What it does |
 |---|---|
-| `_cfg.py` | Resolves Supabase endpoints/keys from `.env` and `env/deployment.json` at run time |
+| **`_cfg2.py`** | **v2 config** — one project for names, sale history and writes |
+| **`geom.py`** | Word bounding boxes from `bbox.xml.gz`, grouped into visual rows |
+| **`cat_geom.py`** | **Geometric catalogue, p3–11** — price placed under the header it sits beneath |
+| **`edp_geom.py`** | **Geometric catalogue, p12–28** — price paired with the EDP code to its left |
+| **`match2.py`** | **The matcher.** Family-aware, no cross-family fallback → `price_list_rows_v2.csv` |
+| **`verify.py`** | **The gate.** Audits every seeded row against the PDF → `price_list_audit.csv` |
+| **`seed2.py`** | Backs up, upserts, deletes rows no longer matched |
+| `_cfg.py` | v1: resolves Supabase endpoints/keys from `.env` and `env/deployment.json` |
 | `phase0.py` | Smoke test — page 3/8 prices vs real invoice rates |
 | `pagemap.py` | Classifies all 36 pages: price grid / chart / matter |
 | `headers.py` | Dumps every grid's header block so columns can be spec'd |
@@ -251,28 +298,46 @@ duplicated rows together.
 | `ratios.py` | Groups invoice-vs-list disagreements looking for a systematic rule |
 | `upload.py` | PDF → Storage (**blocked, never ran**) |
 
-Committed data files: `pages.txt` (the `pdftotext` output, so the pipeline runs
-without the source PDF), `price_list_items.csv` (3,229 catalogue cells) and
-`price_list_rows.csv` (all 850 matched items — a superset of the 743 seeded).
+Committed data files: `pages.txt` and `bbox.xml.gz` (the two `pdftotext` outputs, so
+the pipeline runs without the source PDF), `price_list_items.csv` (3,229 catalogue
+cells), `price_list_rows_v2.csv` (the 731 seeded rows), `price_list_skipped_v2.csv`
+(904 names declined, with reasons), `price_list_audit.csv` (the per-item audit) and
+`price_list_backup_850rows.csv` (the pre-audit table, for rollback).
+
+### Two extractors, deliberately
+
+`extract2.py` reads the `-layout` text and infers columns by **counting trailing
+tokens**. `cat_geom.py` / `edp_geom.py` read `-bbox-layout` word coordinates and assign
+each price to the column it **physically sits under**. Neither shares a code path with
+the other, so agreement is real evidence rather than a repeated assumption — and every
+bug in §9.5–9.8 was found by making them disagree. They currently agree on all 3,229
+cells. Keep both.
 
 ### Credentials
 
-No keys are committed. `_cfg.py` reads them at run time from the two gitignored env
-files: `.env` gives the **testing** service key (read/write) and
-`env/deployment.json` gives the **production** publishable key (read only). Item
-names and invoice history come from prod; rows are written only to testing.
+No keys are committed. `_cfg2.py` reads the service key at run time from the gitignored
+`.env`; v1's `_cfg.py` additionally read `env/deployment.json` for the production
+publishable key. v2 uses **one project for everything** — see §12.
 
 ### Order to re-run
 
 ```
 cd tools/price_list
-pdftotext -layout <pdf> pages.txt   # only for a new PDF revision
-py extract2.py     # → price_list_items.csv   (3,229 catalogue cells)
-py qa2.py          # must print "ALL MATCH" — this is the gate
-py match.py        # → price_list_rows.csv    (850 matched items)
-py seed.py         # upsert into price_list
-py prune.py        # drop rows with no stock_items counterpart
+# only for a new PDF revision:
+pdftotext -layout      <pdf> pages.txt
+pdftotext -bbox-layout <pdf> bbox.xml && gzip -9 -k bbox.xml
+
+python3 match2.py   # → price_list_rows_v2.csv   (731 rows)
+python3 verify.py   # → price_list_audit.csv     — the gate
+python3 seed2.py    # back up, upsert, delete rows no longer matched
+python3 verify.py   # re-audit: every row must read TRANSCRIPTION=OK
 ```
+
+`verify.py <snapshot.csv>` audits a CSV instead of the live table — that is how the
+before/after record in `price_list_audit.csv` was produced.
+
+The v1 chain (`extract2.py` → `qa2.py` → `match.py` → `seed.py` → `prune.py`) is kept
+for reference but must not be used to seed; see §9.5–9.8.
 
 ### How the extractor works
 
@@ -301,11 +366,15 @@ small integer (1–4), that integer becomes `pack_qty` and the row is marked `ve
 
 | | |
 |---|---|
-| Rows | **743** |
-| `confidence = verified` | **401** |
-| `confidence = review` | **342** |
-| Catalogue behind it | 3,229 cells across 25 pages |
-| Pages contributing | p3 (317), p4 (319), p5 (141), p9 (63), p6 (7), p8 (3) |
+| Rows | **731** |
+| `confidence = verified` | **446** |
+| `confidence = review` | **285** |
+| Catalogue behind it | 3,229 cells across 25 pages, agreed by two independent extractors |
+| Pages contributing | p3 (288), p4 (231), p5 (180), p9 (24), p6 (5), p10 (2), p8 (1) |
+| Rows whose item is missing from `stock_items` | **0** |
+
+Every row is audited: `verify.py` re-derives its price from the PDF word coordinates
+and all 731 return `TRANSCRIPTION=OK`.
 
 ### The flagship row
 
@@ -375,6 +444,32 @@ into a test that runs in two seconds.
 4. **My own hand-typed reference was wrong.** I had transcribed page 8 BSPT `3.1/2"`
    as ₹160,257; it is ₹127,932 (₹160,257 is the 4" row). The extractor was right.
 
+### Found in the audit pass
+
+5. **Grade fallback crossed product families.** `match.py` fell back to grade
+   `Standard` whenever a named grade had no cell. Page 8 labels its thread
+   `BSW/BSF/UNC/UNF`, which no parsed name ever produces, so gold and HSS-E items fell
+   through to the plain HSS grids. `HSS-E ROLL TAP 4 X .7 SD3 TOTEM` showed **₹390**
+   when the real SD3 price is **₹978–1,076** — understated 2.7×, under a page citation
+   that does not contain the item. 90 rows affected.
+   *Fix:* no cross-family fallback; unmatched names are reported, not guessed at.
+
+6. **The inch/number collision, in the other direction.** `HSS TAP 2 UNC BOT TOTEM`
+   was priced from the page-3 *inch* table at 2″ = **₹17,866**. It is a **#2** screw
+   tap from the number table = **₹674** — confirmed exactly by its invoice. 26× wrong.
+   The name regex dropped the inch mark before the size was classified, so a bare `2`
+   and `2"` were indistinguishable.
+   *Fix:* size keys carry their `size_system`; the inch mark stays inside the capture.
+
+7. **Standard markers read as sizes.** In the EDP parser, `IS 6175` / `DIN 371` /
+   `ISO Part 2` are printed in the left margin and share a line with real data. Taking
+   the first label token gave 158 catalogue cells `size=IS pitch=6175`.
+   *Fix:* read size and pitch from the tokens *nearest the EDP code* instead.
+
+8. **`prune.py` had never taken effect.** The table held all 850 rows, including the
+   107 whose items do not exist in the target project. v2 reads names from the same
+   project it writes to, so the failure mode no longer exists.
+
 ---
 
 ## 10. Anomalies and open questions
@@ -400,9 +495,11 @@ wrong cell match rather than unusual pricing; that is what review is for.
 
 ### Left-hand taps use a computed price
 
-90 `LH` items are priced at **list × 1.35**, per the PDF's own note 4 on page 27. This
-is a *computed* price, not one printed in a grid. All such rows carry the rule in
-`note` and stay `review`.
+76 `LH` items are priced at **list × 1.35**, per the PDF's own note 4 — which is on
+**page 28**, not page 27 as the seeded rows used to say. The notes block there is
+catalogue-wide (it describes IS-6175 Parts I–IV and BS 949), so applying it to page
+3/4/5 items is legitimate. This is still a *computed* price, not one printed in a
+grid, so all such rows carry the rule in `note` and stay `review`.
 
 ### Pages 10–28 contributed nothing
 
@@ -445,28 +542,28 @@ See the environment warning below.
 
 ---
 
-## 12. ⚠ The testing/prod split — read this before continuing
+## 12. The testing/prod split — resolved for testing
 
-**Item names were read from PROD. Rows were written to TESTING.**
+**v1 read item names from PROD and wrote rows to TESTING**, on the belief that only
+prod carried the sale history the invoice oracle needs. That was wrong: **testing has
+15,720 TOTEM sale lines across 1,135 distinct items**, which is ample. It also has
+1,635 TOTEM `stock_items`.
 
-This was not a choice — the invoice oracle needs real sale history, which only exists
-in prod; and the only service key available is for testing.
+v2 therefore reads names, reads sale history and writes rows **all against testing**.
+A seeded row can no longer reference an item that isn't there, and `prune.py` is
+obsolete. The oracle got *stronger*, not weaker: 446 rows verified, up from 413.
 
 | | Prod `ztugwhevemibdrzqafyw` | Testing `yynuuysvjeipawzfbeme` |
 |---|---|---|
 | `stock_items` | 17,302 | 13,253 |
 | Access | anon/publishable key — **read only** | service key in `.env` — **full RW** |
 
-The two catalogues differ by ~4,000 items. Of the 850 matched rows, **107 referenced
-items that don't exist in testing** (e.g. `CARBON TAP 3 X .5 SET TOTEM`). Those were
-**deleted** — hence 743 rows.
-
-`price_list_rows.csv` still holds all **850**. If the demo runs against prod, seed from
-that CSV; a prod service key is required and is not currently available.
-
-**Decide before demo day: does the demo run on testing or prod?** The screenshots
-shared during this session came from the prod-backed deployment web app
-(`https://tallybridge-deployment-env.web.app`).
+**Still to decide: does the demo run on testing or prod?** The screenshots shared
+earlier came from the prod-backed deployment web app
+(`https://tallybridge-deployment-env.web.app`), which **has no `price_list` table**.
+To seed prod, point `_cfg2.py` at it and re-run `match2.py` + `seed2.py` — the pipeline
+is project-agnostic now — but that needs a prod service key, which is not available.
+Note prod reads are currently blocked by the Claude Code permission classifier too.
 
 ---
 
@@ -509,7 +606,14 @@ Discovered while investigating; **neither is fixed**.
 1. Upload the PDF to the `price-lists` bucket (unblocks the download button).
 2. Wire the band into `stock_info_screen.dart` — query, render, no-match state.
 3. Get a human answer on the +10% SKUs; record it in `note`.
-4. Decide testing vs prod for the demo; if prod, obtain a service key and seed from
-   `tools/price_list/price_list_rows.csv` (all 850 rows).
-5. Obtain the Forbes **die** price list if dies need to be covered.
-6. Optionally fix the two `stock_info_screen.dart` bugs in §14.
+4. Decide testing vs prod for the demo. If prod: obtain a service key, point
+   `_cfg2.py` at it, re-run `match2.py` + `seed2.py`.
+5. **Cover the HSS-E / Silver Cut families.** 117 HSS-E names are currently unpriced
+   rather than mispriced — see `price_list_skipped_v2.csv` for the queue. Their grade
+   codes (`SA3`, `SB3`, `SD3`, `SAS5`…) map cleanly onto catalogue grades, so the
+   matching is tractable. The blocker is that several pages print the *same* grade
+   names in two blocks at different prices (p12 vs p13, the two blocks on p24), so an
+   item must be attributed to the right block before it can be priced. Do not guess:
+   each wrong guess is a 2–3× price error.
+6. Obtain the Forbes **die** price list if dies need to be covered.
+7. Optionally fix the two `stock_info_screen.dart` bugs in §14.

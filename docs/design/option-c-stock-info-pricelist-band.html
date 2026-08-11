@@ -1,0 +1,250 @@
+<!-- @dsCard group="Option C — full app" -->
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stock Info · price-list band</title>
+<style>@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');</style>
+<style>
+  :root {
+      --paper: #F1F3F6;
+      --sheet: #FFFFFF;
+      --rail: #FFFFFF;
+      --gridHeader: #E9EDF2;
+      --line: #E2E6EC;
+      --muted: #888D96;
+      --ink: #16181D;
+      --inkSoft: #3A3F49;
+      --pen: #1F3A8A;
+      --accent: #D94F3A;
+      --accent2: #F2C94C;
+      --success: #1D7A3A;
+    --font: 'Manrope', system-ui, -apple-system, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { font-family: var(--font); background: var(--paper); color: var(--ink); -webkit-font-smoothing: antialiased; }
+  .caption { padding: 14px 20px 4px; }
+  .caption h2 { margin: 0; font-size: 15px; font-weight: 800; letter-spacing:-0.2px; }
+  .caption p { margin: 3px 0 0; font-size: 12px; color: var(--muted); max-width: 900px; }
+  .caption code { font-size:11px; background:var(--gridHeader); padding:1px 4px; border-radius:4px; color:var(--inkSoft); }
+  .sub { padding: 16px 20px 2px; font-size: 12.5px; font-weight: 800; color: var(--inkSoft); letter-spacing:.2px; }
+  .sub em { font-style:normal; font-weight:600; color:var(--muted); }
+  .frame { position:relative; display:flex; height:560px; margin:12px; border:1px solid var(--line); border-radius:12px; overflow:hidden; background:var(--paper); box-shadow:0 1px 3px rgba(16,24,40,.06); }
+  .frame.crop { height:auto; }
+  .frame.phone { width:390px; height:auto; }
+
+  .rail { width:84px; flex:none; background:var(--rail); border-right:1px solid var(--line); display:flex; flex-direction:column; align-items:center; padding-top:14px; gap:22px; }
+  .logo { width:40px; height:40px; border-radius:50%; background:var(--ink); border:2px solid var(--accent2); display:flex; align-items:center; justify-content:center; color:var(--accent2); }
+  .nav { display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--muted); }
+  .nav.active { color:var(--ink); }
+  .nav .ico { width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:1px solid var(--line); background:var(--sheet); }
+  .nav.active .ico { border-color:var(--ink); }
+  .nav span { font-size:10.5px; font-weight:700; }
+
+  .main { flex:1; display:flex; flex-direction:column; min-width:0; background:var(--sheet); }
+
+  /* --- existing screen chrome (unchanged) --- */
+  .searchwrap { padding:16px; border-bottom:1px solid var(--line); flex:none; }
+  .search { display:flex; align-items:center; gap:10px; height:44px; padding:0 14px; border-radius:12px; background:var(--gridHeader); color:var(--muted); }
+  .search .q { flex:1; font-size:16px; font-weight:800; letter-spacing:-.3px; color:var(--ink); }
+  .nameline { padding:14px 20px 4px; font-size:15px; font-weight:600; }
+  .nameline .k { color:var(--muted); }
+  .panels { display:flex; flex:1; min-height:0; }
+  .panel { flex:1; min-width:0; }
+  .panel + .panel { border-left:1px solid var(--line); }
+  .phead { padding:15px 16px 10px; }
+  .phead .t { display:flex; align-items:center; gap:8px; font-size:11.5px; font-weight:800; letter-spacing:.5px; color:var(--inkSoft); }
+  .dot { width:9px; height:9px; border-radius:3px; background:#B9C8DF; }
+  .dot.sale { background:var(--accent2); }
+  .phead .n { margin-left:auto; font-size:10.5px; font-weight:500; color:var(--muted); }
+  .phead .sum { margin-top:8px; font-size:11.5px; font-weight:700; }
+  .thead { display:flex; background:var(--gridHeader); padding:8px 12px; font-size:10px; font-weight:800; color:var(--muted); }
+  .trow { display:flex; padding:10px 12px; border-bottom:1px solid var(--line); font-size:11.5px; color:var(--inkSoft); }
+  .trow.latest { background:color-mix(in srgb, var(--accent2) 13%, transparent); }
+  .c-date { width:66px; flex:none; } .c-party { flex:1; min-width:0; font-weight:700; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .c-qty { width:56px; } .c-rate { width:64px; } .c-disc { width:40px; } .c-amt { width:86px; font-weight:800; }
+  .num { text-align:right; font-variant-numeric:tabular-nums; }
+  .amt-sale { color:var(--success); }
+  .pill { display:inline-block; padding:1px 5px; border-radius:5px; font-size:9px; font-weight:800; letter-spacing:.4px;
+          color:var(--accent); background:color-mix(in srgb, var(--accent) 10%, transparent); border:1px solid color-mix(in srgb, var(--accent) 35%, transparent); }
+
+  /* ================= NEW · price-list band ================= */
+  .band { display:flex; align-items:stretch; flex:none;
+          background:color-mix(in srgb, var(--pen) 3%, var(--sheet));
+          border-bottom:1px solid var(--line); }
+  .band .cell { padding:11px 16px; min-width:0; }
+  .band .cell.anchor { flex:1; }
+  .band .lbl { font-size:9.5px; font-weight:800; letter-spacing:.6px; color:var(--muted); text-transform:uppercase; }
+  .band .val { margin-top:4px; font-size:17px; font-weight:800; letter-spacing:-.4px; font-variant-numeric:tabular-nums; color:var(--ink); }
+  .band .val.none { font-size:15px; color:var(--muted); }
+  .srcchip { display:inline-flex; align-items:center; gap:4px; margin-top:4px; padding:1.5px 6px; border-radius:5px;
+             font-size:9.5px; font-weight:800; letter-spacing:.2px; color:var(--pen);
+             background:color-mix(in srgb, var(--pen) 8%, transparent); border:1px solid color-mix(in srgb, var(--pen) 22%, transparent); }
+
+  /* right end of the band: download the source PDF, page citation under it */
+  .band .cell.dl { flex:0 0 auto; display:flex; flex-direction:column; align-items:flex-start; justify-content:center;
+                   gap:5px; padding:11px 14px; border-left:1px solid var(--line); }
+  .dlbtn { display:flex; align-items:center; gap:8px; padding:7px 10px; border:1px solid var(--line); border-radius:9px;
+           background:var(--sheet); color:var(--inkSoft); cursor:pointer; text-decoration:none; }
+  .dlbtn:hover { border-color:var(--pen); color:var(--pen); background:color-mix(in srgb, var(--pen) 4%, var(--sheet)); }
+  .dlbtn .t { font-size:11.5px; font-weight:800; white-space:nowrap; }
+  .dlbtn .s { font-size:9.5px; font-weight:600; color:var(--muted); white-space:nowrap; margin-top:1px; }
+  .pageref { display:inline-flex; align-items:center; gap:4px; font-size:10px; font-weight:700; color:var(--muted); }
+  .pageref b { color:var(--ink); font-weight:800; }
+
+  /* unmatched state */
+  .band.empty { background:var(--sheet); }
+  .band .link { display:inline-flex; align-items:center; gap:5px; margin-top:5px; font-size:11px; font-weight:800; color:var(--pen); cursor:pointer; }
+  .band .link:hover { text-decoration:underline; }
+
+  /* --- variant B: one dense line --- */
+  .oneline { display:flex; align-items:center; flex:none; padding:9px 18px; flex-wrap:wrap;
+             background:color-mix(in srgb, var(--pen) 3%, var(--sheet)); border-bottom:1px solid var(--line);
+             font-size:12px; font-weight:700; color:var(--inkSoft); font-variant-numeric:tabular-nums; }
+  .oneline b { font-weight:800; color:var(--ink); }
+  .oneline .sep { color:var(--line); padding:0 9px; }
+  .oneline .pdf { margin-left:auto; display:inline-flex; align-items:center; gap:5px; color:var(--pen); font-weight:800; text-decoration:none; }
+  .oneline .pdf:hover { text-decoration:underline; }
+
+  /* phone */
+  .phone .band { flex-wrap:wrap; }
+  .phone .band .cell.anchor { flex:1 1 100%; }
+  .phone .band .cell.dl { flex:1 1 100%; border-left:0; border-top:1px solid var(--line); }
+  .phone .band .val { font-size:16px; }
+</style>
+</head>
+<body>
+  <div class="caption">
+    <h2>Stock Info · price-list band</h2>
+    <p>A new full-width strip between the search bar and the item name, reading the golden price-list dataset. It states the manufacturer's list price for the item and nothing else — no derived figures. Nothing below it changes: the Purchase and Sale tables keep their existing six columns.</p>
+    <p><b>Provenance sits at the right end:</b> a download button for the source PDF with the page citation directly beneath it (<code>Refer page&nbsp;3</code>), so anyone questioning the rate can go check it. The page reference is per item, not per document — a different item lands on a different page of the same PDF.</p>
+  </div>
+
+  <div class="sub">A — Ledger band <em>(recommended)</em></div>
+  <div class="frame">
+    <div class="rail">
+      <div class="logo"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M21 8.2v7.6a1.6 1.6 0 0 1-.86 1.42l-7.4 3.9a1.6 1.6 0 0 1-1.48 0l-7.4-3.9A1.6 1.6 0 0 1 3 15.8V8.2a1.6 1.6 0 0 1 .86-1.42l7.4-3.7a1.6 1.6 0 0 1 1.48 0l7.4 3.7A1.6 1.6 0 0 1 21 8.2Z"/><path d="M3.3 7.4 12 11.8l8.7-4.4M12 11.8V21"/></svg></div>
+      <div class="nav active"><div class="ico"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M21 8.2v7.6a1.6 1.6 0 0 1-.86 1.42l-7.4 3.9a1.6 1.6 0 0 1-1.48 0l-7.4-3.9A1.6 1.6 0 0 1 3 15.8V8.2a1.6 1.6 0 0 1 .86-1.42l7.4-3.7a1.6 1.6 0 0 1 1.48 0l7.4 3.7A1.6 1.6 0 0 1 21 8.2Z"/><path d="M3.3 7.4 12 11.8l8.7-4.4M12 11.8V21"/></svg></div><span>Rate</span></div>
+      <div class="nav"><div class="ico"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 20V10M12 20V4M19 20v-7"/></svg></div><span>Report</span></div>
+      <div class="nav"><div class="ico"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg></div><span>Profile</span></div>
+    </div>
+    <div class="main">
+      <div class="searchwrap">
+        <div class="search">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/></svg>
+          <div class="q">HSS TAP 1-1/2" BSP PAIR TOTEM</div>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </div>
+      </div>
+
+      <!-- NEW BAND -->
+      <div class="band">
+        <div class="cell anchor">
+          <div class="lbl">List price · per PAIR</div>
+          <div class="val">&#8377;19,666.00</div>
+          <div class="srcchip">
+            <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>
+            TOTEM · eff. 08 Jan 24
+          </div>
+        </div>
+        <div class="cell dl">
+          <a class="dlbtn" href="#">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11M7.5 10 12 14.5 16.5 10"/><path d="M4 19h16"/></svg>
+            <span>
+              <span class="t">Price list PDF</span>
+              <span class="s" style="display:block">TOTEM HPT · 2.1 MB</span>
+            </span>
+          </a>
+          <div class="pageref">
+            <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v5h4"/></svg>
+            Refer <b>page&nbsp;3</b>
+          </div>
+        </div>
+      </div>
+
+      <div class="nameline"><span class="k">Name: </span>HSS TAP 1-1/2" BSP PAIR TOTEM</div>
+
+      <div class="panels">
+        <div class="panel">
+          <div class="phead">
+            <div class="t"><span class="dot"></span>PURCHASE<span class="n">1 entry</span></div>
+            <div class="sum">Last purchased on 30 Jul 26 &nbsp;·&nbsp; 2 PAIR @ &#8377;11,138.82</div>
+          </div>
+          <div class="thead"><div class="c-date">DATE</div><div class="c-party">PARTY NAME</div><div class="c-qty num">QTY</div><div class="c-rate num">RATE</div><div class="c-disc num">DISC %</div><div class="c-amt num">AMOUNT</div></div>
+          <div class="trow latest"><div class="c-date">30 Jul 26</div><div class="c-party">FORBES PRECISION TOOLS &nbsp;<span class="pill">LATEST</span></div><div class="c-qty num">2 PAIR</div><div class="c-rate num">11,138.82</div><div class="c-disc num">0%</div><div class="c-amt num">&#8377;22,277.64</div></div>
+        </div>
+        <div class="panel">
+          <div class="phead">
+            <div class="t"><span class="dot sale"></span>SALE<span class="n">2 entries</span></div>
+            <div class="sum">Last sold on 24 Apr 26 &nbsp;·&nbsp; 1 PAIR @ &#8377;19,666.00</div>
+          </div>
+          <div class="thead"><div class="c-date">DATE</div><div class="c-party">PARTY NAME</div><div class="c-qty num">QTY</div><div class="c-rate num">RATE</div><div class="c-disc num">DISC %</div><div class="c-amt num">AMOUNT</div></div>
+          <div class="trow latest"><div class="c-date">24 Apr 26</div><div class="c-party">MAHESHWARI ENT. &nbsp;<span class="pill">LATEST</span></div><div class="c-qty num">1 PAIR</div><div class="c-rate num">19,666.00</div><div class="c-disc num">46%</div><div class="c-amt num amt-sale">&#8377;10,619.64</div></div>
+          <div class="trow"><div class="c-date">27 Oct 25</div><div class="c-party">MACH TECH TOOLS</div><div class="c-qty num">1 PAIR</div><div class="c-rate num">19,666.00</div><div class="c-disc num">47%</div><div class="c-amt num amt-sale">&#8377;10,422.98</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sub">A · state 2 — no price-list match <em>(the common case; band stays quiet and offers the link action, with nothing to download)</em></div>
+  <div class="frame crop">
+    <div class="rail"></div>
+    <div class="main">
+      <div class="band empty">
+        <div class="cell anchor">
+          <div class="lbl">List price</div>
+          <div class="val none">Not in price list</div>
+          <div class="link">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>
+            Link to a price list item
+          </div>
+        </div>
+      </div>
+      <div class="nameline"><span class="k">Name: </span>DRILL CHUCK 1/2" ADITECH</div>
+    </div>
+  </div>
+
+  <div class="sub">B — Single dense line <em>(cheapest vertically at ~34px; loses the label/value hierarchy)</em></div>
+  <div class="frame crop">
+    <div class="rail"></div>
+    <div class="main">
+      <div class="oneline">
+        <span>List <b>&#8377;19,666.00</b>/PAIR</span><span class="sep">|</span>
+        <span>TOTEM eff. 08 Jan 24</span>
+        <a class="pdf" href="#">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11M7.5 10 12 14.5 16.5 10"/><path d="M4 19h16"/></svg>
+          Price list PDF <span style="color:var(--muted); font-weight:700">· p.&nbsp;3</span>
+        </a>
+      </div>
+      <div class="nameline"><span class="k">Name: </span>HSS TAP 1-1/2" BSP PAIR TOTEM</div>
+    </div>
+  </div>
+
+  <div class="sub">A — phone width <em>(the PDF action drops to its own row under the price)</em></div>
+  <div class="frame crop phone">
+    <div class="main">
+      <div class="searchwrap"><div class="search"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/></svg><div class="q" style="font-size:13px">HSS TAP 1-1/2" BSP PAIR…</div></div></div>
+      <div class="band">
+        <div class="cell anchor">
+          <div class="lbl">List price · per PAIR</div>
+          <div class="val">&#8377;19,666.00</div>
+          <div class="srcchip"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>TOTEM &#8226; eff. 08 Jan 24</div>
+        </div>
+        <div class="cell dl">
+          <a class="dlbtn" href="#">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11M7.5 10 12 14.5 16.5 10"/><path d="M4 19h16"/></svg>
+            <span><span class="t">Price list PDF</span><span class="s" style="display:block">TOTEM HPT &#8226; 2.1 MB</span></span>
+          </a>
+          <div class="pageref">
+            <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v5h4"/></svg>
+            Refer <b>page&nbsp;3</b>
+          </div>
+        </div>
+      </div>
+      <div class="nameline" style="font-size:13px"><span class="k">Name: </span>HSS TAP 1-1/2" BSP PAIR TOTEM</div>
+    </div>
+  </div>
+</body>
+</html>
