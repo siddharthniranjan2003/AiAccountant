@@ -14,10 +14,15 @@ class HistoryScreen extends StatefulWidget {
     super.key,
     required this.currentIndex,
     required this.onNavSelected,
+    this.onlyType,
   });
 
   final int currentIndex;
   final ValueChanged<int> onNavSelected;
+
+  // When set (SiteConfig.onlyType), history is pinned to that type and the
+  // All/Purchase/Sale filter row is dropped — there is nothing left to pick.
+  final TransactionType? onlyType;
 
   @override
   State<HistoryScreen> createState() => _HistoryScreenState();
@@ -212,11 +217,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final visibleItems = switch (_filterIndex) {
-      0 => _history,
-      1 => _history.where((e) => e.type == TransactionType.purchase).toList(),
-      _ => _history.where((e) => e.type == TransactionType.sale).toList(),
-    };
+    final onlyType = widget.onlyType;
+    final visibleItems = onlyType != null
+        ? _history.where((e) => e.type == onlyType).toList()
+        : switch (_filterIndex) {
+            0 => _history,
+            1 => _history.where((e) => e.type == TransactionType.purchase).toList(),
+            _ => _history.where((e) => e.type == TransactionType.sale).toList(),
+          };
 
     final grouped = <String, List<HistoryEntry>>{};
     for (final entry in visibleItems) {
@@ -228,11 +236,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
       onNavSelected: widget.onNavSelected,
       body: Column(
         children: [
-          AppTopTabs(
-            labels: const ['All', 'Purchase', 'Sale'],
-            selectedIndex: _filterIndex,
-            onSelected: (index) => setState(() => _filterIndex = index),
-          ),
+          if (onlyType == null)
+            AppTopTabs(
+              labels: const ['All', 'Purchase', 'Sale'],
+              selectedIndex: _filterIndex,
+              onSelected: (index) => setState(() => _filterIndex = index),
+            ),
           Expanded(
             child: visibleItems.isEmpty
                 ? const Center(

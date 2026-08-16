@@ -56,6 +56,14 @@ void main() {
           _host(currentIndex: 0, onSelected: (_) {}, site: SiteConfig.rate));
       expect(_labels(tester), ['Rate', 'Report', 'Profile']);
     });
+
+    testWidgets('sales-quote — Queue, History, Rate, Report, Profile',
+        (tester) async {
+      await tester.pumpWidget(_host(
+          currentIndex: 0, onSelected: (_) {}, site: SiteConfig.salesQuote));
+      expect(_labels(tester),
+          ['Queue', 'History', 'Rate', 'Report', 'Profile']);
+    });
   });
 
   group('AppBottomNav', () {

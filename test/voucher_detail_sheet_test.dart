@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:aiaccountant/core/site_config.dart';
 import 'package:aiaccountant/data/stock_items_cache.dart';
 import 'package:aiaccountant/features/queue/voucher_detail_sheet.dart';
 
@@ -74,5 +75,67 @@ void main() {
 
     expect(find.text('Item Edited'), findsOneWidget,
         reason: 'a deliberate same-item re-pick must mark the line as dealt with');
+  });
+
+  // The sales-quote site swaps the green action for an inert "Send To Email".
+  // Nothing else about the sheet moves, so pin both sides of the branch.
+  group('the green action follows the site', () {
+    Future<void> pumpSheet(WidgetTester tester, {SiteConfig? site}) async {
+      tester.view.physicalSize = const Size(1600, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(body: VoucherDetailSheet(payload: _payload, site: site)),
+      ));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('default sites push to Tally', (tester) async {
+      await pumpSheet(tester);
+      expect(find.text('Push To Tally'), findsOneWidget);
+      expect(find.text('Send To Email'), findsNothing);
+    });
+
+    testWidgets('sales-quote sends to email instead', (tester) async {
+      await pumpSheet(tester, site: SiteConfig.salesQuote);
+      expect(find.text('Send To Email'), findsOneWidget);
+      expect(find.text('Push To Tally'), findsNothing);
+    });
+
+    // Tapping it closes the sheet and says so — no push, no status change. Opened
+    // as a real modal route, the way the queue opens it, so the pop is the pop.
+    testWidgets('Send To Email closes the sheet and confirms', (tester) async {
+      tester.view.physicalSize = const Size(1600, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: Builder(
+            builder: (ctx) => TextButton(
+              onPressed: () => showModalBottomSheet<void>(
+                context: ctx,
+                isScrollControlled: true,
+                builder: (_) => const VoucherDetailSheet(
+                  payload: _payload,
+                  site: SiteConfig.salesQuote,
+                ),
+              ),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ));
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      expect(find.text('Send To Email'), findsOneWidget);
+
+      await tester.tap(find.text('Send To Email'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Send To Email'), findsNothing, reason: 'sheet closed');
+      expect(find.text('Sent to email'), findsOneWidget);
+    });
   });
 }

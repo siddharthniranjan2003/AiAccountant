@@ -10,6 +10,7 @@ import '../../core/palette.dart';
 import '../../core/config.dart';
 import '../../core/error_reporter.dart';
 import '../../core/indian_states.dart';
+import '../../core/site_config.dart';
 import '../../core/utils.dart';
 import '../../data/customers_cache.dart';
 import '../../data/vendors_cache.dart';
@@ -153,6 +154,7 @@ class VoucherDetailSheet extends StatefulWidget {
     this.onPushed,
     this.readOnly = false,
     this.duplicateKind = DuplicateKind.none,
+    this.site,
   }) : assert(payload != null || pendingPayload != null,
             'Provide either a resolved payload or a pendingPayload future');
 
@@ -190,6 +192,10 @@ class VoucherDetailSheet extends StatefulWidget {
   /// Push-to-Tally confirm shows a kind-specific warning instead of the generic
   /// prompt. `none` keeps the normal confirm.
   final DuplicateKind duplicateKind;
+
+  /// Test seam. [SiteConfig.current] is a compile-time define, so a test process
+  /// can't vary it; production never passes this.
+  final SiteConfig? site;
 
   @override
   State<VoucherDetailSheet> createState() => _VoucherDetailSheetState();
@@ -258,6 +264,10 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
   RealtimeChannel? _channel;
   late _VdsViewMode _viewMode;
   late List<_VdsViewMode> _availableModes;
+
+  // Which site this build is: decides whether the invoice image pane exists at
+  // all and what the green bottom action does.
+  SiteConfig get _site => widget.site ?? SiteConfig.current;
 
   // ── Shape-agnostic accessors ───────────────────────────────────────────────
   // Supabase entries are flat ({party_name, items, ledger_entries}); local scan
@@ -379,7 +389,8 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
       _status = 'processing';
       _loading = true;
       _availableModes = [
-        if (widget.imageBytes != null) _VdsViewMode.image,
+        if (_site.showsInvoiceImage && widget.imageBytes != null)
+          _VdsViewMode.image,
         _VdsViewMode.summary,
       ];
       _viewMode = _availableModes.first;
@@ -398,7 +409,11 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
     // Show the Image tab when there's a local fresh-scan image OR scanned pages
     // were stored in GCS for this row (source_payload.scan.pages > 0). Email-sourced
     // invoices now carry scanned pages too, so they get the Image tab like camera scans.
-    final hasImage = widget.imageBytes != null || _hasStoredImages;
+    // A site with showsInvoiceImage off never gets the Image mode, which is the
+    // single switch behind the whole pane: no two-pane split, no show/hide
+    // toggle in the toolbar, no Image/Summary pills on narrow screens.
+    final hasImage = _site.showsInvoiceImage &&
+        (widget.imageBytes != null || _hasStoredImages);
     final keep = preserveViewMode ? _viewMode : null;
     _availableModes = [
       if (hasImage) _VdsViewMode.image,
@@ -1276,8 +1291,14 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
   }
 
   // Enter on the Total field (end of the Enter-to-move chain) pushes to Tally.
-  // Mirrors the Push To Tally button: same submitting/blocked guards.
+  // Mirrors the Push To Tally button: same submitting/blocked guards — and, on a
+  // site whose green action is Send To Email, the same inert behaviour, so Enter
+  // can't reach the push path the button no longer offers.
   void _submitFromTotal() {
+    if (_site.voucherAction == VoucherAction.sendToEmail) {
+      _sendToEmail();
+      return;
+    }
     if (_isSubmitting) return;
     final pushBlocked = _partyNameWasChanged && !_allItemsDifferentFromOriginal;
     if (pushBlocked) {
@@ -1348,6 +1369,20 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
     // valid != true → missing items; the dialog already told the user which
     // ones. Stay in view mode (no auto-edit); the user edits, saves and pushes
     // again, which re-runs this check.
+  }
+
+  // The sales-quote site's green action. Deliberately inert: it closes the sheet
+  // and says so, and that is all — no payload write, no activate POST, no status
+  // change, no onPushed. The row stays in the queue exactly as it was.
+  //
+  // The messenger is captured before the pop because this context is defunct
+  // once the route is gone (same reason as _confirmAndDiscard below).
+  void _sendToEmail() {
+    final messenger = ScaffoldMessenger.of(context);
+    Navigator.of(context).pop();
+    messenger.showSnackBar(
+      const SnackBar(content: Text('Sent to email'), duration: Duration(seconds: 2)),
+    );
   }
 
   // Confirms then deletes the push_queue row from Supabase. Removes it locally
@@ -2022,7 +2057,30 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
                       ),
                       const SizedBox(width: 12),
                     ],
-                    if (!_loading && widget.pendingPayload == null && !widget.readOnly)
+                    // The sales-quote site mails the quote instead of pushing it,
+                    // so none of the push guards (party-name check, submitting
+                    // spinner) apply — the action does nothing but close.
+                    if (!_loading &&
+                        widget.pendingPayload == null &&
+                        !widget.readOnly &&
+                        _site.voucherAction == VoucherAction.sendToEmail)
+                      Expanded(
+                        child: FilledButton.icon(
+                          onPressed: _sendToEmail,
+                          icon: const Icon(Icons.mail_outline_rounded, size: 18),
+                          label: const Text('Send To Email'),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: const Color(0xFF16A34A),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                            textStyle: const TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                      )
+                    else if (!_loading &&
+                        widget.pendingPayload == null &&
+                        !widget.readOnly)
                       Builder(builder: (context) {
                         final pushBlocked = _partyNameWasChanged && !_allItemsDifferentFromOriginal;
                         return Expanded(

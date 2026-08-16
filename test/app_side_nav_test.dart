@@ -55,6 +55,14 @@ void main() {
       expect(_labels(tester), ['Rate', 'Report', 'Profile']);
     });
 
+    testWidgets('sales-quote — Queue, History, Rate, Report, Profile',
+        (tester) async {
+      await tester.pumpWidget(_host(
+          currentIndex: 0, onSelected: (_) {}, site: SiteConfig.salesQuote));
+      expect(_labels(tester),
+          ['Queue', 'History', 'Rate', 'Report', 'Profile']);
+    });
+
     // Rate reaches the rail only as a destination of the site that has one.
     // Elsewhere stock info is reached from the ⓘ inside a voucher's items —
     // there is no standalone launcher in the rail any more.

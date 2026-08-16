@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 
+import 'models.dart';
+
 /// A place the app can navigate to.
 ///
 /// Named rather than numbered: every nav position used to be an index that
@@ -8,6 +10,13 @@ import 'package:flutter/foundation.dart';
 /// it. Sites with different screen sets make that impossible to hold together,
 /// hence names.
 enum AppDestination { camera, queue, history, report, profile, rate }
+
+/// What the green action at the bottom of the voucher sheet does.
+///
+/// Not just a label — [pushToTally] writes the payload back, POSTs to the
+/// activate endpoint and then waits for TallyPrime's answer over realtime,
+/// while [sendToEmail] closes the sheet and touches nothing.
+enum VoucherAction { pushToTally, sendToEmail }
 
 /// Which screens this build navigates to, in nav order.
 ///
@@ -24,6 +33,9 @@ class SiteConfig {
     required this.title,
     required this.destinations,
     required this.home,
+    this.onlyType,
+    this.showsInvoiceImage = true,
+    this.voucherAction = VoucherAction.pushToTally,
   });
 
   /// Browser tab title, via `MaterialApp.title`.
@@ -35,6 +47,20 @@ class SiteConfig {
 
   /// Where the app opens. Always a member of [destinations].
   final AppDestination home;
+
+  /// Restricts Queue and History to one transaction type. null means both, each
+  /// screen keeping its filter tab row. Non-null means that type only, and the
+  /// tab rows are hidden — there is nothing left to switch between.
+  final TransactionType? onlyType;
+
+  /// Whether the voucher sheet shows the scanned invoice pane. False collapses
+  /// the sheet to a single full-width summary column, and takes the image
+  /// show/hide toggle and the Image/Summary switcher with it — all three hang
+  /// off the same "is there an image mode" question.
+  final bool showsInvoiceImage;
+
+  /// The green action at the bottom of the voucher sheet.
+  final VoucherAction voucherAction;
 
   /// Everything. Android and local dev.
   static const SiteConfig full = SiteConfig(
@@ -73,6 +99,25 @@ class SiteConfig {
     home: AppDestination.rate,
   );
 
+  /// Website 3 — sales quotes. Website 2's screens with Website 1's Queue and
+  /// History borrowed in, but restricted to Sale: this site never touches a
+  /// purchase. The scanned invoice pane is off (a quote is typed, not read off
+  /// a scan) and the green action mails the quote instead of pushing to Tally.
+  static const SiteConfig salesQuote = SiteConfig(
+    title: 'AI Accountant — Sales Quote',
+    destinations: [
+      AppDestination.queue,
+      AppDestination.history,
+      AppDestination.rate,
+      AppDestination.report,
+      AppDestination.profile,
+    ],
+    home: AppDestination.queue,
+    onlyType: TransactionType.sale,
+    showsInvoiceImage: false,
+    voucherAction: VoucherAction.sendToEmail,
+  );
+
   static const String flag = String.fromEnvironment('SITE', defaultValue: 'full');
 
   static SiteConfig get current => forFlag(flag);
@@ -82,6 +127,7 @@ class SiteConfig {
   static SiteConfig forFlag(String flag) => switch (flag) {
         'ops' => ops,
         'rate' => rate,
+        'sales-quote' => salesQuote,
         _ => full,
       };
 }

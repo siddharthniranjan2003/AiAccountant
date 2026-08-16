@@ -26,6 +26,7 @@ class QueueScreen extends StatefulWidget {
     this.oldestLoadingStart,
     this.garbageRows = const [],
     this.pushedReferences = const <String>{},
+    this.onlyType,
   });
 
   final int currentIndex;
@@ -49,6 +50,10 @@ class QueueScreen extends StatefulWidget {
   // "Duplicate: Already Pushed" — see [_alreadyPushedIds].
   final Set<String> pushedReferences;
 
+  // When set (SiteConfig.onlyType), the screen shows just that type and drops
+  // the Purchase/Sale tab row — [tabIndex] then has nothing left to select.
+  final TransactionType? onlyType;
+
   @override
   State<QueueScreen> createState() => _QueueScreenState();
 }
@@ -63,7 +68,8 @@ class _QueueScreenState extends State<QueueScreen> {
   final Map<String, QueueEditState> _editMarkers = {};
 
   TransactionType get _activeType =>
-      widget.tabIndex == 0 ? TransactionType.purchase : TransactionType.sale;
+      widget.onlyType ??
+      (widget.tabIndex == 0 ? TransactionType.purchase : TransactionType.sale);
 
   // Filtered to the active tab, tagged with any local edit marker, and sorted
   // newest-first by created_at. Sorting the flat list before grouping/serials
@@ -333,11 +339,14 @@ class _QueueScreenState extends State<QueueScreen> {
       onNavSelected: widget.onNavSelected,
       body: Column(
         children: [
-          AppTopTabs(
-            labels: const ['Purchase', 'Sale'],
-            selectedIndex: widget.tabIndex,
-            onSelected: widget.onTabChanged,
-          ),
+          // A single-type site has nothing to switch between, so the tab row
+          // goes and the list starts at the top of the screen.
+          if (widget.onlyType == null)
+            AppTopTabs(
+              labels: const ['Purchase', 'Sale'],
+              selectedIndex: widget.tabIndex,
+              onSelected: widget.onTabChanged,
+            ),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),

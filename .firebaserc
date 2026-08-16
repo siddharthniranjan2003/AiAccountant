@@ -26,6 +26,9 @@
         ],
         "full": [
           "tallybridge-testing-env-636d4"
+        ],
+        "sales-quote": [
+          "tallybridge-testing-sales-quote"
         ]
       }
     },
@@ -39,6 +42,9 @@
         ],
         "full": [
           "tallybridge-deployment-env"
+        ],
+        "sales-quote": [
+          "tallybridge-deployment-sales-quote"
         ]
       }
     }

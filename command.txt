@@ -1,0 +1,109 @@
+flutter build apk --release 
+
+PS D:\Desktop\Ai_Accountant\aiaccountant>   firebase appdistribution:distribute build\app\outputs\flutter-apk\app-release.apk `                              
+         --app 1:845558047543:android:c5b78d26f8869541ad30b2 `                                         
+         --groups dev-circle `                                  
+         --release-notes "updates"
+
+         
+
+ TESTING (testing.riplara)                         
+ flutter run --flavor staging --dart-define-from-file=env/testing.json                                                                                                                                                                            
+    flutter run -d chrome --dart-define-from-file=env/testing.json                                                                                                                                                                                       
+                                                                                                                                                                                                                                  
+    Web (build + deploy):                   
+    flutter build web --dart-define-from-file=env/testing.json                                                                                                                                                                    
+    firebase deploy --only hosting --project testing --account testing.riplara@gmail.com                                                                                                                                          
+    → https://tallybridge-testing-env-636d4.web.app                                                                                                                                                                               
+    Android APK (flavor staging = testing env):                                                                                                                                                                                   
+    flutter build apk --flavor staging --dart-define-from-file=env/testing.json                                                                                                                                                   
+    → build\app\outputs\flutter-apk\app-staging-release.apk                                                                                                                                                                       
+                                                                                                                                                                                                                                  
+    DEPLOYMENT (deployment.riplara)                                                                                                                                                                                               
+                                                                                                                                                                                                                                  
+    Web (build + deploy):                                                                                                                                                                                                         
+    flutter build web --dart-define-from-file=env/deployment.json                                                                                                                                                                 
+    firebase deploy --only hosting --project deployment --account deployment.riplara@gmail.com                                                                                                                                    
+    → https://tallybridge-deployment-env.web.app                                                                                                                                                                                  
+                                                                                                                                                                                                                                  
+    Android APK:                                                                                                                                                                                                                  
+    flutter build apk --flavor deployment --dart-define-from-file=env/deployment.json                                                                                                                                             
+    → build\app\outputs\flutter-apk\app-deployment-release.apk                    
+  Each deploy prints its live URL:
+  - testing → https://tallybridge-testing-env-636d4.web.app
+  - deployment → https://tallybridge-deployment-env.web.app
+
+
+
+
+Testing
+  - Website 1 — Queue, History, Profile → https://tallybridge-testing-ops.web.app
+  - Website 2 — Rate, Report, Profile → https://tallybridge-testing-rate.web.app
+
+Website 1 — Queue, History, Profile:
+
+flutter build web --release --dart-define-from-file=env/testing.json --dart-define=SITE=ops
+firebase deploy --only hosting:ops --project testing --account testing.riplara@gmail.com
+→ https://tallybridge-testing-ops.web.app
+
+Website 2 — Rate, Report, Profile:
+
+flutter build web --release --dart-define-from-file=env/testing.json --dart-define=SITE=rate
+firebase deploy --only hosting:rate --project testing --account testing.riplara@gmail.com
+→ https://tallybridge-testing-rate.web.app
+
+
+DEPLOYMENT — two sites (deployment.riplara)
+  - Website 1 — Queue, History, Profile → https://tallybridge-deployment-ops.web.app
+  - Website 2 — Rate, Report, Profile → https://tallybridge-deployment-rate.web.app
+
+Website 1 — Queue, History, Profile:
+flutter build web --release --dart-define-from-file=env/deployment.json --dart-define=SITE=ops
+firebase deploy --only hosting:ops --project deployment --account deployment.riplara@gmail.com
+→ https://tallybridge-deployment-ops.web.app
+
+Website 2 — Rate, Report, Profile:
+flutter build web --release --dart-define-from-₹file=env/deployment.json --dart-define=SITE=rate
+firebase deploy --only hosting:rate --project deployment --account deployment.riplara@gmail.com
+→ https://tallybridge-deployment-rate.web.app
+
+
+TESTING (full app)
+flutter build web --release --dart-define-from-file=env/testing.json
+firebase deploy --only hosting:full --project testing --account testing.riplara@gmail.com
+→ https://tallybridge-testing-env-636d4.web.app
+
+DEPLOYMENT (full app)
+flutter build web --release --dart-define-from-file=env/deployment.json
+firebase deploy --only hosting:full --project deployment --account deployment.riplara@gmail.com
+→ https://tallybridge-deployment-env.web.app
+
+
+Website 3 — Sales Quote (Queue, History, Rate, Report, Profile) — SALE ONLY
+  - Queue and History show sale vouchers only (no Purchase/Sale tab row)
+  - The voucher sheet has no scanned-image pane, and the green button is
+    "Send To Email": it closes the sheet and shows a toast, nothing else
+  - Testing    → https://tallybridge-testing-sales-quote.web.app
+  - Deployment → https://tallybridge-deployment-sales-quote.web.app
+
+One-time, before the first deploy (creates the hosting sites):
+firebase hosting:sites:create tallybridge-testing-sales-quote --project testing --account testing.riplara@gmail.com
+firebase hosting:sites:create tallybridge-deployment-sales-quote --project deployment --account deployment.riplara@gmail.com
+
+TESTING:
+flutter build web --release --dart-define-from-file=env/testing.json --dart-define=SITE=sales-quote
+firebase deploy --only hosting:sales-quote --project testing --account testing.riplara@gmail.com
+→ https://tallybridge-testing-sales-quote.web.app
+
+DEPLOYMENT:
+flutter build web --release --dart-define-from-file=env/deployment.json --dart-define=SITE=sales-quote
+firebase deploy --only hosting:sales-quote --project deployment --account deployment.riplara@gmail.com
+→ https://tallybridge-deployment-sales-quote.web.app
+
+Local run:
+flutter run -d chrome --dart-define-from-file=env/testing.json --dart-define=SITE=sales-quote
+
+NOTE: every hosting target above publishes the same build/web directory, so always
+build → deploy → build → deploy. Deploying twice off one build ships the wrong
+site's bundle to the second URL.
+

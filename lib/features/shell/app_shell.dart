@@ -48,7 +48,8 @@ class _AccountantShellState extends State<AccountantShell>
   // places, so they have to move together or the scan badge counts the wrong
   // queue.
   TransactionType get _activeQueueType =>
-      _queueTabIndex == 0 ? TransactionType.purchase : TransactionType.sale;
+      _site.onlyType ??
+      (_queueTabIndex == 0 ? TransactionType.purchase : TransactionType.sale);
 
   late final PushQueueService _pushQueueService;
 
@@ -260,10 +261,12 @@ class _AccountantShellState extends State<AccountantShell>
             oldestLoadingStart: _scanService.oldestStartFor(_activeQueueType),
             garbageRows: _scanService.garbageEntries(),
             pushedReferences: _pushQueueService.pushedPurchaseReferences,
+            onlyType: _site.onlyType,
           ),
         AppDestination.history => HistoryScreen(
             currentIndex: _currentIndex,
             onNavSelected: _onNavSelected,
+            onlyType: _site.onlyType,
           ),
         AppDestination.report => ReportScreen(
             currentIndex: _currentIndex,
