@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/constants.dart';
 import '../../core/palette.dart';
@@ -80,6 +81,7 @@ class _PriceListEntry {
     required this.pageNo,
     required this.effectiveFrom,
     required this.verified,
+    required this.storagePath,
   });
 
   final String rate;
@@ -89,6 +91,23 @@ class _PriceListEntry {
   final String effectiveFrom;
   final bool verified;
 
+  /// `bucket/object` as stored, e.g. `price-lists/totem-hpt-2024-01-08.pdf`.
+  final String storagePath;
+
+  /// Public URL of the source PDF, anchored at the cited page. The `#page=`
+  /// fragment is honoured by every browser PDF viewer, so the reader lands on
+  /// the grid this row came from rather than on the cover. Null when the row
+  /// carries no path — the button is then not drawn at all.
+  String? get pdfUrl {
+    final path = storagePath.trim();
+    final slash = path.indexOf('/');
+    if (slash <= 0 || slash == path.length - 1) return null;
+    final url = Supabase.instance.client.storage
+        .from(path.substring(0, slash))
+        .getPublicUrl(path.substring(slash + 1));
+    return pageNo == null ? url : '$url#page=$pageNo';
+  }
+
   factory _PriceListEntry.fromRow(Map<String, dynamic> row) {
     final rate = (row['list_rate'] as num?)?.toDouble() ?? 0;
     return _PriceListEntry(
@@ -96,6 +115,7 @@ class _PriceListEntry {
       unit: (row['unit'] as String? ?? '').trim(),
       docTitle: (row['doc_title'] as String? ?? '').trim(),
       pageNo: (row['page_no'] as num?)?.toInt(),
+      storagePath: (row['storage_path'] as String? ?? '').trim(),
       effectiveFrom: formatShortDate(row['effective_from'] as String?),
       // Anything not confirmed against a real invoice says so on the row —
       // 285 of the 731 seeded rows have never been checked.
@@ -169,7 +189,10 @@ class _StockInfoScreenState extends State<StockInfoScreen> {
   // list. A failure here is silent — the band just stays in its "not matched"
   // state rather than putting an error above the item name.
   List<_PriceListEntry>? _priceList;
-  bool _historyOpen = false;
+  // The revision list is open on arrival — the source document and its page are
+  // the point of the band, not an optional detail. A deliberate collapse then
+  // survives moving between items, so browsing does not keep reopening it.
+  bool _historyOpen = true;
 
   // The stock item currently shown; changes when the user picks one via search.
   late String _item;
@@ -238,7 +261,6 @@ class _StockInfoScreenState extends State<StockInfoScreen> {
       _purchases = _item.isEmpty ? const [] : null;
       _sales = _item.isEmpty ? const [] : null;
       _priceList = _item.isEmpty ? const [] : null;
-      _historyOpen = false;
     });
     if (_item.isEmpty) return;
     _loadPurchases();
@@ -254,7 +276,7 @@ class _StockInfoScreenState extends State<StockInfoScreen> {
       final res = await Supabase.instance.client
           .from('price_list')
           .select('list_rate, unit, doc_title, page_no, effective_from, '
-              'confidence')
+              'storage_path, confidence')
           .eq('stock_item_name', item)
           .order('effective_from', ascending: false);
       // A slow response for an item the user has already navigated away from
@@ -391,7 +413,6 @@ class _StockInfoScreenState extends State<StockInfoScreen> {
       _purchaseError = null;
       _saleError = null;
       _priceList = null;
-      _historyOpen = false;
     });
     _loadPurchases();
     _loadSales();
@@ -407,7 +428,6 @@ class _StockInfoScreenState extends State<StockInfoScreen> {
       _purchaseError = null;
       _saleError = null;
       _priceList = const [];
-      _historyOpen = false;
     });
   }
 
@@ -468,7 +488,7 @@ class _StockInfoScreenState extends State<StockInfoScreen> {
                 // The manufacturer's list price for this item, above the name so
                 // it reads before the invoice history it should be compared to.
                 // Hidden entirely on the blank-search state.
-                if (_item.isNotEmpty)
+                if (_item.isNotEmpty) ...[
                   _PriceListBand(
                     entries: _priceList,
                     historyOpen: _historyOpen,
@@ -476,6 +496,16 @@ class _StockInfoScreenState extends State<StockInfoScreen> {
                         setState(() => _historyOpen = !_historyOpen),
                     narrow: narrow,
                   ),
+                  // Separate the price band from the item's own history below it.
+                  // Proportional to the viewport (15%) so the split holds on a
+                  // large monitor, but clamped: this space is taken from the
+                  // panels, and on a short or phone-height window an unbounded
+                  // gap would squeeze the tables out of the viewport.
+                  SizedBox(
+                    height: (constraints.maxHeight * 0.15)
+                        .clamp(12.0, narrow ? 40.0 : 150.0),
+                  ),
+                ],
                 // Selected item name, shown right below the search bar. Bounded
                 // to two lines so a long name can't push the panels off-screen.
                 Padding(
@@ -612,10 +642,13 @@ class _PriceListBand extends StatelessWidget {
     } else if (current == null) {
       sub = 'not matched';
     } else {
-      final unit = current.unit.isEmpty ? '' : 'per ${current.unit}';
-      sub = current.verified
-          ? unit
-          : (unit.isEmpty ? 'not invoice-checked' : '$unit · not invoice-checked');
+      sub = current.unit.isEmpty ? '' : 'per ${current.unit}';
+      // The "not invoice-checked" suffix is commented out on request. Restore
+      // it to mark rows whose price no invoice has ever confirmed — 285 of the
+      // 731 seeded rows, which otherwise read identically to confirmed ones.
+      // sub = current.verified
+      //     ? sub
+      //     : (sub.isEmpty ? 'not invoice-checked' : '$sub · not invoice-checked');
     }
 
     final label = Column(
@@ -773,7 +806,9 @@ class _PriceListHistory extends StatelessWidget {
     final pad = narrow ? 12.0 : 16.0;
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.fromLTRB(pad, 0, pad, 8),
+      // Breathing room under the divider so the revision list reads as its own
+      // section rather than a row stuck to the one above it.
+      padding: EdgeInsets.fromLTRB(pad, 8, pad, 12),
       decoration: BoxDecoration(
         border: Border(top: BorderSide(color: AppPalette.line)),
       ),
@@ -836,6 +871,32 @@ class _PriceListHistoryRow extends StatelessWidget {
         fontSize: 11.5,
       ),
     );
+    // Opens the source PDF at the page this row cites. Absent when the row has
+    // no storage_path, so the citation never offers a link that goes nowhere.
+    final url = entry.pdfUrl;
+    final Widget? download = url == null
+        ? null
+        : Tooltip(
+            message: entry.pageNo == null
+                ? 'Open the price list'
+                : 'Open the price list at page ${entry.pageNo}',
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => launchUrl(
+                  Uri.parse(url),
+                  mode: LaunchMode.externalApplication,
+                ),
+                borderRadius: BorderRadius.circular(6),
+                child: Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: Icon(Icons.download_rounded,
+                      size: 17, color: AppPalette.pen),
+                ),
+              ),
+            ),
+          );
+
     final when = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -849,16 +910,20 @@ class _PriceListHistoryRow extends StatelessWidget {
         ),
         if (current) ...[
           const SizedBox(width: 6),
-          _BandChip(
-            text: entry.verified ? 'CURRENT' : 'UNVERIFIED',
-            color: entry.verified ? AppPalette.success : AppPalette.accent,
-          ),
+          // The UNVERIFIED variant is commented out on request — the newest
+          // edition now always reads CURRENT. Swap the two lines back to
+          // distinguish `confidence = review` rows from confirmed ones.
+          _BandChip(text: 'CURRENT', color: AppPalette.success),
+          // _BandChip(
+          //   text: entry.verified ? 'CURRENT' : 'UNVERIFIED',
+          //   color: entry.verified ? AppPalette.success : AppPalette.accent,
+          // ),
         ],
       ],
     );
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: EdgeInsets.only(top: first ? 0 : 9, bottom: 9),
       decoration: first
           ? null
           : BoxDecoration(
@@ -876,13 +941,34 @@ class _PriceListHistoryRow extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 3),
-                doc,
+                Row(
+                  children: [
+                    Flexible(child: doc),
+                    if (download != null) ...[
+                      const SizedBox(width: 6),
+                      download,
+                    ],
+                  ],
+                ),
               ],
             )
           : Row(
               children: [
                 SizedBox(width: 104, child: rate),
-                Expanded(child: doc),
+                // doc and its download sit together, so the button reads as
+                // belonging to the citation rather than to the row.
+                Expanded(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(child: doc),
+                      if (download != null) ...[
+                        const SizedBox(width: 6),
+                        download,
+                      ],
+                    ],
+                  ),
+                ),
                 const SizedBox(width: 12),
                 when,
               ],
