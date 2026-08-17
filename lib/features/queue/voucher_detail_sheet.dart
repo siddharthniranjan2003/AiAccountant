@@ -1947,11 +1947,17 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
                                 child: const Text('Revert'),
                               ),
                             ],
-                            const SizedBox(width: 8),
                             // Creates a stock master in TallyPrime without
                             // touching this voucher (unlike Add, which appends a
                             // line). Same sheet the picker's "Create new stock
                             // item" row opens, so it needs no edit mode.
+                            //
+                            // Hidden where the site may not write to Tally: this
+                            // POSTs to the same activate endpoint the push button
+                            // does, so leaving it would be a side door into Tally
+                            // on a site that has no front one.
+                            if (_site.createsStockItems) ...[
+                            const SizedBox(width: 8),
                             FilledButton.icon(
                               onPressed: _createStockItem,
                               icon: const Icon(Icons.add_circle_outline_rounded, size: 16),
@@ -1966,6 +1972,7 @@ class _VoucherDetailSheetState extends State<VoucherDetailSheet> {
                                 textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
                               ),
                             ),
+                            ], // createsStockItems
                           ],
                         ),
                         ], // pendingPayload == null
@@ -3987,6 +3994,11 @@ class _StockItemPickerSheetState extends State<_StockItemPickerSheet> {
           // Create a brand-new stock item in TallyPrime when the catalog doesn't
           // have it (prefills the current search text). The created item is
           // returned as this picker's result so the line uses it immediately.
+          //
+          // The second Tally side door, gated with the toolbar button it mirrors.
+          // Read straight off SiteConfig.current rather than the sheet's `site`
+          // test seam — this picker is its own route and takes no site param.
+          if (SiteConfig.current.createsStockItems)
           InkWell(
             onTap: () async {
               final created = await showStockItemCreateSheet(

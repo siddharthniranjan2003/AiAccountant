@@ -36,6 +36,7 @@ class SiteConfig {
     this.onlyType,
     this.showsInvoiceImage = true,
     this.voucherAction = VoucherAction.pushToTally,
+    this.createsStockItems = true,
   });
 
   /// Browser tab title, via `MaterialApp.title`.
@@ -61,6 +62,12 @@ class SiteConfig {
 
   /// The green action at the bottom of the voucher sheet.
   final VoucherAction voucherAction;
+
+  /// Whether this site may create stock masters in TallyPrime. False hides
+  /// every "Create New Item" surface — the sheet's toolbar button and the item
+  /// picker's create row — because both POST to the same activate endpoint the
+  /// push button uses. A site that doesn't push must not reach Tally sideways.
+  final bool createsStockItems;
 
   /// Everything. Android and local dev.
   static const SiteConfig full = SiteConfig(
@@ -116,6 +123,7 @@ class SiteConfig {
     onlyType: TransactionType.sale,
     showsInvoiceImage: false,
     voucherAction: VoucherAction.sendToEmail,
+    createsStockItems: false,
   );
 
   static const String flag = String.fromEnvironment('SITE', defaultValue: 'full');

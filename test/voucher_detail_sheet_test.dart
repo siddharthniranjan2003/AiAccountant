@@ -103,6 +103,73 @@ void main() {
       expect(find.text('Push To Tally'), findsNothing);
     });
 
+    // Create New Item POSTs to the same activate endpoint the push button does,
+    // so a site that may not write to Tally must not offer it either.
+    testWidgets('Create New Item is hidden where Tally is off limits',
+        (tester) async {
+      await pumpSheet(tester);
+      expect(find.text('Create New Item'), findsOneWidget);
+
+      await pumpSheet(tester, site: SiteConfig.salesQuote);
+      expect(find.text('Create New Item'), findsNothing);
+    });
+
+    // The Total field's Enter is the OTHER way into _confirmAndActivate. A site
+    // with no push button must not still have a push keystroke.
+    testWidgets('Enter on Total does not reach the push confirm', (tester) async {
+      // The Total field lives in the charges block, which renders only when the
+      // breakdown is non-empty. The largest entry becomes the party line and is
+      // excluded from the breakdown, so this needs two.
+      final withCharges = Map<String, dynamic>.from(_payload)
+        ..['ledger_entries'] = [
+          {'ledger_name': 'ACME TRADERS', 'amount': -28},
+          {'ledger_name': 'GST SALE', 'amount': 28},
+        ];
+
+      tester.view.physicalSize = const Size(1600, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      // A real modal route, so the pop in _sendToEmail is the real pop and the
+      // toast lands on a Scaffold that outlives it.
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: Builder(
+            builder: (ctx) => TextButton(
+              onPressed: () => showModalBottomSheet<void>(
+                context: ctx,
+                isScrollControlled: true,
+                builder: (_) => VoucherDetailSheet(
+                  payload: withCharges,
+                  site: SiteConfig.salesQuote,
+                ),
+              ),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ));
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+
+      final totalField = find.descendant(
+        of: find
+            .ancestor(of: find.text('Total Value'), matching: find.byType(Row))
+            .first,
+        matching: find.byType(TextFormField),
+      );
+      await tester.enterText(totalField, '28');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+
+      // The push path always opens this confirm first; Send To Email never does.
+      expect(
+        find.textContaining('Push This invoice to Tally Prime'),
+        findsNothing,
+        reason: 'Enter on Total must not reach _confirmAndActivate',
+      );
+      expect(find.text('Sent to email'), findsOneWidget);
+    });
+
     // Tapping it closes the sheet and says so — no push, no status change. Opened
     // as a real modal route, the way the queue opens it, so the pop is the pop.
     testWidgets('Send To Email closes the sheet and confirms', (tester) async {

@@ -78,6 +78,7 @@ void main() {
       expect(SiteConfig.salesQuote.onlyType, TransactionType.sale);
       expect(SiteConfig.salesQuote.showsInvoiceImage, isFalse);
       expect(SiteConfig.salesQuote.voucherAction, VoucherAction.sendToEmail);
+      expect(SiteConfig.salesQuote.createsStockItems, isFalse);
     });
 
     test('every other site keeps both types, the image, and Push To Tally', () {
@@ -85,6 +86,7 @@ void main() {
         expect(site.onlyType, isNull, reason: site.title);
         expect(site.showsInvoiceImage, isTrue, reason: site.title);
         expect(site.voucherAction, VoucherAction.pushToTally, reason: site.title);
+        expect(site.createsStockItems, isTrue, reason: site.title);
       }
     });
   });
